@@ -10,13 +10,13 @@ app.use(cors());
 const port = process.env.PORT || 8080;
 
 // Database connection
-const sequelize = new Sequelize('database', 'username', 'password', {
+const sequelize = new Sequelize(process.env.DATABASE, process.env.USER, process.env.PASSWORD, {
     host: 'localhost',
     dialect: 'mysql'
 });
 
 // Test database connection
-console.log(process.env.database);
+console.log(process.env.DATABASE, process.env.USER, process.env.PASSWORD);
 sequelize.authenticate()
   .then(() => {
     console.log('Connection has been established successfully.');
