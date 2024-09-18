@@ -12,7 +12,7 @@ module.exports = {
      *   isBetaMember: false
      * }], {});
     */
-    return queryInterface.bulkInsert('jeopardies', [
+    return queryInterface.bulkInsert('Jeopardies', [
       {
         name: "English Competition",
         subject: "English",
@@ -37,6 +37,6 @@ module.exports = {
      * Example:
      * await queryInterface.bulkDelete('People', null, {});
      */
-    await queryInterface.bulkDelete('jeopardies', null, {});
+    await queryInterface.bulkDelete('Jeopardies', null, {});
   }
 };
