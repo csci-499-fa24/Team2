@@ -4,6 +4,7 @@ const db = require('./models');
 const cors = require('cors')
 const app = express();
 require('dotenv').config();
+const routes = require("./controllers");
 
 
 app.use(cors());
@@ -16,7 +17,6 @@ const sequelize = new Sequelize(process.env.DATABASE, process.env.USER, process.
 });
 
 // Test database connection
-console.log(process.env.DATABASE, process.env.USER, process.env.PASSWORD);
 sequelize.authenticate()
   .then(() => {
     console.log('Connection has been established successfully.');
@@ -30,3 +30,5 @@ db.sequelize.sync().then((req) => {
     console.log(`Server is running on http://localhost:${port}`);
     });
 });
+
+app.use("/api", routes);

@@ -9,13 +9,22 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      name: {
+      show_number: {
+        type: Sequelize.INTEGER
+      },
+      round: {
         type: Sequelize.STRING
       },
-      subject: {
+      category: {
         type: Sequelize.STRING
       },
-      creator: {
+      value: {
+        type: Sequelize.INTEGER
+      },
+      question: {
+        type: Sequelize.STRING
+      },
+      answer: {
         type: Sequelize.STRING
       },
       createdAt: {
