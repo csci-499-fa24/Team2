@@ -6,24 +6,40 @@ import React, {useEffect, useState} from 'react'
 export default function Home() {
   
   const [message, setMessage] = useState("Loading")
+  const [Jeopardies, setJeopardies] = useState([]);
 
-  console.log(process.env.NEXT_PUBLIC_SERVER_URL + "/api/home")
   useEffect(() => {
-    fetch(process.env.NEXT_PUBLIC_SERVER_URL + "/api/home").then(
-      response => response.json()
-    ).then(
-      data => {
-        console.log(data)
-        setMessage(data.message)
-      }
-    )
-  }, [])
+    fetch(process.env.NEXT_PUBLIC_SERVER_URL + "/api/jeopardy")
+      .then(response => response.json())
+      .then(data => {
+        setJeopardies(data);
+        console.log("Fetched Data:", data);  // Log data here
+      })
+      .catch(error => {
+        console.error("Error fetching data:", error);
+      });
+  }, []);
+
+  useEffect(() => {
+    if (Jeopardies) {
+      console.log("Jeopardies state:", Jeopardies);
+    }
+  }, [Jeopardies]);
   
   return (
     <div className={styles.page}>
       <main className={styles.main}>
         <div>Return message from server</div>
-        <div>{message}</div>
+        {Jeopardies.length > 0 ? (
+          Jeopardies.map((item, index) => (
+            <div key={index}>
+              <h3>{item.show_number}</h3>  
+              <p>{item.question}</p>
+            </div>
+          ))
+        ) : (
+          <p>{message}</p>
+        )}
       </main>
     </div>
   );
