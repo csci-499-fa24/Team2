@@ -14,9 +14,12 @@ module.exports = (sequelize, DataTypes) => {
     }
   }
   Jeopardy.init({
-    name: DataTypes.STRING,
-    subject: DataTypes.STRING,
-    creator: DataTypes.STRING
+    show_number: DataTypes.INTEGER,
+    round: DataTypes.STRING,
+    category: DataTypes.STRING,
+    value: DataTypes.INTEGER,
+    question: DataTypes.STRING,
+    answer: DataTypes.STRING
   }, {
     sequelize,
     modelName: 'Jeopardy',
