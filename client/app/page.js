@@ -1,21 +1,23 @@
-'use client'
+"use client";
 
 import styles from "./page.module.css";
-import React, {useEffect, useState} from 'react'
+import React, { useEffect, useState } from "react";
+import Image from "next/image";
+import jeopardyLogo from "./icons/Jeopardy-Symbol.png";
+import userIcon from "./icons/user.png";
 
 export default function Home() {
-  
-  const [message, setMessage] = useState("Loading")
+  const [message, setMessage] = useState("Loading");
   const [Jeopardies, setJeopardies] = useState([]);
 
   useEffect(() => {
     fetch(process.env.NEXT_PUBLIC_SERVER_URL + "/api/jeopardy")
-      .then(response => response.json())
-      .then(data => {
+      .then((response) => response.json())
+      .then((data) => {
         setJeopardies(data);
-        console.log("Fetched Data:", data);  // Log data here
+        console.log("Fetched Data:", data); // Log data here
       })
-      .catch(error => {
+      .catch((error) => {
         console.error("Error fetching data:", error);
       });
   }, []);
@@ -25,22 +27,53 @@ export default function Home() {
       console.log("Jeopardies state:", Jeopardies);
     }
   }, [Jeopardies]);
-  
+
   return (
     <div className={styles.page}>
-      <main className={styles.main}>
-        <div>Return message from server</div>
-        {Jeopardies.length > 0 ? (
-          Jeopardies.map((item, index) => (
-            <div key={index}>
-              <h3>{item.show_number}</h3>  
-              <p>{item.question}</p>
-            </div>
-          ))
-        ) : (
-          <p>{message}</p>
-        )}
-      </main>
+      <div className={styles.titleContainer}>
+        <Image
+          src={jeopardyLogo}
+          alt="Jeopardy Logo"
+          width={500}
+          height={250}
+        />
+        <h2 className={styles.subtitle}>With Friends!</h2>
+      </div>
+
+      <div className={styles.loginContainer}>
+        <div className={styles.inputContainer}>
+          <div className={styles.iconWrapper}>
+            <Image
+              src={userIcon}
+              alt="User Icon"
+              className={styles.userIcon}
+              width={50}
+              height={50}
+            />
+          </div>
+          <div className={styles.inputsWrapper}>
+            <input
+              type="text"
+              placeholder="Username"
+              className={styles.inputField}
+            />
+            <input
+              type="password"
+              placeholder="Password"
+              className={styles.inputField}
+            />
+          </div>
+        </div>
+
+        <button className={styles.loginButton}>Login</button>
+      </div>
+
+      <p className={styles.notAUser}>
+        Not a user yet?{" "}
+        <a href="/signup" className={styles.signupLink}>
+          Create an account
+        </a>
+      </p>
     </div>
   );
 }
