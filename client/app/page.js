@@ -5,10 +5,12 @@ import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import jeopardyLogo from "./icons/Jeopardy-Symbol.png";
 import userIcon from "./icons/user.png";
-
+import { io } from "socket.io-client"; 
 export default function Home() {
   const [message, setMessage] = useState("Loading");
   const [Jeopardies, setJeopardies] = useState([]);
+  const [socket, setSocket] = useState(null); 
+  const [roomKey, setRoomKey] = useState("room1"); // set roomkey here for now
 
   useEffect(() => {
     fetch(process.env.NEXT_PUBLIC_SERVER_URL + "/api/jeopardy")
@@ -27,6 +29,33 @@ export default function Home() {
       console.log("Jeopardies state:", Jeopardies);
     }
   }, [Jeopardies]);
+  
+  useEffect(() => {
+    const socketInstance = io(process.env.NEXT_PUBLIC_SERVER_URL);
+    setSocket(socketInstance);
+
+    console.log("Emitting roomkey...");
+    socketInstance.emit("roomkey", roomKey);
+  
+    console.log("Starting initHandshake event...");
+    socketInstance.emit("initHandshake", roomKey);
+    
+    socketInstance.on("serverHandshake", (confirmation) => {
+      console.log("Server handshake received:", confirmation);
+      if (confirmation) {
+        console.log("Sending receivedHandshake...");
+        socketInstance.emit("receivedHandshake", roomKey);
+      }
+    });
+
+    socketInstance.on("confirmHandshake", (confirmation) => {
+      console.log("Server handshake confirmed");
+    });
+
+    return () => {
+      socketInstance.disconnect();
+    };
+  }, [roomKey]);
 
   return (
     <div className={styles.page}>

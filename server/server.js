@@ -5,7 +5,16 @@ const cors = require('cors')
 const app = express();
 require('dotenv').config();
 const routes = require("./controllers");
+const http = require('http');
+const socketIo = require('socket.io');
 
+const server = http.createServer(app);
+const io = socketIo(server, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"]
+  }
+});
 
 app.use(cors());
 const port = process.env.PORT || 8080;
@@ -26,9 +35,32 @@ sequelize.authenticate()
   });
 
 db.sequelize.sync().then((req) => {
-    app.listen(port, () => {
+    server.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);
     });
 });
 
 app.use("/api", routes);
+
+io.on('connection', (socket) => {
+  console.log('New client connected', socket.id);
+
+  socket.on('roomkey', (room) => {
+    socket.join(room);
+    console.log(`Socket ${socket.id} joined room ${room}`);
+  });
+
+  socket.on('initHandshake', (room) => {
+    console.log(`Server handshake initiated for room ${room}`);
+    socket.emit("serverHandshake", true);
+  });
+
+  socket.on('receivedHandshake', (room) => {
+    console.log(`Handshake received and confirmed for room ${room}`);
+    socket.emit("confirmHandshake", true);
+  });
+
+  socket.on('disconnect', () => {
+    console.log('Client disconnected', socket.id);
+  });
+});
