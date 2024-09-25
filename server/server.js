@@ -8,12 +8,9 @@ const routes = require("./controllers");
 const http = require('http');
 const socketIo = require('socket.io');
 
-const server = http.createServer(app);
-
-
 app.use(cors());
 const port = process.env.PORT || 8080;
-
+const server = http.createServer(app);
 // Database connection
 const sequelize = new Sequelize(process.env.DATABASE, process.env.USER, process.env.PASSWORD, {
     host: 'localhost',
