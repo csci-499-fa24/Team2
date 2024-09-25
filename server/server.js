@@ -9,12 +9,7 @@ const http = require('http');
 const socketIo = require('socket.io');
 
 const server = http.createServer(app);
-const io = socketIo(server, {
-  cors: {
-    origin: "*",
-    methods: ["GET", "POST"]
-  }
-});
+
 
 app.use(cors());
 const port = process.env.PORT || 8080;
@@ -41,6 +36,13 @@ db.sequelize.sync().then((req) => {
 });
 
 app.use("/api", routes);
+
+const io = socketIo(server, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"]
+  }
+});
 
 io.on('connection', (socket) => {
   console.log('New client connected', socket.id);
