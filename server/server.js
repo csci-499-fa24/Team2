@@ -36,7 +36,7 @@ app.use("/api", routes);
 
 const io = socketIo(server, {
   cors: {
-    origin: "*",
+    origin: "https://jeopardywithfriends-frontend.onrender.com",
     methods: ["GET", "POST"]
   }
 });
