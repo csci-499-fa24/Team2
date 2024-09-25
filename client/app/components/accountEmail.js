@@ -2,41 +2,34 @@ import React, {useState} from 'react';
 import styles from "../page.module.css";
 import Image from "next/image";
 import userIcon from "../icons/user.png";
-import '../../firebase';
-import { getAuth, sendSignInLinkToEmail, isSignInWithEmailLink, signInWithEmailLink } from "firebase/auth";
 
 export default function AccountEmail({action}) {
     const [email, setEmail] = useState("");
 
-    const auth = getAuth();
-    // Send sign-in link to email
-    const actionCodeSettings = {
-        url: 'http://localhost:3000/finishSignUp',
-        handleCodeInApp: true,
-    };
-
     const createNewAccount = async() => {
-        console.log(email)
+        console.log('HI WHATS GOING ON  ', email);
         try{
-            fetch('/api/auth/signup', {
+            console.log('HI WHATS GOING ON NOW  ', email);
+            const response = await fetch('/api/sendEmailLink', {
                 method: 'POST',
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log(data)
-            }); 
-        }catch (error) {
-            console.error('Error sending link:', error.message);
-            alert("Error sending link. Please try again.");
+                body: JSON.stringify({email}),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            console.log('AND NOW  ', email);
+            const data = await response.json();
+            console.log('AND NOWWWWWWWWW  ', email);
+            if (response.ok) {
+                console.log(data.message);
+                localStorage.setItem('emailForSignIn', email); 
+            } else {
+                console.error('Error:', data.error);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert("Error creating account. Please try again.");
         }
-        // try {
-        //     await sendSignInLinkToEmail(auth, email, actionCodeSettings);
-        //     window.localStorage.setItem('emailForSignIn', email);
-        //     alert('Email link sent!');
-        //   } catch (error) {
-        //     console.error('Error sending link:', error.message);
-        //     alert("Error sending link. Please try again.");
-        //   }
     }
 
     const signInAccount = async() => {
@@ -63,14 +56,14 @@ export default function AccountEmail({action}) {
     const handleSubmit = async(e) => {
         e.preventDefault();
         console.log(e.target.id);
-        if (email === "") {
-            alert("Email cannot be blank");
-        } else {
+        if (email) {
             if (e.target.id === "loginAccount") {
                 signInAccount();
             } else {
                 createNewAccount();
             }
+        }else{
+            alert("Please enter an email address.");
         }
     }
 
@@ -92,14 +85,15 @@ export default function AccountEmail({action}) {
                     placeholder="Email"
                     className={styles.inputField}
                     onChange={(e) => setEmail(e.target.value)}
+                    required
                     />
                 </div>
             </form>
 
             {action === "login" ? 
-            <button className={styles.submitFormButton} form={"emailForm"} id={"loginAccount"} onClick={handleSubmit}>Login</button>
+            <button className={styles.submitFormButton} type={'submit'} id={"loginAccount"} onClick={handleSubmit}>Login</button>
             :
-            <button className={styles.submitFormButton} form={"emailForm"} id={"newAccount"} onClick={handleSubmit}>Create Account</button>
+            <button className={styles.submitFormButton} type={'submit'} id={"newAccount"} onClick={handleSubmit}>Create Account</button>
             }
       </div>
     );
