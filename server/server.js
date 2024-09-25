@@ -9,7 +9,7 @@ const http = require('http');
 const socketIo = require('socket.io');
 
 app.use(cors());
-const port = process.env.PORT || 8080;
+const port = process.env.PORT || 80;
 const server = http.createServer(app);
 // Database connection
 const sequelize = new Sequelize(process.env.DATABASE, process.env.USER, process.env.PASSWORD, {
