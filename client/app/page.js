@@ -8,25 +8,6 @@ import userIcon from "./icons/user.png";
 
 export default function Home() {
   const [message, setMessage] = useState("Loading");
-  const [Jeopardies, setJeopardies] = useState([]);
-
-  useEffect(() => {
-    fetch(process.env.NEXT_PUBLIC_SERVER_URL + "/api/jeopardy")
-      .then((response) => response.json())
-      .then((data) => {
-        setJeopardies(data);
-        console.log("Fetched Data:", data); // Log data here
-      })
-      .catch((error) => {
-        console.error("Error fetching data:", error);
-      });
-  }, []);
-
-  useEffect(() => {
-    if (Jeopardies) {
-      console.log("Jeopardies state:", Jeopardies);
-    }
-  }, [Jeopardies]);
 
   return (
     <div className={styles.page}>

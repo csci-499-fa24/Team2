@@ -1,13 +1,17 @@
 "use client"; 
 import React from "react";
 import styles from './game-board.module.css';
-
+import { useDispatch, useSelector } from "react-redux";
+import { setSelectedData } from "../redux/data";
 export default function GameBoardPage() {
+  const selectedData = useSelector((state) => state.selectedData.value);
+  const dispatch  = useDispatch();
   // Define the click handler function
   const clickMe = () => {
-    alert("Clue");
+    // alert("Clue");
+    console.log("selectedData:", selectedData);
   };
-
+  
   return (
     <div className={styles.page}>
       <div className={styles.firstbuttonrow}>
