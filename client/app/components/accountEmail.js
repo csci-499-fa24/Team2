@@ -7,24 +7,24 @@ export default function AccountEmail({action}) {
     const [email, setEmail] = useState("");
 
     const createNewAccount = async() => {
-        console.log('HI WHATS GOING ON  ', email);
         try{
-            console.log('HI WHATS GOING ON NOW  ', email);
-            const response = await fetch('/api/sendEmailLink', {
+            const response = await fetch(process.env.NEXT_PUBLIC_SERVER_URL +'/api/sendEmailLink', {
                 method: 'POST',
                 body: JSON.stringify({email}),
                 headers: {
                     'Content-Type': 'application/json'
                 }
             });
-            console.log('AND NOW  ', email);
             const data = await response.json();
-            console.log('AND NOWWWWWWWWW  ', email);
             if (response.ok) {
                 console.log(data.message);
                 localStorage.setItem('emailForSignIn', email); 
-            } else {
+            }else if(response.status === 400) {
+                console.error('Error:', data.message);
+                alert("Email already registered. Please login.");
+            }else {
                 console.error('Error:', data.error);
+                alert(data.error, "Please try again later.");
             }
         } catch (error) {
             console.error('Error:', error);
@@ -33,24 +33,24 @@ export default function AccountEmail({action}) {
     }
 
     const signInAccount = async() => {
-        if (isSignInWithEmailLink(auth, window.location.href)) {
-            signInWithEmailLink(auth, email, window.location.href)
-              .then((result) => {
-                // Clear email from storage.
-                window.localStorage.removeItem('emailForSignIn');
-                // You can access the new user by importing getAdditionalUserInfo
-                // and calling it with result:
-                // getAdditionalUserInfo(result)
-                // You can access the user's profile via:
-                // getAdditionalUserInfo(result)?.profile
-                // You can check if the user is new or existing:
-                // getAdditionalUserInfo(result)?.isNewUser
-              })
-              .catch((error) => {
-                console.error('Error sending link:', error.message);
-                alert("Error logging in. Please try again.");
-              });
-          }
+        // if (isSignInWithEmailLink(auth, window.location.href)) {
+        //     signInWithEmailLink(auth, email, window.location.href)
+        //       .then((result) => {
+        //         // Clear email from storage.
+        //         window.localStorage.removeItem('emailForSignIn');
+        //         // You can access the new user by importing getAdditionalUserInfo
+        //         // and calling it with result:
+        //         // getAdditionalUserInfo(result)
+        //         // You can access the user's profile via:
+        //         // getAdditionalUserInfo(result)?.profile
+        //         // You can check if the user is new or existing:
+        //         // getAdditionalUserInfo(result)?.isNewUser
+        //       })
+        //       .catch((error) => {
+        //         console.error('Error sending link:', error.message);
+        //         alert("Error logging in. Please try again.");
+        //       });
+        //   }
     }
 
     const handleSubmit = async(e) => {

@@ -1,32 +1,41 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import style from '../page.module.css';
 
 const FinishSignUp = () => {
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const oobCode = urlParams.get('oobCode'); // Get the oobCode from the URL
-    const email = localStorage.getItem('emailForSignIn'); // Retrieve the email
+  const [fetched, setFetched] = useState(false);
 
-    if (oobCode && email) {
-      // Send a request to your API route to verify the link and sign in
-      fetch('/api/auth/signin', {
+  useEffect(() => {
+    const url = window.location.href;
+    const urlParams = new URLSearchParams(window.location.search);
+    const oobCode = urlParams.get('oobCode'); 
+    const email = localStorage.getItem('emailForSignIn'); 
+
+    if (oobCode && email && url) {
+      setFetched(true);
+      fetch('http://localhost:8080/api/signin', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email, oobCode }),
+        body: JSON.stringify({ email, oobCode, url }),
       })
         .then(response => response.json())
         .then(data => {
           if (data.message) {
-            console.log(data.message); // Successfully signed in
-            // Redirect or update the UI accordingly
+            console.log(data.message);
+            // Redirect to homepage
+            alert('Successfully signed in!');
+            window.location.href = '/';
           }
         })
         .catch(error => console.error('Error:', error));
     }
   }, []);
 
-  return <div>Finishing sign-up...</div>;
+  return (
+    <div className={style.signingUpMessage}>
+      {fetched ? <p>Finishing sign-up...</p> : null}
+    </div>);
 };
 
 export default FinishSignUp;

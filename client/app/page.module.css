@@ -73,3 +73,7 @@
 .signupLink:hover {
   text-decoration: underline;
 }
+
+.signingUpMessage {
+  margin-top: 20px;
+}

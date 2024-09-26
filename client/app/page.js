@@ -5,6 +5,7 @@ import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import jeopardyLogo from "./icons/Jeopardy-Symbol.png";
 import AccountEmail from "./components/accountEmail";
+import FinishSignUp from "./components/finishSignUp";
 
 export default function Home() {
   const [message, setMessage] = useState("Loading");
@@ -16,7 +17,7 @@ export default function Home() {
       .then((response) => response.json())
       .then((data) => {
         setJeopardies(data);
-        console.log("Fetched Data:", data); // Log data here
+        console.log("Fetched Data:", data);
       })
       .catch((error) => {
         console.error("Error fetching data:", error);
@@ -50,6 +51,7 @@ export default function Home() {
       </div>
 
       <AccountEmail action={displayForm}/>
+      <FinishSignUp />
 
       {displayForm === "login" ? 
       <p className={styles.notAUser}>
