@@ -6,7 +6,6 @@ const app = express();
 require('dotenv').config();
 const routes = require("./controllers");
 const http = require('http');
-const socketIo = require('socket.io');
 
 app.use(cors());
 const port = process.env.PORT || 8080;
@@ -30,7 +29,8 @@ sequelize.authenticate()
 
 db.sequelize.sync().then((req) => {
     server.listen(port, () => {
-    console.log(`Server is running on http://localhost:${port}`);
+      console.log(`Server is running on http://localhost:${port}`);
+    });
     io.on('connection', (socket) => {
       console.log('New client connected', socket.id);
     
@@ -52,7 +52,6 @@ db.sequelize.sync().then((req) => {
       socket.on('disconnect', () => {
         console.log('Client disconnected', socket.id);
       });
-    });
     });
 });
 
