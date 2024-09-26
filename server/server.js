@@ -9,8 +9,10 @@ const http = require('http');
 const socketIo = require('socket.io');
 
 app.use(cors());
-const port = 443;
+const port = process.env.PORT || 8080;
 const server = http.createServer(app);
+const io = require('socket.io')(server);
+
 // Database connection
 const sequelize = new Sequelize(process.env.DATABASE, process.env.USER, process.env.PASSWORD, {
     host: 'localhost',
@@ -33,13 +35,6 @@ db.sequelize.sync().then((req) => {
 });
 
 app.use("/api", routes);
-
-const io = socketIo(server, {
-  cors: {
-    origin: "*",
-    methods: ["GET", "POST"]
-  }
-});
 
 io.on('connection', (socket) => {
   console.log('New client connected', socket.id);
