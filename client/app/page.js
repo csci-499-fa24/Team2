@@ -4,18 +4,20 @@ import styles from "./page.module.css";
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import jeopardyLogo from "./icons/Jeopardy-Symbol.png";
-import userIcon from "./icons/user.png";
+import AccountEmail from "./components/accountEmail";
+import FinishSignUp from "./components/finishSignUp";
 
 export default function Home() {
   const [message, setMessage] = useState("Loading");
   const [Jeopardies, setJeopardies] = useState([]);
+  const [displayForm, setDisplayForm] = useState("login");
 
   useEffect(() => {
     fetch(process.env.NEXT_PUBLIC_SERVER_URL + "/api/jeopardy")
       .then((response) => response.json())
       .then((data) => {
         setJeopardies(data);
-        console.log("Fetched Data:", data); // Log data here
+        console.log("Fetched Data:", data);
       })
       .catch((error) => {
         console.error("Error fetching data:", error);
@@ -27,6 +29,14 @@ export default function Home() {
       console.log("Jeopardies state:", Jeopardies);
     }
   }, [Jeopardies]);
+
+  function CreateAccount() {
+    setDisplayForm("signup");
+  }
+
+  function LoginAccount() {
+    setDisplayForm("login");
+  }
 
   return (
     <div className={styles.page}>
@@ -40,40 +50,24 @@ export default function Home() {
         <h2 className={styles.subtitle}>With Friends!</h2>
       </div>
 
-      <div className={styles.loginContainer}>
-        <div className={styles.inputContainer}>
-          <div className={styles.iconWrapper}>
-            <Image
-              src={userIcon}
-              alt="User Icon"
-              className={styles.userIcon}
-              width={50}
-              height={50}
-            />
-          </div>
-          <div className={styles.inputsWrapper}>
-            <input
-              type="text"
-              placeholder="Username"
-              className={styles.inputField}
-            />
-            <input
-              type="password"
-              placeholder="Password"
-              className={styles.inputField}
-            />
-          </div>
-        </div>
+      <AccountEmail action={displayForm}/>
+      <FinishSignUp />
 
-        <button className={styles.loginButton}>Login</button>
-      </div>
-
+      {displayForm === "login" ? 
       <p className={styles.notAUser}>
         Not a user yet?{" "}
-        <a href="/signup" className={styles.signupLink}>
+        <span className={styles.signupLink} onClick={CreateAccount}>
           Create an account
-        </a>
+        </span>
       </p>
+      : 
+      <p className={styles.notAUser}>
+        Already have an account?{" "}
+        <span className={styles.signupLink} onClick={LoginAccount}>
+          Login
+        </span>
+      </p>
+      }
     </div>
   );
 }
