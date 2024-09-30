@@ -1,0 +1,31 @@
+name: Run Tests
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest  # Specify the environment
+
+    steps:
+    # Step 1: Checkout the code
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    # Step 2: Set up Node.js
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'  # Specify the Node.js version (adjust if necessary)
+
+    # Step 3: Install dependencies
+    - name: Install dependencies
+      run: npm install
+      working-directory: ./server  # Specify the working directory for the server folder
+
+    # Step 4: Run Jest tests
+    - name: Run tests
+      run: npm test -- --ci  # Run Jest tests in CI mode (without coverage)
+      working-directory: ./server  # Specify the working directory for running tests
