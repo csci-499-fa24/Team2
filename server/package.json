@@ -10,10 +10,10 @@
   "jest": {
     "collectCoverage": true,
     "coverageReporters": [
+      "clover",
       "json",
       "lcov",
-      "text",
-      "clover"
+      "text"
     ],
     "coverageDirectory": "./coverage"
   },
