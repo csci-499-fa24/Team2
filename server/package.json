@@ -3,9 +3,14 @@
   "version": "1.0.0",
   "main": "server.js",
   "scripts": {
-    "test": "jest",
+    "test": "jest --coverage",
     "start": "node server",
     "dev": "nodemon server"
+  },
+  "jest": {
+    "collectCoverage": true,
+    "coverageReporters": ["json", "lcov", "text", "clover"],
+    "coverageDirectory": "./coverage"
   },
   "author": "",
   "license": "ISC",
