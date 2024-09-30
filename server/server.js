@@ -14,8 +14,8 @@ app.use(bodyParser.urlencoded({ extended: true }));
 const port = process.env.PORT || 8080;
 
 // Database connection
-const sequelize = new Sequelize(process.env.DATABASE, process.env.USER, process.env.PASSWORD, {
-    host: 'localhost',
+const sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USERNAME, process.env.DB_PASSWORD, {
+    host: process.env.DB_HOST,
     dialect: 'mysql'
 });
 
