@@ -7,7 +7,7 @@ export const useSocket = (roomKey, socketMessage) => {
   useEffect(() => {
     if (!roomKey) return;
 
-    const socketInstance = io(process.env.NEXT_PUBLIC_SERVER_URL);
+    const socketInstance = io("https://team2-server.onrender.com/");
     setSocket(socketInstance);
 
     console.log("Emitting roomkey...");
