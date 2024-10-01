@@ -9,7 +9,8 @@ const routes = require("./controllers");
 const initializeSockets = require('./socketServer');
 const http = require('http');
 
-app.use(cors());
+
+app.use(cors({origin: "*"}));
 app.use(express.json());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));

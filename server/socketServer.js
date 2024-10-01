@@ -1,5 +1,11 @@
 module.exports = function (server) {
-    const io = require('socket.io')(server);
+    const io = require('socket.io')(server, {
+        cors: {
+            origin: "*", 
+            methods: ["GET", "POST"],
+            credentials: true
+        }
+    });
     let playerRoom = "";
     io.on('connection', (socket) => {
         console.log('New client connected', socket.id);
