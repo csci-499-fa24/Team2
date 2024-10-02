@@ -28,7 +28,7 @@ const FinishSignUp = () => {
           if (data.message) {
             console.log("response:", data.message);
             alert('Successfully signed in!');
-            // router.push('/user/'+ data.user.uid);
+            router.push('/user/'+ data.user.uid);
           }
         })
         .catch(error => console.error('Error:', error));
