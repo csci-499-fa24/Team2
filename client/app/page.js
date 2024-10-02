@@ -6,11 +6,33 @@ import Image from "next/image";
 import jeopardyLogo from "./icons/Jeopardy-Symbol.png";
 import AccountEmail from "./components/accountEmail";
 import FinishSignUp from "./components/finishSignUp";
+import { useSocket } from "./socketClient";
+
 
 export default function Home() {
   const [message, setMessage] = useState("Loading");
   const [Jeopardies, setJeopardies] = useState([]);
   const [displayForm, setDisplayForm] = useState("login");
+  
+  const [roomKey, setRoomKey] = useState("");
+  const [socketMessage, setSocketMessage] = useState("");
+
+  useEffect(() => {
+    console.log("Hello! Please open the developer console and type setRoomKey('yourRoomKey') to enter the room.");
+    console.log("Once you have done that, you can type in sendMessage('your message here') to send a message to others in the room!");
+    // this allows us to make a global function to set things in the console
+    window.setRoomKey = (key) => {
+      setRoomKey(key);
+      console.log(`Room key set to: ${key}`);
+    };
+
+    window.sendMessage = (msg) => {
+      setSocketMessage(msg);
+      console.log(`Message set to: "${msg}"`);
+    };
+  }, []);
+
+  const socket = useSocket(roomKey, socketMessage);
 
   useEffect(() => {
     fetch(process.env.NEXT_PUBLIC_SERVER_URL + "/api/jeopardy")
