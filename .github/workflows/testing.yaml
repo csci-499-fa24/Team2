@@ -14,8 +14,8 @@ jobs:
       pull-requests: write  # Added to allow commenting on PRs
       checks: write # As per error message
 
-    env:
-      ACTIONS_STEP_DEBUG: true  # Enable detailed debug logging to provide more verbose output during the workflow
+    # env:
+    #   ACTIONS_STEP_DEBUG: true  # Enable detailed debug logging to provide more verbose output during the workflow
 
     steps:
     # Step 1: Checkout the repository code
