@@ -9,6 +9,7 @@ router.post('/', async(req, res) => {
     const { email, url } = req.body;
     try {
         const result = await signInWithEmailLink(auth, email, url);
+        console.log(auth.currentUser);
         res.status(200).json({ message: 'Successfully signed in!', user: result.user });
     } catch (error) {
         console.error('Error signing in:', error);

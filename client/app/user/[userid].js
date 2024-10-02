@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { useRouter } from "next/router";
 import Image from "next/image";
 import jeopardyLogo from "../icons/Jeopardy-Symbol.png";
 import userIcon from "../icons/user.png";
@@ -10,7 +11,10 @@ import playersIcon from "../icons/players.png";
 import styles from "./user.module.css";
 
 const JeopardyLoggedInPage = () => {
-  const [username] = useState("User123");
+  const router = useRouter();
+  const { userid } = router.query;
+
+  const [username] = useState(userid);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [selectedRoom, setSelectedRoom] = useState(null);
   const [newRoom, setNewRoom] = useState({

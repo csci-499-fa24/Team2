@@ -21,12 +21,12 @@ async function checkIfUserExists(email) {
   }
 }
 
-router.post("/", async(req, res) => {    
+router.post("/createAccount", async(req, res) => {    
   const { email } = req.body;
   const userExists = await checkIfUserExists(email);
   
   if (userExists) {
-    res.status(400).json({ message: 'Email already registered!' });
+    res.status(400).json({ message: 'Email already registered! Please sign in.' });
   } else {
     console.log('new user!')
     const actionCodeSettings = {
@@ -41,6 +41,28 @@ router.post("/", async(req, res) => {
       console.log('Error sending Email:', error.message);
       res.status(500).json({ error: 'Error sending Email' });
     }
+  }
+});
+
+router.post("/login", async(req, res) => {    
+  const { email } = req.body;
+  const userExists = await checkIfUserExists(email);
+  
+  if (userExists) {
+    const actionCodeSettings = {
+      url: process.env.NEXT_PUBLIC_CLIENT_URL,
+      handleCodeInApp: true,
+    };
+    try {
+      await sendSignInLinkToEmail(auth, email, actionCodeSettings);
+      console.log('Email link sent!');
+      res.status(200).json({ message: 'Email link sent!' });
+    } catch (error) {
+      console.log('Error sending Email:', error.message);
+      res.status(500).json({ error: 'Error sending Email' });
+    }
+  } else{
+    res.status(400).json({ message: 'Email not registered! Please create an account.' });
   }
 });
 

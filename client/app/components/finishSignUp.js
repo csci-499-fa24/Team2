@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 import style from '../page.module.css';
+import { useRouter } from 'next/navigation';
 
 const FinishSignUp = () => {
   const [fetched, setFetched] = useState(false);
   console.log(process.env.NEXT_PUBLIC_SERVER_URL);
+  const router = useRouter();
 
   useEffect(() => {
     const url = window.location.href;
@@ -24,10 +26,9 @@ const FinishSignUp = () => {
         .then(response => response.json())
         .then(data => {
           if (data.message) {
-            console.log(data.message);
-            // Redirect to homepage
+            console.log("response:", data.message);
             alert('Successfully signed in!');
-            window.location.href = '/';
+            // router.push('/user/'+ data.user.uid);
           }
         })
         .catch(error => console.error('Error:', error));
@@ -36,7 +37,7 @@ const FinishSignUp = () => {
 
   return (
     <div className={style.signingUpMessage}>
-      {fetched ? <p>Finishing sign-up...</p> : null}
+      {fetched ? <p>Signing you in...</p>: null}
     </div>);
 };
 
