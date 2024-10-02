@@ -7,6 +7,27 @@ const app = express();
 app.use(express.json());
 app.use('/', indexRouter);
 
+// Mock Firebase Admin to prevent real initialization during tests
+jest.mock('firebase-admin', () => ({
+  credential: {
+    cert: jest.fn()
+  },
+  initializeApp: jest.fn(),
+  auth: jest.fn().mockReturnValue({
+    getUserByEmail: jest.fn(),
+    createUser: jest.fn(),
+    deleteUser: jest.fn()
+  })
+}));
+
+// Mock Firebase Auth to prevent real initialization during tests
+jest.mock('firebase/auth', () => ({
+  getAuth: jest.fn().mockReturnValue({
+    signInWithEmailLink: jest.fn(),
+    isSignInWithEmailLink: jest.fn()
+  })
+}));
+
 jest.mock('../models', () => ({
   Jeopardy: {
     findAll: jest.fn()
