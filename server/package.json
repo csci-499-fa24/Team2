@@ -7,16 +7,6 @@
     "start": "node server",
     "dev": "nodemon server"
   },
-  "jest": {
-    "collectCoverage": true,
-    "coverageReporters": [
-      "clover",
-      "json",
-      "lcov",
-      "text"
-    ],
-    "coverageDirectory": "./coverage"
-  },
   "author": "",
   "license": "ISC",
   "description": "",
