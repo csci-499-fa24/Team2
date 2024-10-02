@@ -10,7 +10,7 @@ export default function AccountEmail({action}) {
     
     const createNewAccount = async() => {
         try{
-            const response = await fetch(process.env.NEXT_PUBLIC_SERVER_URL +'/api/sendEmailLink', {
+            const response = await fetch(process.env.NEXT_PUBLIC_SERVER_URL +'/api/sendEmailLink/createAccount', {
                 method: 'POST',
                 body: JSON.stringify({email}),
                 headers: {
@@ -25,7 +25,7 @@ export default function AccountEmail({action}) {
                 setLoading(true);
             }else if(response.status === 400) {
                 console.error('Error:', data.message);
-                alert("Email already registered. Please login.");
+                alert(data.message);
             }else {
                 console.error('Error:', data.error);
                 alert(data.error, "Please try again later.");
@@ -37,24 +37,31 @@ export default function AccountEmail({action}) {
     }
 
     const signInAccount = async() => {
-        // if (isSignInWithEmailLink(auth, window.location.href)) {
-        //     signInWithEmailLink(auth, email, window.location.href)
-        //       .then((result) => {
-        //         // Clear email from storage.
-        //         window.localStorage.removeItem('emailForSignIn');
-        //         // You can access the new user by importing getAdditionalUserInfo
-        //         // and calling it with result:
-        //         // getAdditionalUserInfo(result)
-        //         // You can access the user's profile via:
-        //         // getAdditionalUserInfo(result)?.profile
-        //         // You can check if the user is new or existing:
-        //         // getAdditionalUserInfo(result)?.isNewUser
-        //       })
-        //       .catch((error) => {
-        //         console.error('Error sending link:', error.message);
-        //         alert("Error logging in. Please try again.");
-        //       });
-        //   }
+        try{
+            const response = await fetch(process.env.NEXT_PUBLIC_SERVER_URL +'/api/sendEmailLink/login', {
+                method: 'POST',
+                body: JSON.stringify({email}),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            const data = await response.json();
+            if (response.ok) {
+                console.log(data.message);
+                localStorage.setItem('emailForSignIn', email); 
+                alert("Email sent! Please check your inbox.");
+                setLoading(true);
+            }else if(response.status === 400) {
+                console.error('Error:', data.message);
+                alert(data.message);
+            }else {
+                console.error('Error:', data.error);
+                alert(data.error, "Please try again later.");
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert("Error Signing In Account. Please try again.");
+        }
     }
 
     const handleSubmit = async(e) => {

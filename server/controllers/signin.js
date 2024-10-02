@@ -7,11 +7,13 @@ const auth = getAuth(app);
 router.post("/", async(req, res) => {
     if (req.method === 'POST') {
       const { email, oobCode, url } = req.body;
+      console.log(email, oobCode, url);
   
       if (isSignInWithEmailLink(auth, url)) {
         try {
           const userCredential = await signInWithEmailLink(auth, email, url);
-          const user = userCredential.user;
+          const user = userCredential;
+          console.log(user);
           
           res.status(200).json({ message: 'Successfully signed in!', user });
         } catch (error) {
