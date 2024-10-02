@@ -10,7 +10,7 @@ module.exports = {
     testEnvironment: 'node',
 
     // Glob patterns Jest uses to detect test files.
-    testMatch: ['**/?(*.)+(spec|test).[jt]s?(x)'],
+    testMatch: ['**/tests/**/*.test.js'], // Look for test files in the 'tests' folder
 
     // Directories to ignore during testing.
     testPathIgnorePatterns: ['/node_modules/'],
