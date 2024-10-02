@@ -3,6 +3,7 @@ import style from '../page.module.css';
 
 const FinishSignUp = () => {
   const [fetched, setFetched] = useState(false);
+  console.log(process.env.NEXT_PUBLIC_SERVER_URL);
 
   useEffect(() => {
     const url = window.location.href;
@@ -12,7 +13,8 @@ const FinishSignUp = () => {
 
     if (oobCode && email && url) {
       setFetched(true);
-      fetch('http://localhost:8080/api/signin', {
+      console.log('Signing in at ', process.env.NEXT_PUBLIC_SERVER_URL + '/api/signin');
+      fetch(process.env.NEXT_PUBLIC_SERVER_URL + '/api/signin', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

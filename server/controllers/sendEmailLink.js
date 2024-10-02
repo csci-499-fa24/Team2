@@ -5,6 +5,8 @@ const { adminAuth } = require('../lib/firebaseAdmin');
 const app = require('../lib/firebaseConfig'); 
 const auth = getAuth(app);
 
+console.log("THESE ARE THE ONES", process.env.NEXT_PUBLIC_SERVER_URL, process.env.NEXT_PUBLIC_CLIENT_URL);
+
 async function checkIfUserExists(email) {
   console.log('Checking if user exists:', email);
   try {
@@ -28,10 +30,9 @@ router.post("/", async(req, res) => {
   } else {
     console.log('new user!')
     const actionCodeSettings = {
-      url: 'http://localhost:3000/',
+      url: process.env.NEXT_PUBLIC_CLIENT_URL,
       handleCodeInApp: true,
     };
-
     try {
       await sendSignInLinkToEmail(auth, email, actionCodeSettings);
       console.log('Email link sent!');

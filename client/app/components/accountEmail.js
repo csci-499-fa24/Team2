@@ -2,10 +2,12 @@ import React, {useState} from 'react';
 import styles from "../page.module.css";
 import Image from "next/image";
 import userIcon from "../icons/user.png";
+import FinishSignUp from './finishSignUp';
 
 export default function AccountEmail({action}) {
     const [email, setEmail] = useState("");
-
+    const [loading, setLoading] = useState(false);
+    
     const createNewAccount = async() => {
         try{
             const response = await fetch(process.env.NEXT_PUBLIC_SERVER_URL +'/api/sendEmailLink', {
@@ -19,6 +21,8 @@ export default function AccountEmail({action}) {
             if (response.ok) {
                 console.log(data.message);
                 localStorage.setItem('emailForSignIn', email); 
+                alert("Email sent! Please check your inbox.");
+                setLoading(true);
             }else if(response.status === 400) {
                 console.error('Error:', data.message);
                 alert("Email already registered. Please login.");
@@ -89,6 +93,8 @@ export default function AccountEmail({action}) {
                     />
                 </div>
             </form>
+
+            {loading ? <FinishSignUp /> : null}
 
             {action === "login" ? 
             <button className={styles.submitFormButton} type={'submit'} id={"loginAccount"} onClick={handleSubmit}>Login</button>
