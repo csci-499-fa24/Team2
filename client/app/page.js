@@ -4,10 +4,8 @@ import styles from "./page.module.css";
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import jeopardyLogo from "./icons/Jeopardy-Symbol.png";
-import AccountEmail from "./components/accountEmail";
-import FinishSignUp from "./components/finishSignUp";
+import AccountEmailPassword from "./components/accountEmailPassword";
 import { useSocket } from "./socketClient";
-
 
 export default function Home() {
   const [message, setMessage] = useState("Loading");
@@ -72,8 +70,7 @@ export default function Home() {
         <h2 className={styles.subtitle}>With Friends!</h2>
       </div>
 
-      <AccountEmail action={displayForm}/>
-      <FinishSignUp />
+      <AccountEmailPassword action={displayForm}/>
 
       {displayForm === "login" ? 
       <p className={styles.notAUser}>
@@ -82,14 +79,14 @@ export default function Home() {
           Create an account
         </span>
       </p>
-      : 
+      : displayForm === "signup" ?
       <p className={styles.notAUser}>
         Already have an account?{" "}
         <span className={styles.signupLink} onClick={LoginAccount}>
           Login
         </span>
       </p>
-      }
+      : null}
     </div>
   );
 }
