@@ -9,17 +9,15 @@ import userIcon from "../icons/user.png";
 export default function AccountEmailPassword({action}) {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const [accountCreated, setAccountCreated] = useState(false);
 
     const router = useRouter();
-    const auth = getFirebaseAuth();
-
     const checkPasswordRequirements = (password) => {
         const passwordRegex = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$/;
         return passwordRegex.test(password);
     }
     
     const createNewAccount = async() => {
+        const auth = getFirebaseAuth();
         const userExists = await fetch(process.env.NEXT_PUBLIC_SERVER_URL +`/api/checkExistingUser/${email}`, {
             method: 'GET',
         });
@@ -30,35 +28,34 @@ export default function AccountEmailPassword({action}) {
 
         if(!checkPasswordRequirements(password)) {
             alert('Password must be at least 8 characters long and contain at least one uppercase letter, special character, and number.');
-            return;
-        }
-
-        try{
-            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-            const user = userCredential.user;
-            const uid = user.uid;
-            const idToken = await user.getIdToken();
-            const response = await fetch(process.env.NEXT_PUBLIC_SERVER_URL +'/api/verifyToken', {
-                method: 'POST',
-                body: JSON.stringify({idToken}),
-                headers: {
-                    'Content-Type': 'application/json'
+        }else {
+            try{
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+                const uid = user.uid;
+                const idToken = await user.getIdToken();
+                const response = await fetch(process.env.NEXT_PUBLIC_SERVER_URL +'/api/verifyToken', {
+                    method: 'POST',
+                    body: JSON.stringify({token: idToken}),
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    alert("Account created!");
+                    router.push(`/${uid}`);
+                }else if(response.status === 400) {
+                    console.error('Error:', data.message);
+                    alert(data.message);
+                }else {
+                    console.error('Error:', data.error);
+                    alert(data.error, "Please try again later.");
                 }
-            });
-            const data = await response.json();
-            if (response.ok) {
-                alert("Account created!");
-                router.push(`/${uid}`);
-            }else if(response.status === 400) {
-                console.error('Error:', data.message);
-                alert(data.message);
-            }else {
-                console.error('Error:', data.error);
-                alert(data.error, "Please try again later.");
+            } catch (error) {
+                console.error('Error:', error);
+                alert("Error creating account. Please try again.");
             }
-        } catch (error) {
-            console.error('Error:', error);
-            alert("Error creating account. Please try again.");
         }
     }
 
@@ -66,12 +63,17 @@ export default function AccountEmailPassword({action}) {
         const userExists = await fetch(process.env.NEXT_PUBLIC_SERVER_URL +`/api/checkExistingUser/${email}`, {
             method: 'GET',
         });
+
         if (userExists.status === 400) {
             alert('Account not registered! Please create an account.');
             return;
         }
+
         try{
+            const auth = getFirebaseAuth();
+            console.log("signing in with ", email, password, auth);
             const userCredential = await signInWithEmailAndPassword(auth, email, password);
+            console.log("so something wrong here?");
             const user = userCredential.user;
             const uid = user.uid;
             const idToken = await user.getIdToken();
@@ -95,7 +97,7 @@ export default function AccountEmailPassword({action}) {
                 alert(data.error, "Please try again later.");
             }
         } catch (error) {
-            console.error('Error:', error);
+            console.error('Error:', error.message);
             alert("Error Signing In Account. Please try again.");
         }
     }
@@ -143,7 +145,6 @@ export default function AccountEmailPassword({action}) {
                     />
                 </div>
             </form>
-            {action === "signup" && accountCreated ? <p>Account created! Logging in...</p> : null}
             {action === "login" ? null:
                 <ul className={styles.passwordReqContainer}>
                     Password requirements: 
