@@ -1,23 +1,18 @@
-import { initializeApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
+// client/app/lib/firebaseClient.js
+import { initializeApp, getApp, getApps } from "firebase/app";
 
-const getFirebaseConfig = async () => {
-    const response = await fetch('/api/configFirebase', {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-    });
-    if (!response.ok){
-        console.log('Failed to fetch Firebase config')
-    };
-    return response.json();
+const firebaseConfig = {
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
 
-const initializeFirebase = async () => {
-    const config = await getFirebaseConfig();
-    const app = initializeApp(config);
-    return getAuth(app);
+export const initializeFirebase = () => {
+  if (!getApps().length) {
+    initializeApp(firebaseConfig);
+  }
 };
-
-export { initializeFirebase };

@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { getAuth, signInWithEmailAndPassword } = require('firebase/auth');
+const { adminAuth } = require('../lib/firebaseAdmin');
 const app = require('../lib/firebaseConfig'); 
 const auth = getAuth(app);
 
@@ -28,7 +29,8 @@ router.post("/", async(req, res) => {
       signInWithEmailAndPassword(auth, email, password)
       .then((userCredential) => {
         const user = userCredential.user;
-        res.status(200).json({ message: 'Successfully signed in!' });
+        const userID = user.uid;
+        res.status(200).json({ message: 'Successfully signed in!', uid: userID });
       })
     } catch (error) {
       console.log('Error signing in', error.message);

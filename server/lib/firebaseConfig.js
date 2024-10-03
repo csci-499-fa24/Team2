@@ -1,4 +1,4 @@
-const { initializeApp } = require('firebase/app');
+const { initializeApp, getApp, getApps } = require('firebase/app');
 require('dotenv').config();
 
 const firebaseConfig = {
@@ -11,5 +11,11 @@ const firebaseConfig = {
   meaurementId: process.env.FIREBASE_MEASUREMENT_ID,
 };
 
-const app = initializeApp(firebaseConfig);
+let app;
+if (!getApps().length) {
+    app = initializeApp(firebaseConfig);
+} else {
+    app = getApp(); 
+}
+
 module.exports = app;
