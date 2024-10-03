@@ -1,11 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const JeopardyController = require('./jeopardy');
-const createAccount = require('./createAccount');
-const signInAccount = require('./signInAccount');
+const verifyToken = require('./verifyToken');
+const checkExistingUser = require('./checkExistingUser');
 
 router.use('/jeopardy', JeopardyController);
-router.use('/createAccount', createAccount);
-router.use('/signInAccount', signInAccount);
+router.use('/verifyToken', verifyToken);
+router.use('/checkExistingUser', checkExistingUser);
 
 module.exports = router;

@@ -1,4 +1,6 @@
 import React, {useState} from 'react';
+import { getFirebaseAuth } from '../lib/firebaseClient';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import styles from "../page.module.css";
 import Image from "next/image";
@@ -7,22 +9,46 @@ import userIcon from "../icons/user.png";
 export default function AccountEmailPassword({action}) {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [accountCreated, setAccountCreated] = useState(false);
 
     const router = useRouter();
+    const auth = getFirebaseAuth();
+
+    const checkPasswordRequirements = (password) => {
+        const passwordRegex = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$/;
+        return passwordRegex.test(password);
+    }
     
     const createNewAccount = async() => {
+        const userExists = await fetch(process.env.NEXT_PUBLIC_SERVER_URL +`/api/checkExistingUser/${email}`, {
+            method: 'GET',
+        });
+        if (userExists.ok) {
+            alert('Account already registered! Please sign in.');
+            return;
+        }
+
+        if(!checkPasswordRequirements(password)) {
+            alert('Password must be at least 8 characters long and contain at least one uppercase letter, special character, and number.');
+            return;
+        }
+
         try{
-            const response = await fetch(process.env.NEXT_PUBLIC_SERVER_URL +'/api/createAccount', {
+            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+            const user = userCredential.user;
+            const uid = user.uid;
+            const idToken = await user.getIdToken();
+            const response = await fetch(process.env.NEXT_PUBLIC_SERVER_URL +'/api/verifyToken', {
                 method: 'POST',
-                body: JSON.stringify({email, password}),
+                body: JSON.stringify({idToken}),
                 headers: {
                     'Content-Type': 'application/json'
                 }
             });
             const data = await response.json();
             if (response.ok) {
-                alert(data.message);
-                router.push(`/${data.uid}`);
+                alert("Account created!");
+                router.push(`/${uid}`);
             }else if(response.status === 400) {
                 console.error('Error:', data.message);
                 alert(data.message);
@@ -37,18 +63,30 @@ export default function AccountEmailPassword({action}) {
     }
 
     const signInAccount = async() => {
+        const userExists = await fetch(process.env.NEXT_PUBLIC_SERVER_URL +`/api/checkExistingUser/${email}`, {
+            method: 'GET',
+        });
+        if (userExists.status === 400) {
+            alert('Account not registered! Please create an account.');
+            return;
+        }
         try{
-            const response = await fetch(process.env.NEXT_PUBLIC_SERVER_URL +'/api/signInAccount', {
+            const userCredential = await signInWithEmailAndPassword(auth, email, password);
+            const user = userCredential.user;
+            const uid = user.uid;
+            const idToken = await user.getIdToken();
+            console.log(idToken);
+            const response = await fetch(process.env.NEXT_PUBLIC_SERVER_URL +'/api/verifyToken', {
                 method: 'POST',
-                body: JSON.stringify({email, password}),
+                body: JSON.stringify({token: idToken}),
                 headers: {
                     'Content-Type': 'application/json'
                 }
             });
             const data = await response.json();
             if (response.ok) {
-                alert(data.message);
-                router.push(`/${data.uid}`);
+                alert("Signed in!");
+                router.push(`/${uid}`);
             }else if(response.status === 400) {
                 console.error('Error:', data.message);
                 alert(data.message);
@@ -105,7 +143,16 @@ export default function AccountEmailPassword({action}) {
                     />
                 </div>
             </form>
-
+            {action === "signup" && accountCreated ? <p>Account created! Logging in...</p> : null}
+            {action === "login" ? null:
+                <ul className={styles.passwordReqContainer}>
+                    Password requirements: 
+                    <li>At least 8 characters</li>
+                    <li>At least 1 uppercase letter</li>
+                    <li>At least 1 number</li>
+                    <li>At least 1 special character</li>
+                </ul>
+            }
             {action === "login" ? 
             <button className={styles.submitFormButton} type={'submit'} id={"loginAccount"} onClick={handleSubmit}>Login</button>
             :
