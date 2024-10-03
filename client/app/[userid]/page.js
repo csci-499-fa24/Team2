@@ -15,6 +15,8 @@ import styles from "./[userid].module.css";
 const JeopardyLoggedInPage = () => {
   const [username, setUsername] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isSigningOut, setIsSigningOut] = useState(false);
+  const [loadingAuthState, setLoadingAuthState] = useState(true);
   const [selectedRoom, setSelectedRoom] = useState(null);
   const [newRoom, setNewRoom] = useState({
     name: "",
@@ -30,18 +32,31 @@ const JeopardyLoggedInPage = () => {
         setUsername(userid);
     }
 
-    initializeFirebase();
+  }, []); 
 
+  useEffect(() => {
+    initializeFirebase();
     const auth = getAuth();
-    onAuthStateChanged(auth, (user) => {
+
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
         console.log("User is logged in", user);
+        if (userid) {
+          console.log('User ID:', userid);
+          setUsername(userid);
+        }
       } else {
-        console.log("User is not logged in");
+        if (!isSigningOut && loadingAuthState) {
+          console.log("User is not logged in");
+          alert("You are not logged in. Please log in to continue.");
+          router.push("/");
+        }
       }
+      setLoadingAuthState(false);
     });
 
-  }, []); 
+    return () => unsubscribe();
+  }, [userid, isSigningOut, loadingAuthState]);
 
   if (!userid) {
       return <div>Loading...</div>;
@@ -66,8 +81,8 @@ const JeopardyLoggedInPage = () => {
 
   const handleLogout = async() => {
     try{
-
       await signOut(getAuth());
+      setIsSigningOut(true);
       alert("Successfully logged out!");
       router.push("/");
     }catch(error){

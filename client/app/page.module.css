@@ -26,7 +26,7 @@
   position: relative;
   display: flex;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 10px;
 }
 
 .iconWrapper {
@@ -82,6 +82,10 @@
 .signInOptionsTitle {
   font-size: x-large;
   padding: 1em;
+}
+
+.passwordReqContainer {
+  margin: 5px 20px;
 }
 
 .buttonChoiceContainer {
