@@ -1,7 +1,9 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
+import { initializeFirebase } from "../lib/firebaseClient";
+import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
 import Image from "next/image";
 import jeopardyLogo from "../icons/Jeopardy-Symbol.png";
 import userIcon from "../icons/user.png";
@@ -11,20 +13,7 @@ import playersIcon from "../icons/players.png";
 import styles from "./[userid].module.css";
 
 const JeopardyLoggedInPage = () => {
-  const { userid } = useParams();
-
-  useEffect(() => {
-    if (userid) {
-        // Perform actions that depend on userid
-        console.log('User ID:', userid);
-    }
-  }, [userid]); // Runs when userid changes
-
-  if (!userid) {
-      return <div>Loading...</div>;
-  }
-
-  const [username, setUsername] = useState(userid);
+  const [username, setUsername] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [selectedRoom, setSelectedRoom] = useState(null);
   const [newRoom, setNewRoom] = useState({
@@ -32,6 +21,31 @@ const JeopardyLoggedInPage = () => {
     isPrivate: false,
     maxPlayers: 3,
   });
+  const { userid } = useParams();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (userid) {
+        console.log('User ID:', userid);
+        setUsername(userid);
+    }
+
+    initializeFirebase();
+
+    const auth = getAuth();
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        console.log("User is logged in", user);
+      } else {
+        console.log("User is not logged in");
+      }
+    });
+
+  }, []); 
+
+  if (!userid) {
+      return <div>Loading...</div>;
+  }
 
   const onlinePlayers = [
     "Alan",
@@ -50,8 +64,16 @@ const JeopardyLoggedInPage = () => {
     "Fact Finders",
   ];
 
-  const handleLogout = () => {
-    window.location.href = "/";
+  const handleLogout = async() => {
+    try{
+
+      await signOut(getAuth());
+      alert("Successfully logged out!");
+      router.push("/");
+    }catch(error){
+      console.error('Error:', error);
+      alert("Error logging out. Please try again.");
+    }
   };
 
   const handleInputChange = (e) => {

@@ -48,7 +48,7 @@ export default function AccountEmailPassword({action}) {
             const data = await response.json();
             if (response.ok) {
                 alert(data.message);
-                router.push('/user/'+ data.uid);
+                router.push(`/${data.uid}`);
             }else if(response.status === 400) {
                 console.error('Error:', data.message);
                 alert(data.message);
