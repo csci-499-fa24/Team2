@@ -1,20 +1,30 @@
 "use client";
 
-import React, { useState } from "react";
-import { useRouter } from "next/router";
+import React, { useState, useEffect } from "react";
+import { useParams } from "next/navigation";
 import Image from "next/image";
 import jeopardyLogo from "../icons/Jeopardy-Symbol.png";
 import userIcon from "../icons/user.png";
 import roomIcon from "../icons/room.png";
 import keyIcon from "../icons/key.png";
 import playersIcon from "../icons/players.png";
-import styles from "./user.module.css";
+import styles from "./[userid].module.css";
 
 const JeopardyLoggedInPage = () => {
-  const router = useRouter();
-  const { userid } = router.query;
+  const { userid } = useParams();
 
-  const [username] = useState(userid);
+  useEffect(() => {
+    if (userid) {
+        // Perform actions that depend on userid
+        console.log('User ID:', userid);
+    }
+  }, [userid]); // Runs when userid changes
+
+  if (!userid) {
+      return <div>Loading...</div>;
+  }
+
+  const [username, setUsername] = useState(userid);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [selectedRoom, setSelectedRoom] = useState(null);
   const [newRoom, setNewRoom] = useState({

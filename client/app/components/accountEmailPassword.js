@@ -1,28 +1,28 @@
 import React, {useState} from 'react';
+import { useRouter } from 'next/navigation';
 import styles from "../page.module.css";
 import Image from "next/image";
 import userIcon from "../icons/user.png";
-import FinishSignUp from './finishSignUp';
 
-export default function AccountEmail({action}) {
+export default function AccountEmailPassword({action}) {
     const [email, setEmail] = useState("");
-    const [loading, setLoading] = useState(false);
+    const [password, setPassword] = useState("");
+
+    const router = useRouter();
     
     const createNewAccount = async() => {
         try{
-            const response = await fetch(process.env.NEXT_PUBLIC_SERVER_URL +'/api/sendEmailLink/createAccount', {
+            const response = await fetch(process.env.NEXT_PUBLIC_SERVER_URL +'/api/createAccount', {
                 method: 'POST',
-                body: JSON.stringify({email}),
+                body: JSON.stringify({email, password}),
                 headers: {
                     'Content-Type': 'application/json'
                 }
             });
             const data = await response.json();
             if (response.ok) {
-                console.log(data.message);
-                localStorage.setItem('emailForSignIn', email); 
-                alert("Email sent! Please check your inbox.");
-                setLoading(true);
+                alert(data.message);
+                router.push(`/${data.uid}`);
             }else if(response.status === 400) {
                 console.error('Error:', data.message);
                 alert(data.message);
@@ -38,19 +38,17 @@ export default function AccountEmail({action}) {
 
     const signInAccount = async() => {
         try{
-            const response = await fetch(process.env.NEXT_PUBLIC_SERVER_URL +'/api/sendEmailLink/login', {
+            const response = await fetch(process.env.NEXT_PUBLIC_SERVER_URL +'/api/signInAccount', {
                 method: 'POST',
-                body: JSON.stringify({email}),
+                body: JSON.stringify({email, password}),
                 headers: {
                     'Content-Type': 'application/json'
                 }
             });
             const data = await response.json();
             if (response.ok) {
-                console.log(data.message);
-                localStorage.setItem('emailForSignIn', email); 
-                alert("Email sent! Please check your inbox.");
-                setLoading(true);
+                alert(data.message);
+                router.push('/user/'+ data.uid);
             }else if(response.status === 400) {
                 console.error('Error:', data.message);
                 alert(data.message);
@@ -98,10 +96,15 @@ export default function AccountEmail({action}) {
                     onChange={(e) => setEmail(e.target.value)}
                     required
                     />
+                    <input
+                    type="password"
+                    placeholder='Password'
+                    className={styles.inputField}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    />
                 </div>
             </form>
-
-            {loading ? <FinishSignUp /> : null}
 
             {action === "login" ? 
             <button className={styles.submitFormButton} type={'submit'} id={"loginAccount"} onClick={handleSubmit}>Login</button>

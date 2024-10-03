@@ -43,6 +43,7 @@
 .inputField {
   width: 230px;
   padding: 10px;
+  margin: 5px 0;
   border-radius: 8px;
   border: none;
   background-color: #004aad;
@@ -76,4 +77,22 @@
 
 .signingUpMessage {
   margin-top: 20px;
+}
+
+.signInOptionsTitle {
+  font-size: x-large;
+  padding: 1em;
+}
+
+.buttonChoiceContainer {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.buttonChoice {
+  margin: 0 1em;
+  font-size: larger;
+  font-weight: bold;
+  padding: 10px 20px;
 }
