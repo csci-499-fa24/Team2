@@ -38,7 +38,7 @@ module.exports = {
 
     // Transform settings if you're using Babel or TypeScript.
     // Uncomment and adjust the following if necessary.
-    // transform: {
-    //   '^.+\\.jsx?$': 'babel-jest',
-    // },
+    transform: {
+      '^.+\\.jsx?$': 'babel-jest',
+    },
 };

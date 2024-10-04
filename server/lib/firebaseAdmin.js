@@ -1,7 +1,7 @@
 const adminAuth = require('firebase-admin');
 const serviceAccount = require('./firebaseAdminKey.js');
 
-if (!adminAuth.apps.length) {
+if (!adminAuth.apps || !adminAuth.apps.length) {
   adminAuth.initializeApp({
     credential: adminAuth.credential.cert(serviceAccount),
   });

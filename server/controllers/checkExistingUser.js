@@ -2,26 +2,18 @@ const express = require('express');
 const router = express.Router();
 const adminAuth = require('../lib/firebaseAdmin.js');
 
-const checkIfUserExists = async(email) => {
-    try {
-      const userRecord = await adminAuth.getUserByEmail(email);
-      return true;
-    } catch (error) {
-      if (error.code === 'auth/user-not-found') {
-        return false;
-      }
-      else{console.log('Error checking user:', error.message)};
-    }
-  }
-
 router.get("/:email", async(req, res) => {
     const { email } = req.params;
-    console.log('Checking if user exists:', email);
-    const userExists = await checkIfUserExists(email);
-    if (userExists) {
-      res.status(200).json({ message: 'User exists' });
-    }else {
-      res.status(400).json({ message: 'User does not exist' });
+    if (!email) {
+      return res.status(400).json({ error: 'No email provided' });
+    }
+
+    try{
+      const userRecord = await adminAuth.getUserByEmail(email);
+      console.log("userRecord", userRecord);
+      res.status(200).json({ message: 'User exists', uid: userRecord.uid });
+    }catch(error){
+      res.status(404).json({ message: 'User not found' });
     }
 });
 
