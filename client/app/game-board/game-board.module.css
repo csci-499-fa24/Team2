@@ -38,3 +38,25 @@
   transform: scale(1.1); /* Slightly scale up the button */
   color: white; 
 }
+
+.modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: black;
+    padding: 20px;
+    border: 2px solid black;
+    z-index: 1000;
+}
+
+.modalContent {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.button {
+    margin-top: 10px;
+}
+  
