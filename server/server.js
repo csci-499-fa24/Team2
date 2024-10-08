@@ -122,6 +122,16 @@ function endGame(gameId) {
   console.log(`Game ${gameId} ended and data removed.`);
 }
 
+// New function to resolve a game (currently just ends the game but will do more in future)
+function resolveGame(gameId) {
+  console.log(`Resolving game ${gameId}...`);
+  
+  // Future: Update user analytics, save scores, etc.
+  
+  // End the game for now
+  endGame(gameId);
+}
+
 // Function to check for expired games and remove them after inactivity
 function checkForExpiredGames() {
   const currentTime = Date.now();
@@ -242,6 +252,10 @@ app.post('/api/next-round/:gameId', (req, res) => {
     game.round = 'Double Jeopardy!';
   } else if (game.round === 'Double Jeopardy!') {
     game.round = 'Final Jeopardy!';
+  } else if (game.round === 'Final Jeopardy!') {
+    // Resolve the game after Final Jeopardy!
+    resolveGame(gameId);
+    return res.status(200).json({ message: 'Game resolved and ended.' });
   } else {
     return res.status(400).json({ message: 'No further rounds available.' });
   }
@@ -262,6 +276,21 @@ app.post('/api/next-round/:gameId', (req, res) => {
   console.log(`Debug: New round info for game ${gameId}:`, roundInfo);
 
   res.status(200).json({ round: game.round, roundInfo });
+});
+
+// New API endpoint to manually end a game
+app.post('/api/end-game/:gameId', (req, res) => {
+  const { gameId } = req.params;
+
+  // Validate the game exists
+  if (!activeGames[gameId]) {
+    return res.status(404).json({ message: 'Game not found.' });
+  }
+
+  // End the game
+  endGame(gameId);
+
+  res.status(200).json({ message: `Game ${gameId} has been ended.` });
 });
 
 // Start the server and sync the database
