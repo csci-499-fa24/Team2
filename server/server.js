@@ -201,6 +201,69 @@ app.get('/api/round-info/:gameId', (req, res) => {
   res.status(200).json({ round: currentRound, roundInfo });
 });
 
+// API endpoint to get a specific question by category and value in the current round
+app.get('/api/question/:gameId', (req, res) => {
+  const { gameId } = req.params;
+  const { category, value } = req.query;
+
+  // Validate the game exists
+  const game = activeGames[gameId];
+  if (!game) {
+    return res.status(404).json({ message: 'Game not found.' });
+  }
+
+  // Find the question based on the category and value
+  const question = game.questions.find(q => q.Category === category && q.Value == value);
+
+  if (!question) {
+    return res.status(404).json({ message: 'Question not found for the specified category and value.' });
+  }
+
+  // Return the question and answer
+  res.status(200).json({
+    question: question.Question,
+    answer: question.Answer,
+    category: question.Category,
+    value: question.Value
+  });
+});
+
+// API endpoint to move to the next round and return round info
+app.post('/api/next-round/:gameId', (req, res) => {
+  const { gameId } = req.params;
+  const game = activeGames[gameId];
+
+  if (!game) {
+    return res.status(404).json({ message: 'Game not found.' });
+  }
+
+  // Move to the next round
+  if (game.round === 'Jeopardy!') {
+    game.round = 'Double Jeopardy!';
+  } else if (game.round === 'Double Jeopardy!') {
+    game.round = 'Final Jeopardy!';
+  } else {
+    return res.status(400).json({ message: 'No further rounds available.' });
+  }
+
+  // Get the new round info
+  const questions = game.questions.filter(q => q.Round === game.round);
+  const categories = [...new Set(questions.map(q => q.Category))];
+  const roundInfo = categories.map(category => {
+    const categoryQuestions = questions.filter(q => q.Category === category);
+    return {
+      category,
+      values: categoryQuestions.map(q => q.Value)
+    };
+  });
+
+  // Debugging prints
+  console.log(`Debug: Moved to next round: ${game.round}`);
+  console.log(`Debug: New round info for game ${gameId}:`, roundInfo);
+
+  res.status(200).json({ round: game.round, roundInfo });
+});
+
 // Start the server and sync the database
 db.sequelize.sync().then(() => {
   server.listen(port, () => {
