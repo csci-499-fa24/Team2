@@ -24,11 +24,14 @@
 
 .inputContainer {
   position: relative;
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
 }
 
 .iconWrapper {
   position: absolute;
-  margin-top: 12px;
+  /* margin-top: 12px; */
 }
 
 .inputsWrapper {
@@ -44,35 +47,16 @@
   border: none;
   background-color: #004aad;
   color: #ffffff;
-  margin-bottom: 10px;
+  /* margin-bottom: 10px; */
 }
 
-.loginButton {
-  width: 90px;
-  padding: 8px;
-  background-color: #007bff;
-  color: #ffffff;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  position: relative;
-  overflow: hidden;
-  transition: background-color 0.3s ease;
+.submitFormButton {
+  width: fit-content;
+  padding: 10px 20px;
   margin-top: 10px;
 }
 
-.loginButton::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: rgba(255, 255, 255, 0.2);
-  transition: 0.5s;
-}
-
-.loginButton:hover::after {
+.submitFormButton:hover::after {
   left: 100%;
 }
 
@@ -88,4 +72,8 @@
 
 .signupLink:hover {
   text-decoration: underline;
+}
+
+.signingUpMessage {
+  margin-top: 20px;
 }
