@@ -1,50 +1,36 @@
+require('dotenv').config();
+jest.mock('firebase-admin')
+
 const request = require('supertest');
 const express = require('express');
 const verifyToken = require('../controllers/verifyToken');
-const { verifyIdToken } = require('../lib/firebaseAdmin');
+const adminAuth = require('../lib/firebaseAdmin');
 
 // Setup Express app for testing
 const app = express();
 app.use(express.json());
 app.use('/verifyToken', verifyToken);
 
-// Mock Firebase Admin SDK
-jest.mock('firebase-admin', () => {
-    const mockUserRecord = {
-        token: 'valid-token',
-    };
-    
-    const mockAuth = {
-      apps: [],
-      initializeApp: jest.fn(),
-      credential: {
-        cert: jest.fn(() => ({})), 
-      },
-      auth: jest.fn(() => ({    
-        verifyIdToken: jest.fn().mockResolvedValue(mockUserRecord),
-      })),
-    };
-  
-    return mockAuth;
+describe('POST /verifyToken', () => {
+  afterEach(() => {
+    jest.clearAllMocks(); // Clear mocks after each test
+    jest.resetModules(); // Reset modules after each test
   });
 
-const adminAuth = require('firebase-admin').auth();
-
-describe('POST /verifyToken', () => {
   it('should verify a valid token and return the user and 200', async () => {
     const mockToken = 'valid-token';
-    const mockDecodedToken = { uid: '123', email: 'test@example.com' };
+    const mockDecodedToken = { uid: '123'};
     
-    adminAuth.verifyIdToken.mockResolvedValue(mockDecodedToken);
+    adminAuth.auth().verifyIdToken.mockResolvedValue(mockDecodedToken);
 
-    const response = await request(app)
+    const response = await request(app) 
       .post('/verifyToken')
-      .set('Authorization', `Bearer ${mockToken}`);
+      .send({token: mockToken});
     
     expect(response.statusCode).toBe(200);
     expect(response.body).toEqual({
-      message: 'Token verified',
-      user: mockDecodedToken
+      message: 'User authenticated',
+      uid: mockDecodedToken.uid
     });
   });
 
@@ -55,7 +41,7 @@ describe('POST /verifyToken', () => {
   });
 
   it('should return 403 if the token is invalid', async () => {
-    adminAuth.verifyIdToken.mockRejectedValue(new Error('Invalid token'));
+    adminAuth.auth().verifyIdToken.mockRejectedValue(new Error('Invalid token'));
 
     const response = await request(app)
       .post('/verifyToken')

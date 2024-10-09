@@ -1,31 +1,15 @@
+require('dotenv').config();
+jest.mock('firebase-admin')
+
 const request = require('supertest');
 const express = require('express');
 const app = require('../server'); 
 const adminAuth = require('../lib/firebaseAdmin');
 
-jest.mock('firebase-admin', () => {
-    jest.mock('firebase-admin', () => {
-        const mockAuth = {
-          apps: [],
-          initializeApp: jest.fn(),
-          credential: {
-            cert: jest.fn(() => ({})),
-          },
-          auth: jest.fn(() => ({
-            getUserByEmail: jest.fn().mockResolvedValue(mockUserRecord),
-          })),
-        };
-      
-        return {
-            ...mockAuth,
-            auth: () => mockAuth.auth(),
-          };
-      });
-});
-
 describe('GET /api/checkExistingUser/:email', () => {
     afterEach(() => {
         jest.clearAllMocks();
+        jest.resetModules();
     });
 
     it('should return 200 and user information if the user exists', async () => {
@@ -34,7 +18,7 @@ describe('GET /api/checkExistingUser/:email', () => {
         uid: '12345',
         };
 
-        adminAuth.getUserByEmail.mockResolvedValue(mockUserRecord);
+        adminAuth.auth().getUserByEmail.mockResolvedValue(mockUserRecord);
 
         const response = await request(app).get(`/api/checkExistingUser/${email}`);
 
@@ -48,7 +32,7 @@ describe('GET /api/checkExistingUser/:email', () => {
         const email = 'nonexistent@example.com';
 
         // Provide the mock implementation for non-existing user
-        adminAuth.getUserByEmail.mockRejectedValue(new Error('User not found'));
+        adminAuth.auth().getUserByEmail.mockRejectedValue(new Error('User not found'));
 
         const response = await request(app).get(`/api/checkExistingUser/${email}`);
 

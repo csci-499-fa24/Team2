@@ -86,6 +86,7 @@ export default function AccountEmailPassword({action}) {
                 }
             });
             const data = await response.json();
+            console.log(data);
             if (response.ok) {
                 alert("Signed in!");
                 router.push(`/${uid}`);
