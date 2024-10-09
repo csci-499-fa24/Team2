@@ -11,13 +11,17 @@ export default function Home() {
   const [message, setMessage] = useState("Loading");
   const [Jeopardies, setJeopardies] = useState([]);
   const [displayForm, setDisplayForm] = useState("login");
-  
+
   const [roomKey, setRoomKey] = useState("");
   const [socketMessage, setSocketMessage] = useState("");
 
   useEffect(() => {
-    console.log("Hello! Please open the developer console and type setRoomKey('yourRoomKey') to enter the room.");
-    console.log("Once you have done that, you can type in sendMessage('your message here') to send a message to others in the room!");
+    console.log(
+      "Hello! Please open the developer console and type setRoomKey('yourRoomKey') to enter the room."
+    );
+    console.log(
+      "Once you have done that, you can type in sendMessage('your message here') to send a message to others in the room!"
+    );
     // this allows us to make a global function to set things in the console
     window.setRoomKey = (key) => {
       setRoomKey(key);
@@ -86,8 +90,6 @@ export default function Home() {
           Login
         </span>
       </p>
-      : null}
     </div>
   );
 }
-
