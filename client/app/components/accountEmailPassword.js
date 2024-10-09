@@ -19,7 +19,6 @@ export default function AccountEmailPassword({action}) {
     const createNewAccount = async() => {
         const auth = getFirebaseAuth();
         const serverURL = process.env.NEXT_PUBLIC_SERVER_URL;
-        console.log("checking account at ", `${serverURL}/api/checkExistingUser/${email}`);
         const userExists = await fetch(`${serverURL}/api/checkExistingUser/${email}`, {
             method: 'GET',
         });
@@ -36,7 +35,6 @@ export default function AccountEmailPassword({action}) {
                 const user = userCredential.user;
                 const uid = user.uid;
                 const idToken = await user.getIdToken();
-                console.log("verifying Token at ", `${serverURL}/api/verifyToken`);
                 const response = await fetch(`${serverURL}/api/verifyToken`, {
                     method: 'POST',
                     body: JSON.stringify({token: idToken}),
@@ -75,13 +73,10 @@ export default function AccountEmailPassword({action}) {
 
         try{
             const auth = getFirebaseAuth();
-            console.log("signing in with ", email, password, auth);
             const userCredential = await signInWithEmailAndPassword(auth, email, password);
-            console.log("so something wrong here?");
             const user = userCredential.user;
             const uid = user.uid;
             const idToken = await user.getIdToken();
-            console.log(idToken);
             const response = await fetch(`${serverURL}/api/verifyToken`, {
                 method: 'POST',
                 body: JSON.stringify({token: idToken}),
@@ -90,7 +85,7 @@ export default function AccountEmailPassword({action}) {
                 }
             });
             const data = await response.json();
-            console.log(data);
+            // console.log(data);
             if (response.ok) {
                 alert("Signed in!");
                 router.push(`/${uid}`);
@@ -109,7 +104,7 @@ export default function AccountEmailPassword({action}) {
 
     const handleSubmit = async(e) => {
         e.preventDefault();
-        console.log(e.target.id);
+        // console.log(e.target.id);
         if (email) {
             if (e.target.id === "loginAccount") {
                 signInAccount();

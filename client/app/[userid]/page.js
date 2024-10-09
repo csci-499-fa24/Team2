@@ -28,7 +28,7 @@ const JeopardyLoggedInPage = () => {
 
   useEffect(() => {
     if (userid) {
-        console.log('User ID:', userid);
+        // console.log('User ID:', userid);
         setUsername(userid);
     }
 
@@ -40,14 +40,14 @@ const JeopardyLoggedInPage = () => {
 
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
-        console.log("User is logged in", user);
+        // console.log("User is logged in", user);
         if (userid) {
-          console.log('User ID:', userid);
+          // console.log('User ID:', userid);
           setUsername(userid);
         }
       } else {
         if (!isSigningOut && loadingAuthState) {
-          console.log("User is not logged in");
+          // console.log("User is not logged in");
           alert("You are not logged in. Please log in to continue.");
           router.push("/");
         }
