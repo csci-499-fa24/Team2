@@ -1,2 +1,3 @@
 #in prevention of leaking private info
 /lib/firebaseAdminKey.json
+/coverage/

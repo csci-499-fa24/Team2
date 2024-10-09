@@ -6,6 +6,15 @@ module.exports = {
     // Automatically clear mock calls and instances between every test.
     clearMocks: true,
 
+    resetMocks: true,
+
+    moduleNameMapper: {
+        '^./firebaseAdminKey$': '<rootDir>/__mocks__/firebaseAdminKey.js',
+        '^firebase-admin$': '<rootDir>/__mocks__/firebaseAdmin.js',
+    },
+
+    setupFiles: ['<rootDir>/jest.setup.js'],
+
     // The test environment that will be used for testing.
     testEnvironment: 'node',
 
@@ -38,7 +47,7 @@ module.exports = {
 
     // Transform settings if you're using Babel or TypeScript.
     // Uncomment and adjust the following if necessary.
-    // transform: {
-    //   '^.+\\.jsx?$': 'babel-jest',
-    // },
+    transform: {
+      '^.+\\.jsx?$': 'babel-jest',
+    },
 };

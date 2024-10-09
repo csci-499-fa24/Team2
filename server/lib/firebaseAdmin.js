@@ -1,14 +1,14 @@
-const admin = require('firebase-admin');
+const adminAuth = require('firebase-admin');
 const serviceAccount = require('./firebaseAdminKey.js');
 
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-});
+// console.log('firebaseAdminKey:', serviceAccount);
 
-const adminAuth = admin.auth();
-if (adminAuth) {
-    console.log('Firebase Admin Initialized Successfully');
+if (!adminAuth.apps || !adminAuth.apps.length) {
+  adminAuth.initializeApp({
+    credential: adminAuth.credential.cert(serviceAccount),
+  });
 } else {
-    console.error('Firebase Admin Initialization Failed');
+  adminAuth.app(); // Reuse existing app
 }
-module.exports = { adminAuth };
+
+module.exports = adminAuth;

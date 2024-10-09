@@ -9,12 +9,17 @@ const routes = require("./controllers");
 const initializeSockets = require('./socketServer');
 const http = require('http');
 
-
 app.use(cors({origin: "*"}));
 app.use(express.json());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-const port = process.env.PORT || 8080;
+if (require.main === module) {
+  const PORT = process.env.PORT || 8080;
+  app.listen(PORT, () => {
+      console.log(`Server is running on port ${PORT}`);
+      isServerRunning = true;
+  });
+}
 const server = http.createServer(app);
 
 // Database connection
@@ -32,11 +37,27 @@ sequelize.authenticate()
     console.error('Unable to connect to the database:', err);
   });
 
-db.sequelize.sync().then((req) => {
-    server.listen(port, () => {
-      console.log(`Server is running on http://localhost:${port}`);
-    });
-    initializeSockets(server);
-});
+  const startSocketServer = async () => {
+    // if (isServerRunning) {
+    //   console.log('Server is already running.');
+    //   return; 
+    // }
+
+    let closeSockets; 
+  
+    try {
+      await db.sequelize.sync();
+      closeSockets = initializeSockets(server);
+    } catch (err) {
+      console.error('Error starting the server:', err);
+    }
+  
+    return closeSockets;
+  };
+
+if (require.main === module) {
+  startSocketServer();
+}
 
 app.use("/api", routes);
+module.exports = app;

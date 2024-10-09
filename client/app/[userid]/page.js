@@ -1,23 +1,66 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { initializeFirebase } from "../lib/firebaseClient";
+import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
 import Image from "next/image";
 import jeopardyLogo from "../icons/Jeopardy-Symbol.png";
 import userIcon from "../icons/user.png";
 import roomIcon from "../icons/room.png";
 import keyIcon from "../icons/key.png";
 import playersIcon from "../icons/players.png";
-import styles from "./user.module.css";
+import styles from "./[userid].module.css";
 
 const JeopardyLoggedInPage = () => {
-  const [username] = useState("User123");
+  const [username, setUsername] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isSigningOut, setIsSigningOut] = useState(false);
+  const [loadingAuthState, setLoadingAuthState] = useState(true);
   const [selectedRoom, setSelectedRoom] = useState(null);
   const [newRoom, setNewRoom] = useState({
     name: "",
     isPrivate: false,
     maxPlayers: 3,
   });
+  const { userid } = useParams();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (userid) {
+        // console.log('User ID:', userid);
+        setUsername(userid);
+    }
+
+  }, []); 
+
+  useEffect(() => {
+    initializeFirebase();
+    const auth = getAuth();
+
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        // console.log("User is logged in", user);
+        if (userid) {
+          // console.log('User ID:', userid);
+          setUsername(userid);
+        }
+      } else {
+        if (!isSigningOut && loadingAuthState) {
+          // console.log("User is not logged in");
+          alert("You are not logged in. Please log in to continue.");
+          router.push("/");
+        }
+      }
+      setLoadingAuthState(false);
+    });
+
+    return () => unsubscribe();
+  }, [userid, isSigningOut, loadingAuthState]);
+
+  if (!userid) {
+      return <div>Loading...</div>;
+  }
 
   const onlinePlayers = [
     "Alan",
@@ -36,8 +79,16 @@ const JeopardyLoggedInPage = () => {
     "Fact Finders",
   ];
 
-  const handleLogout = () => {
-    window.location.href = "/";
+  const handleLogout = async() => {
+    try{
+      await signOut(getAuth());
+      setIsSigningOut(true);
+      alert("Successfully logged out!");
+      router.push("/");
+    }catch(error){
+      console.error('Error:', error);
+      alert("Error logging out. Please try again.");
+    }
   };
 
   const handleInputChange = (e) => {

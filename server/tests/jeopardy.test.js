@@ -1,5 +1,6 @@
 const request = require('supertest');
 const express = require('express');
+const { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword} = require('firebase/auth');
 const { Jeopardy } = require('../models'); // Ensure this path is correct for your model import
 const indexRouter = require('../controllers/index');
 
@@ -22,10 +23,9 @@ jest.mock('firebase-admin', () => ({
 
 // Mock Firebase Auth to prevent real initialization during tests
 jest.mock('firebase/auth', () => ({
-  getAuth: jest.fn().mockReturnValue({
-    signInWithEmailLink: jest.fn(),
-    isSignInWithEmailLink: jest.fn()
-  })
+  getAuth: jest.fn(),
+  signInWithEmailAndPassword: jest.fn(),
+  createUserWithEmailAndPassword: jest.fn()
 }));
 
 jest.mock('../models', () => ({
