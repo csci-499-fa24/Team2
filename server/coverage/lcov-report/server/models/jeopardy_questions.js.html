@@ -3,15 +3,15 @@
 <html lang="en">
 
 <head>
-    <title>Code coverage report for server/jest.config.js</title>
+    <title>Code coverage report for server/models/jeopardy_questions.js</title>
     <meta charset="utf-8" />
-    <link rel="stylesheet" href="../prettify.css" />
-    <link rel="stylesheet" href="../base.css" />
-    <link rel="shortcut icon" type="image/x-icon" href="../favicon.png" />
+    <link rel="stylesheet" href="../../prettify.css" />
+    <link rel="stylesheet" href="../../base.css" />
+    <link rel="shortcut icon" type="image/x-icon" href="../../favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <style type='text/css'>
         .coverage-summary .sorter {
-            background-image: url(../sort-arrow-sprite.png);
+            background-image: url(../../sort-arrow-sprite.png);
         }
     </style>
 </head>
@@ -19,13 +19,13 @@
 <body>
 <div class='wrapper'>
     <div class='pad1'>
-        <h1><a href="../index.html">All files</a> / <a href="index.html">server</a> jest.config.js</h1>
+        <h1><a href="../../index.html">All files</a> / <a href="index.html">server/models</a> jeopardy_questions.js</h1>
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/1</span>
+                <span class='fraction'>3/3</span>
             </div>
         
             
@@ -39,14 +39,14 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/0</span>
+                <span class='fraction'>1/1</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/1</span>
+                <span class='fraction'>3/3</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -107,8 +107,8 @@
 <a name='L42'></a><a href='#L42'>42</a>
 <a name='L43'></a><a href='#L43'>43</a>
 <a name='L44'></a><a href='#L44'>44</a>
-<a name='L45'></a><a href='#L45'>45</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<a name='L45'></a><a href='#L45'>45</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -150,52 +150,52 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">// server/jest.config.js
-<span class="cstat-no" title="statement not covered" >module.exports = {</span>
-    // Specify the root directory of your project.
-    rootDir: '.',
-&nbsp;
-    // Automatically clear mock calls and instances between every test.
-    clearMocks: true,
-&nbsp;
-    // The test environment that will be used for testing.
-    testEnvironment: 'node',
-&nbsp;
-    // Glob patterns Jest uses to detect test files.
-    testMatch: ['**/tests/**/*.test.js'], // Look for test files in the 'tests' folder
-&nbsp;
-    // Directories to ignore during testing.
-    testPathIgnorePatterns: ['/node_modules/'],
-&nbsp;
-    // A list of reporter names that Jest uses when writing coverage reports.
-    coverageReporters: ['json-summary', 'clover', 'json', 'lcov', 'text'],
-&nbsp;
-    // Directory where Jest should output its coverage files.
-    coverageDirectory: 'coverage',
-&nbsp;
-    // Collect coverage information.
-    collectCoverage: true,
-&nbsp;
-    // Patterns to collect coverage from.
-    collectCoverageFrom: ['**/*.js', '!**/node_modules/**', '!**/coverage/**'],
-&nbsp;
-    // It won't fail a check for now even with 0% coverage. This gives time for team members to comply
-    coverageThreshold: {
-        global: {
-            functions: 0,
-            lines: 0,
-            statements: 0,
-        },
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">module.exports = (sequelize, DataTypes) =&gt; {
+  const JeopardyQuestions = sequelize.define('jeopardy_questions', {
+    ShowNumber: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      primaryKey: true,
+      field: 'ShowNumber' // Ensure that Sequelize uses the correct column name
     },
+    AirDate: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      field: 'AirDate' // Explicitly tell Sequelize the column name
+    },
+    Round: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      field: 'Round' // Explicitly tell Sequelize the column name
+    },
+    Category: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      field: 'Category' // Explicitly tell Sequelize the column name
+    },
+    Value: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      field: 'Value' // Explicitly tell Sequelize the column name
+    },
+    Question: {
+      type: DataTypes.TEXT,
+      allowNull: false,
+      field: 'Question' // Explicitly tell Sequelize the column name
+    },
+    Answer: {
+      type: DataTypes.TEXT,
+      allowNull: false,
+      field: 'Answer' // Explicitly tell Sequelize the column name
+    }
+  }, {
+    tableName: 'jeopardy_questions',
+    timestamps: false // Disable automatic timestamps
+  });
 &nbsp;
-    // Transform settings if you're using Babel or TypeScript.
-    // Uncomment and adjust the following if necessary.
-    // transform: {
-    //   '^.+\\.jsx?$': 'babel-jest',
-    // },
-};
-&nbsp;</pre></td></tr></table></pre>
+  return JeopardyQuestions;
+};</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
             </div><!-- /wrapper -->
@@ -204,14 +204,14 @@
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
                 at 2024-10-09T01:01:35.418Z
             </div>
-        <script src="../prettify.js"></script>
+        <script src="../../prettify.js"></script>
         <script>
             window.onload = function () {
                 prettyPrint();
             };
         </script>
-        <script src="../sorter.js"></script>
-        <script src="../block-navigation.js"></script>
+        <script src="../../sorter.js"></script>
+        <script src="../../block-navigation.js"></script>
     </body>
 </html>
     

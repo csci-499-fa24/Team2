@@ -35,7 +35,10 @@ const server = http.createServer(app);
 // Database connection
 const sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USERNAME, process.env.DB_PASSWORD, {
     host: process.env.DB_HOST,
-    dialect: 'mysql'
+    dialect: 'mysql',
+    dialectOptions: {
+      charset: 'utf8mb4', // Ensure the charset is correctly set
+    },
 });
 
 // Test database connection
@@ -163,7 +166,10 @@ function checkForExpiredGames() {
 }
 
 // Set up an interval to check for expired games every minute
-setInterval(checkForExpiredGames, 60 * 1000);
+// Only set up the interval if not in test environment
+if (process.env.NODE_ENV !== 'test') {
+  setInterval(checkForExpiredGames, 60 * 1000);
+}
 
 // API endpoint to start a new game with a random ShowNumber
 app.post('/api/start-game', async (req, res) => {
@@ -309,12 +315,31 @@ app.post('/api/end-game/:gameId', (req, res) => {
   res.status(200).json({ message: `Game ${gameId} has been ended.` });
 });
 
+// Export for testing
+module.exports = {
+  app,
+  server,
+  generateGameId,
+  validateGame,
+  getRandomShowNumber,
+  getJeopardyData,
+  removeGame,
+  resolveGame,
+  endGame,
+  checkForExpiredGames
+};
+
 // Start the server and sync the database
-db.sequelize.sync().then(() => {
-  server.listen(port, () => {
-    console.log(`Server is running on http://localhost:${port}`);
+if (process.env.NODE_ENV !== 'test') {
+  db.sequelize.sync().then(() => {
+    server.listen(port, () => {
+      console.log(`Server is running on http://localhost:${port}`);
+    });
+    initializeSockets(server);
   });
-  initializeSockets(server);
-});
+} else {
+  // Don't sync or listen in the test environment
+  console.log('Test environment: Server will not start.');
+}
 
 app.use("/api", routes);
