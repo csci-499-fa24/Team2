@@ -2,13 +2,14 @@ require('dotenv').config();
 jest.mock('firebase-admin')
 
 const request = require('supertest');
-const app = require('../server'); 
+const {app, sequelize, startSocketServer} = require('../server'); 
 const adminAuth = require('../lib/firebaseAdmin');
 
 describe('GET /api/checkExistingUser/:email', () => {
     let getUserByEmail;
+    let closeSockets;
 
-    beforeEach(() => {
+    beforeEach(async() => {
         jest.resetModules();
 
         jest.spyOn(adminAuth, 'auth').mockReturnValue({
@@ -21,10 +22,18 @@ describe('GET /api/checkExistingUser/:email', () => {
         } else {
             throw new Error('getUserByEmail is not defined');
         }  
+
+        closeSockets = await startSocketServer();
     });
       
     afterEach(async() => {
         jest.clearAllMocks();
+    });
+
+    afterAll(async () => {
+        // Close the database connection
+        await closeSockets();
+        await sequelize.close();
     });
 
     it('should return 200 and user information if the user exists', async () => {

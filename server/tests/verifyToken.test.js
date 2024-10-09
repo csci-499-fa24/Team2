@@ -2,13 +2,14 @@ require('dotenv').config();
 jest.mock('firebase-admin')
 
 const request = require('supertest');
-const app = require('../server');
+const {app, sequelize, startSocketServer} = require('../server');
 const adminAuth = require('../lib/firebaseAdmin');
 
 describe('POST /api/verifyToken', () => {
   let verifyIdToken;
+  let closeSockets
 
-  beforeEach(() => {
+  beforeEach(async() => {
       jest.resetModules();
 
       jest.spyOn(adminAuth, 'auth').mockReturnValue({
@@ -21,6 +22,8 @@ describe('POST /api/verifyToken', () => {
       } else {
           throw new Error('verifyIdToken is not defined');
       }  
+
+      closeSockets = await startSocketServer();
   });
 
   afterEach(async() => {
@@ -28,6 +31,12 @@ describe('POST /api/verifyToken', () => {
     // jest.resetModules(); // Reset modules after each test
     // await db.sequelize.close();
   });
+
+  afterAll(async () => {
+    // Close the database connection
+    await closeSockets();
+    await sequelize.close();
+});
 
   it('should verify a valid token and return the user and 200', async () => {
     const mockToken = 'valid-token';

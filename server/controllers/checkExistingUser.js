@@ -10,7 +10,7 @@ router.get("/:email", async(req, res) => {
 
     try{
       const userRecord = await adminAuth.auth().getUserByEmail(email);
-      console.log("userRecord", userRecord);
+      // console.log("userRecord", userRecord);
       res.status(200).json({ message: 'User exists', uid: userRecord.uid });
     }catch(error){
       res.status(404).json({ message: 'User not found' });

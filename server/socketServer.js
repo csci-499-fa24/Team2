@@ -28,4 +28,9 @@ module.exports = function (server) {
             console.log('Client disconnected', socket.id);
         });
     });
+
+    return () => {
+        io.close(); 
+        console.log('Socket server closed');
+    };
 };
