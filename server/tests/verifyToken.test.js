@@ -2,7 +2,6 @@ require('dotenv').config();
 jest.mock('firebase-admin')
 
 const request = require('supertest');
-// const {app, sequelize, startSocketServer} = require('../server');
 const express = require('express');
 const app = express();
 const bodyParser = require('body-parser');
@@ -12,7 +11,6 @@ app.use(cors({origin: "*"}));
 app.use(express.json());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-// const port = process.env.PORT || 8080;
 if (require.main === module) {
   const PORT = process.env.PORT || 3000;
   app.listen(PORT, () => {
@@ -26,7 +24,6 @@ const adminAuth = require('../lib/firebaseAdmin');
 
 describe('POST /api/verifyToken', () => {
   let verifyIdToken;
-  let closeSockets
 
   beforeEach(async() => {
       jest.resetModules();
@@ -35,27 +32,18 @@ describe('POST /api/verifyToken', () => {
           verifyIdToken: jest.fn(),
       });
 
-      verifyIdToken = adminAuth.auth().verifyIdToken; // Access the mocked function
+      verifyIdToken = adminAuth.auth().verifyIdToken; 
       if (verifyIdToken) {
-          verifyIdToken.mockClear(); // Clear any previous calls
+          verifyIdToken.mockClear(); 
       } else {
           throw new Error('verifyIdToken is not defined');
       }  
 
-      // closeSockets = await startSocketServer();
   });
 
   afterEach(async() => {
-    jest.clearAllMocks(); // Clear mocks after each test
-    // jest.resetModules(); // Reset modules after each test
-    // await db.sequelize.close();
+    jest.clearAllMocks(); 
   });
-
-  afterAll(async () => {
-    // Close the database connection
-    // await closeSockets();
-    // await sequelize.close();
-});
 
   it('should verify a valid token and return the user and 200', async () => {
     const mockToken = 'valid-token';

@@ -18,6 +18,7 @@ export default function AccountEmailPassword({action}) {
     
     const createNewAccount = async() => {
         const auth = getFirebaseAuth();
+        console.log("checking account at ", process.env.NEXT_PUBLIC_SERVER_URL +`/api/checkExistingUser/${email}`);
         const userExists = await fetch(process.env.NEXT_PUBLIC_SERVER_URL +`/api/checkExistingUser/${email}`, {
             method: 'GET',
         });
@@ -34,6 +35,7 @@ export default function AccountEmailPassword({action}) {
                 const user = userCredential.user;
                 const uid = user.uid;
                 const idToken = await user.getIdToken();
+                console.log("verifying Token at ", process.env.NEXT_PUBLIC_SERVER_URL +'/api/verifyToken');
                 const response = await fetch(process.env.NEXT_PUBLIC_SERVER_URL +'/api/verifyToken', {
                     method: 'POST',
                     body: JSON.stringify({token: idToken}),

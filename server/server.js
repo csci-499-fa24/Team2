@@ -9,15 +9,12 @@ const routes = require("./controllers");
 const initializeSockets = require('./socketServer');
 const http = require('http');
 
-// let serverInstance;
-// let isServerRunning = false;
 app.use(cors({origin: "*"}));
 app.use(express.json());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-// const port = process.env.PORT || 8080;
 if (require.main === module) {
-  const PORT = process.env.PORT || 3000;
+  const PORT = process.env.PORT || 8080;
   app.listen(PORT, () => {
       console.log(`Server is running on port ${PORT}`);
       isServerRunning = true;
@@ -63,4 +60,4 @@ if (require.main === module) {
 }
 
 app.use("/api", routes);
-module.exports = {app, sequelize, startSocketServer};
+module.exports = app;
