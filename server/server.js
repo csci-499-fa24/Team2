@@ -14,7 +14,13 @@ app.use(cors({origin: "*"}));
 app.use(express.json());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-const port = process.env.PORT || 8080;
+// const port = process.env.PORT || 8080;
+if (require.main === module) {
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => {
+      console.log(`Server is running on port ${PORT}`);
+  });
+}
 const server = http.createServer(app);
 
 // Database connection
@@ -40,3 +46,4 @@ db.sequelize.sync().then((req) => {
 });
 
 app.use("/api", routes);
+module.exports = app;

@@ -10,11 +10,14 @@ const mockAuth = {
   credential: {
     cert: jest.fn(() => mockServiceAccount),
   },
-  auth: jest.fn(() => ({
+  auth: jest.fn().mockReturnValue({
     verifyIdToken: jest.fn(),
     getUserByEmail: jest.fn(),
-  })),
+  }),
 };
   
-  module.exports = mockAuth;
+module.exports = {
+  ...mockAuth, // Spread the mockAuth object to include all properties
+  auth: jest.fn(() => mockAuth.auth()), // Ensure auth method returns the right mock structure
+};
   

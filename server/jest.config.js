@@ -9,8 +9,8 @@ module.exports = {
     resetMocks: true,
 
     moduleNameMapper: {
-        '^./firebaseAdminKey$': '<rootDir>/_mocks_/firebaseAdminKey.js',
-        '^firebase-admin$': '<rootDir>/_mocks_/firebaseAdmin.js',
+        '^./firebaseAdminKey$': '<rootDir>/__mocks__/firebaseAdminKey.js',
+        '^firebase-admin$': '<rootDir>/__mocks__/firebaseAdmin.js',
     },
 
     setupFiles: ['<rootDir>/jest.setup.js'],
