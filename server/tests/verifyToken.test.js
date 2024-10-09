@@ -2,7 +2,26 @@ require('dotenv').config();
 jest.mock('firebase-admin')
 
 const request = require('supertest');
-const {app, sequelize, startSocketServer} = require('../server');
+// const {app, sequelize, startSocketServer} = require('../server');
+const express = require('express');
+const app = express();
+const bodyParser = require('body-parser');
+const routes = require("../controllers");
+const cors = require('cors')
+app.use(cors({origin: "*"}));
+app.use(express.json());
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+// const port = process.env.PORT || 8080;
+if (require.main === module) {
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => {
+      console.log(`Server is running on port ${PORT}`);
+      isServerRunning = true;
+  });
+}
+app.use("/api", routes);
+
 const adminAuth = require('../lib/firebaseAdmin');
 
 describe('POST /api/verifyToken', () => {
@@ -23,7 +42,7 @@ describe('POST /api/verifyToken', () => {
           throw new Error('verifyIdToken is not defined');
       }  
 
-      closeSockets = await startSocketServer();
+      // closeSockets = await startSocketServer();
   });
 
   afterEach(async() => {
@@ -34,8 +53,8 @@ describe('POST /api/verifyToken', () => {
 
   afterAll(async () => {
     // Close the database connection
-    await closeSockets();
-    await sequelize.close();
+    // await closeSockets();
+    // await sequelize.close();
 });
 
   it('should verify a valid token and return the user and 200', async () => {
