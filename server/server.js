@@ -8,7 +8,21 @@ const app = express();
 const routes = require("./controllers");
 const initializeSockets = require('./socketServer');
 const http = require('http');
-const { v4: uuidv4 } = require('uuid'); // For generating unique game IDs
+
+// Function to generate a unique 6-character alphanumeric game ID
+function generateGameId() {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let gameId;
+
+  do {
+    gameId = '';
+    for (let i = 0; i < 6; i++) {
+      gameId += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+  } while (activeGames[gameId]); // Keep generating until we get a unique gameId
+
+  return gameId;
+}
 
 app.use(cors({ origin: "*" }));
 app.use(express.json());
@@ -172,7 +186,7 @@ app.post('/api/start-game', async (req, res) => {
   }
 
   const jeopardyData = await getJeopardyData(showNumber);
-  const gameId = uuidv4(); // Generate a unique game ID
+  const gameId = generateGameId(); // Generate a unique 6-character alphanumeric game ID
 
   activeGames[gameId] = {
     showNumber,
@@ -185,7 +199,13 @@ app.post('/api/start-game', async (req, res) => {
   res.status(200).json({ message: 'Game started', gameId, totalQuestions: jeopardyData.length });
 });
 
-// Function to provide category and point values for each round
+// API endpoint to get all active game UIDs
+app.get('/api/active-games', (req, res) => {
+  const activeGameIds = Object.keys(activeGames);
+  res.status(200).json({ activeGames: activeGameIds });
+});
+
+// API endpoint to get round info for a game
 app.get('/api/round-info/:gameId', (req, res) => {
   const gameId = req.params.gameId;
   const game = activeGames[gameId];
@@ -205,7 +225,6 @@ app.get('/api/round-info/:gameId', (req, res) => {
     };
   });
 
-  // Debugging prints
   console.log(`Debug: Round info for game ${gameId}:`, roundInfo);
 
   res.status(200).json({ round: currentRound, roundInfo });
@@ -271,23 +290,20 @@ app.post('/api/next-round/:gameId', (req, res) => {
     };
   });
 
-  // Debugging prints
   console.log(`Debug: Moved to next round: ${game.round}`);
   console.log(`Debug: New round info for game ${gameId}:`, roundInfo);
 
   res.status(200).json({ round: game.round, roundInfo });
 });
 
-// New API endpoint to manually end a game
+// API endpoint to manually end a game
 app.post('/api/end-game/:gameId', (req, res) => {
   const { gameId } = req.params;
 
-  // Validate the game exists
   if (!activeGames[gameId]) {
     return res.status(404).json({ message: 'Game not found.' });
   }
 
-  // End the game
   endGame(gameId);
 
   res.status(200).json({ message: `Game ${gameId} has been ended.` });
