@@ -26,6 +26,10 @@ export default function GameBoardPage() {
   };
 
   const renderCategories = () => {
+    if (!Array.isArray(selectedData)) {
+      return <div>No categories available</div>;
+    }
+
     return selectedData.map((category, index) => (
       <button className={styles.firstrow} key={index}>
         {category[0]?.category}
@@ -34,6 +38,10 @@ export default function GameBoardPage() {
   };
 
   const renderRows = () => {
+    if (!Array.isArray(selectedData)) {
+      return null;
+    }
+
     const maxRows = Math.max(
       ...selectedData.map((category) => category.length)
     );

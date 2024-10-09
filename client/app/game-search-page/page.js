@@ -105,13 +105,13 @@ export default function GameSearchingPage() {
     <div>
       <h1>Jeopardy Show Numbers</h1>
       <div style={{ display: "flex", flexWrap: "wrap" }}>
-        {jeopardies.map((jeopardy, index) => (
+        {jeopardies.map((Jeopardies, index) => (
           <button
             className={styles.button}
             key={index}
-            onClick={() => fetchShowData(jeopardy.show_number)}
+            onClick={() => fetchShowData(Jeopardies.show_number)}
           >
-            Show Number: {jeopardy.show_number}
+            Show Number: {Jeopardies.show_number}
           </button>
         ))}
       </div>
