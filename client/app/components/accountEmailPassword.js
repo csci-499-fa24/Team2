@@ -18,8 +18,9 @@ export default function AccountEmailPassword({action}) {
     
     const createNewAccount = async() => {
         const auth = getFirebaseAuth();
-        console.log("checking account at ", process.env.NEXT_PUBLIC_SERVER_URL +`/api/checkExistingUser/${email}`);
-        const userExists = await fetch(process.env.NEXT_PUBLIC_SERVER_URL +`/api/checkExistingUser/${email}`, {
+        const serverURL = process.env.NEXT_PUBLIC_SERVER_URL;
+        console.log("checking account at ", `${serverURL}/api/checkExistingUser/${email}`);
+        const userExists = await fetch(`${serverURL}/api/checkExistingUser/${email}`, {
             method: 'GET',
         });
         if (userExists.ok) {
@@ -35,8 +36,8 @@ export default function AccountEmailPassword({action}) {
                 const user = userCredential.user;
                 const uid = user.uid;
                 const idToken = await user.getIdToken();
-                console.log("verifying Token at ", process.env.NEXT_PUBLIC_SERVER_URL +'/api/verifyToken');
-                const response = await fetch(process.env.NEXT_PUBLIC_SERVER_URL +'/api/verifyToken', {
+                console.log("verifying Token at ", `${serverURL}/api/verifyToken`);
+                const response = await fetch(`${serverURL}/api/verifyToken`, {
                     method: 'POST',
                     body: JSON.stringify({token: idToken}),
                     headers: {
@@ -62,7 +63,8 @@ export default function AccountEmailPassword({action}) {
     }
 
     const signInAccount = async() => {
-        const userExists = await fetch(process.env.NEXT_PUBLIC_SERVER_URL +`/api/checkExistingUser/${email}`, {
+        const serverURL = process.env.NEXT_PUBLIC_SERVER_URL;
+        const userExists = await fetch(`${serverURL}/api/checkExistingUser/${email}`, {
             method: 'GET',
         });
 
@@ -80,7 +82,7 @@ export default function AccountEmailPassword({action}) {
             const uid = user.uid;
             const idToken = await user.getIdToken();
             console.log(idToken);
-            const response = await fetch(process.env.NEXT_PUBLIC_SERVER_URL +'/api/verifyToken', {
+            const response = await fetch(`${serverURL}/api/verifyToken`, {
                 method: 'POST',
                 body: JSON.stringify({token: idToken}),
                 headers: {
