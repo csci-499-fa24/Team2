@@ -44,3 +44,6 @@ client/.env
 
 # local env files
 /server/.env
+
+#coverage reports to make merges easier
+/server/coverage
