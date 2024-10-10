@@ -25,19 +25,21 @@ export default function WaitingPage() {
         </h1>
       </div>
       <div className={styles.readyPlayers}>
-        <h3 className={isPlayerReady ? styles.ready : styles.waitingAnimation}>Shelly {isPlayerReady ? '✅' : ''}</h3>
-        <h3 className={styles.waitingAnimation}>Alan</h3>
-        <h3 className={styles.waitingAnimation}>Micheal</h3>
-        <h3 className={styles.waitingAnimation}>Yulin</h3>
-        <h3 className={styles.waitingAnimation}>Vicki</h3>
-        <h3 className={styles.waitingAnimation}>Tiffany</h3>
+        <div className={`${styles.playerCircle} ${isPlayerReady ? styles.readyPlayerCircle : ''}`}>
+          Shelly {isPlayerReady ? '✔' : ''}
+        </div>
+        <div className={styles.playerCircle}>Alan</div>
+        <div className={styles.playerCircle}>Micheal</div>
+        <div className={styles.playerCircle}>Yulin</div>
+        <div className={styles.playerCircle}>Vicki</div>
+        <div className={styles.playerCircle}>Tiffany</div>
       </div>
       <div>
         <button 
-          className={styles.readyButton} 
+          className={`${styles.readyButton} ${isPlayerReady ? styles.readyButtonActive : ''}`} 
           onClick={handleReadyClick}
         >
-          {isPlayerReady ? 'Not ready' : 'Ready?'}
+          {isPlayerReady ? 'Ready' : 'Not Ready'}
         </button>
       </div>
     </div>

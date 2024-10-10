@@ -1,5 +1,5 @@
 .page {
-    background-color: #08048c; 
+    background-color: rgb(7, 18, 119);
     min-height: 100vh; 
     display: flex;
     flex-direction: column;
@@ -42,7 +42,7 @@
     color: #ffcc00;
     font-family: 'Impact', sans-serif;
     font-size: inherit;
-    display: inline; /* Keep dots in-line with the text */
+    display: inline; 
 }
 
 .loadingDots span {
@@ -56,7 +56,7 @@
 }
 
 .dot2 {
-    animation-delay: 0.5s; /* Adjust delay to stagger the dots */
+    animation-delay: 0.5s; 
 }
 
 .dot3 {
@@ -82,9 +82,10 @@
     margin-top: 30px;
     display: flex;
     flex-direction: row;
-    gap: 20px; /* Spacing between each player */
+    gap: 20px; 
     font-family: 'Impact', sans-serif;
     font-size: 25px;
+    color: #ffcc00;
   }
   
   .player {
@@ -98,7 +99,7 @@
     font-size: 1.5rem;
   } */
   
-  .readyButton {
+  /* .readyButton {
     background-color: #ffcc00;
     border: none;
     width: 100px;
@@ -112,7 +113,7 @@
   .readyButton:hover {
     background-color: green;
     color: white;
-  }
+  } */
 
   @keyframes fade {
     0%, 100% {
@@ -124,10 +125,95 @@
 }
 
 .waitingAnimation {
-    animation: fade 2s infinite; /* Adjust the duration as needed */
-    color: #ffcc00;
+    animation: fade 2s infinite;
+    color: rgb(192,192,192);
 }
   
-  .ready {
-    color: green;
+ 
+
+  .readyButton {
+    background-color: #ffcc00;
+    border: none;
+    color: white;
+    padding: 10px 20px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    position: relative;
+    width: 150px;
+    height: 80px;
+    cursor: pointer;
+    font-family: 'Impact', sans-serif;
+    font-size: 20px;
+    margin-top: 30px;
+  }
+  
+  .readyButton::before {
+    content: 'Ready';
+    color: #fafafa;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  
+  .readyButton:hover::before {
+    opacity: 1;
+  }
+  
+  .readyButton:hover {
+    color: transparent;
+    background-color:#28a745;
+  }
+  
+  .readyButtonActive {
+    background-color: #28a745; 
+    color: white;
+  }
+  
+  .readyButtonActive::before {
+    content: 'Not Ready';
+    color: white;
+    opacity: 0;
+    font-size: 20px;
+  }
+  
+   
+  .readyButtonActive:hover::before {
+    opacity: 1;
+  }
+  
+  .readyButtonActive:hover {
+    color: transparent;
+    background-color:#ffcc00;
+  }
+
+  .playerCircle {
+    width: 80px;
+    height: 80px;
+    background-color: #002366; 
+    color: #ffd700; 
+    border: 2px solid #ffd700;
+    border-radius: 50%; 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 16px;
+    font-weight: bold;
+    margin: 0 10px;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+  }
+  
+  .playerCircle:hover {
+    background-color: #ffd700; 
+    color: #002366;
+    transform: scale(1.1);
+  }
+  
+ 
+  .readyPlayerCircle {
+    background-color: #28a745; 
+    color: white;
+    border: 2px solid #28a745; 
   }
