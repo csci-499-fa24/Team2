@@ -4,12 +4,14 @@ import styles from "./game-search.module.css";
 import { useDispatch, useSelector } from "react-redux";
 import { setSelectedData } from "../redux/data";
 import { useRouter } from "next/navigation";
+import { useSocket } from "../socketClient";
 
 export default function GameSearchingPage() {
   const [jeopardies, setJeopardies] = useState([]);
   const selectedData = useSelector((state) => state.selectedData.value);
   const dispatch = useDispatch();
   const router = useRouter();
+  const socket = useSocket();
 
   useEffect(() => {
     fetch(process.env.NEXT_PUBLIC_SERVER_URL + "/api/jeopardy")

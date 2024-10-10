@@ -11,6 +11,7 @@ import roomIcon from "../icons/room.png";
 import keyIcon from "../icons/key.png";
 import playersIcon from "../icons/players.png";
 import styles from "./[userid].module.css";
+import { useSocket } from "../socketClient";
 
 const JeopardyLoggedInPage = () => {
   const [username, setUsername] = useState("");
@@ -18,6 +19,8 @@ const JeopardyLoggedInPage = () => {
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [loadingAuthState, setLoadingAuthState] = useState(true);
   const [selectedRoom, setSelectedRoom] = useState(null);
+  const socket = useSocket();
+
   const [newRoom, setNewRoom] = useState({
     name: "",
     isPrivate: false,

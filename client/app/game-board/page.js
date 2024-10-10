@@ -2,6 +2,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import styles from "./game-board.module.css";
 import { useSelector } from "react-redux";
+import { useSocket } from "../socketClient";
 
 export default function GameBoardPage() {
   const selectedData = useSelector((state) => state.selectedData.value);
@@ -9,6 +10,7 @@ export default function GameBoardPage() {
   const [answerFeedback, setAnswerFeedback] = useState("");
   const [expandingBox, setExpandingBox] = useState(null);
   const questionRef = useRef(null);
+  const socket = useSocket();
 
   const clickMe = (question, value) => {
     setExpandingBox({ question, value });
