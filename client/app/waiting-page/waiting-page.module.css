@@ -1,0 +1,133 @@
+.page {
+    background-color: #08048c; 
+    min-height: 100vh; 
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+.waitingContent {
+    margin-top: 50px;
+}
+
+.playerStatus {
+    color: #ffcc00;
+    font-family: 'Impact', sans-serif;
+}
+
+.exitGameButton {
+    background-color: blue;
+    color: #ffcc00;
+    height: 60px;
+    width: 150px;
+    font-size: 25px;
+    font-family: 'Impact', sans-serif;
+    margin-top: 10px;
+    margin-right: 10px;
+}
+
+.exitGameButton:hover {
+    background-color: #ffcc00;
+    color: white;
+}
+
+.flexBox {
+    position: relative;
+    margin-left: auto;
+    display: flex;
+}
+
+.loadingDots {
+    color: #ffcc00;
+    font-family: 'Impact', sans-serif;
+    font-size: inherit;
+    display: inline; /* Keep dots in-line with the text */
+}
+
+.loadingDots span {
+    animation: loadingDots 1.5s infinite;
+    opacity: 0;
+    display: inline-block;
+}
+
+.dot1 {
+    animation-delay: 0s;
+}
+
+.dot2 {
+    animation-delay: 0.5s; /* Adjust delay to stagger the dots */
+}
+
+.dot3 {
+    animation-delay: 1s;
+}
+
+@keyframes loadingDots {
+    0% {
+        opacity: 0;
+    }
+    20% {
+        opacity: 1;
+    }
+    40% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 0;
+    }
+}
+
+.readyPlayers {
+    margin-top: 30px;
+    display: flex;
+    flex-direction: row;
+    gap: 20px; /* Spacing between each player */
+    font-family: 'Impact', sans-serif;
+    font-size: 25px;
+  }
+  
+  .player {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  /* .checkMark {
+    color: rgb(221, 235, 66);
+    font-size: 1.5rem;
+  } */
+  
+  .readyButton {
+    background-color: #ffcc00;
+    border: none;
+    width: 100px;
+    height: 50px;
+    cursor: pointer;
+    font-family: 'Impact', sans-serif;
+    font-size: 20px;
+    margin-top: 30px;
+  }
+  
+  .readyButton:hover {
+    background-color: green;
+    color: white;
+  }
+
+  @keyframes fade {
+    0%, 100% {
+        opacity: 0.5;
+    }
+    50% {
+        opacity: 1;
+    }
+}
+
+.waitingAnimation {
+    animation: fade 2s infinite; /* Adjust the duration as needed */
+    color: #ffcc00;
+}
+  
+  .ready {
+    color: green;
+  }
