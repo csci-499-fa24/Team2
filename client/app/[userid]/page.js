@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { initializeFirebase } from "../lib/firebaseClient";
+import { initializeFirebase, getFirebaseFirestore } from "../lib/firebaseClient";
+import { updateDoc, doc } from "firebase/firestore";
 import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
 import Image from "next/image";
 import jeopardyLogo from "../icons/Jeopardy-Symbol.png";
@@ -20,6 +21,7 @@ const JeopardyLoggedInPage = () => {
   const [loadingAuthState, setLoadingAuthState] = useState(true);
   const [selectedRoom, setSelectedRoom] = useState(null);
   const socket = useSocket();
+  const db = getFirebaseFirestore();
 
   const [newRoom, setNewRoom] = useState({
     name: "",
@@ -43,9 +45,7 @@ const JeopardyLoggedInPage = () => {
 
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
-        // console.log("User is logged in", user);
         if (userid) {
-          // console.log('User ID:', userid);
           setUsername(userid);
         }
       } else {
@@ -82,8 +82,20 @@ const JeopardyLoggedInPage = () => {
     "Fact Finders",
   ];
 
+  const updateUserStatus = async (uid, status) => {
+    try{
+      const userRef = doc(db, "users", uid);
+      await updateDoc(userRef, {
+        status: status,
+      });
+    } catch (error) {
+        console.error('Error updating user status:', error);
+    }
+  }
+
   const handleLogout = async() => {
     try{
+      await updateUserStatus(userid, "offline");
       await signOut(getAuth());
       setIsSigningOut(true);
       alert("Successfully logged out!");

@@ -1,5 +1,6 @@
 import React, {useState} from 'react';
-import { getFirebaseAuth } from '../lib/firebaseClient';
+import { getFirebaseAuth, getFirebaseFirestore } from '../lib/firebaseClient';
+import { doc, setDoc } from 'firebase/firestore';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import styles from "../page.module.css";
@@ -9,11 +10,27 @@ import userIcon from "../icons/user.png";
 export default function AccountEmailPassword({action}) {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const db = getFirebaseFirestore();
 
     const router = useRouter();
     const checkPasswordRequirements = (password) => {
         const passwordRegex = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$/;
         return passwordRegex.test(password);
+    }
+
+    const createUserDocument = async(user) => {
+        try{
+            const userRef = doc(db, 'users', user.uid);
+            await setDoc(userRef, {
+                email: user.email,
+                uid: user.uid,
+                displayName: user.displayName || `user ${user.uid}`,
+                status: 'online',
+                lastLogin: new Date(),
+            });
+        } catch (error) {
+            console.error('Error creating user document:', error);
+        }
     }
     
     const createNewAccount = async() => {
@@ -44,6 +61,7 @@ export default function AccountEmailPassword({action}) {
                 });
                 const data = await response.json();
                 if (response.ok) {
+                    await createUserDocument(user);
                     alert("Account created!");
                     router.push(`/${uid}`);
                 }else if(response.status === 400) {
@@ -85,8 +103,8 @@ export default function AccountEmailPassword({action}) {
                 }
             });
             const data = await response.json();
-            // console.log(data);
             if (response.ok) {
+                await createUserDocument(user);
                 alert("Signed in!");
                 router.push(`/${uid}`);
             }else if(response.status === 400) {
