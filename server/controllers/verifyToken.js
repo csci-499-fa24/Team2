@@ -8,7 +8,7 @@ router.post("/", async(req, res) => {
   if (!token) {
     return res.status(401).json({ error: 'No token provided' });
   }else {
-    console.log('token:', token);
+    // console.log('token:', token);
   }
 
   try {
