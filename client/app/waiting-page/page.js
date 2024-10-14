@@ -1,5 +1,6 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation'
 import jeopardyLogo from "../icons/Jeopardy-Symbol.png";
 import Image from 'next/image';
 import styles from './waiting-page.module.css';
@@ -16,21 +17,44 @@ export default function WaitingPage() {
     setShowRules(!showRules);
   };
 
+
+
+  const router = useRouter()  // Initialize router
+  
+
+
   const message = "Waiting for players...";
+
+  const roomNumber = [
+    "4680" 
+  ]
 
   return (
     <div className={styles.page}>
       <header className={styles.header}>
+      <div className={styles.headerContainer}>
         <div className={styles.logoContainer}>
-          <Image
+         <Image
             src={jeopardyLogo}
             alt="Jeopardy Logo"
             width={200}
             height={100}
           />
           <div className={styles.withFriends}>With Friends!</div>
+          </div>
+          <div className={styles.exitButtonContainer}>
+            <button className={styles.exitButton} onClick={() => router.push('/user')}>Exit Room</button> 
+          </div>
         </div>
       </header>
+      <div className={styles.roomNumber}> 
+        <h1>
+          Room Number: 
+          {roomNumber.map((room, index) => (
+            <span key={index}> {room} </span>
+          ))}
+        </h1>
+      </div>
       <div className={styles.waitingContent}>
         <h1 className={styles.playerStatus}>
         {message.split('').map((char, index) => (
@@ -42,11 +66,6 @@ export default function WaitingPage() {
             </span>
           )
         ))}
-          {/* <span className={styles.loadingDots}>
-            <span className={styles.dot1}>.</span>
-            <span className={styles.dot2}>.</span>
-            <span className={styles.dot3}>.</span>
-          </span> */}
         </h1>
       </div>
       <div className={styles.readyPlayers}>
@@ -72,7 +91,6 @@ export default function WaitingPage() {
       <div className={styles.rulesToggle} onClick={toggleRules}>
         {showRules ? 'Hide Rules' : 'Show Rules'}
       </div>
-
       
       <div className={`${styles.rulesBox} ${showRules ? styles.active : ''}`}>
         <h2 className={styles.gameRules}>Jeopardy Game Rules</h2>
