@@ -5,11 +5,18 @@ const mockServiceAccount = {
  };
 
 const mockAuth = {
-  apps: [],
+  apps: [
+    // mocking existing app
+    {
+    name: '[DEFAULT]', 
+    options: mockServiceAccount
+    }
+  ],
   initializeApp: jest.fn(),
   credential: {
     cert: jest.fn(() => mockServiceAccount),
   },
+  app: jest.fn(() => mockAuth),
   auth: jest.fn().mockReturnValue({
     verifyIdToken: jest.fn(),
     getUserByEmail: jest.fn(),

@@ -21,7 +21,6 @@ if (require.main === module) {
 app.use("/api", routes);
 
 const adminAuth = require('../lib/firebaseAdmin');
-
 describe('POST /api/verifyToken', () => {
   let verifyIdToken;
 
