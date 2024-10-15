@@ -117,63 +117,16 @@
 }
 
 
-/* Optional focus state for keyboard accessibility */
 .exitButton:focus {
-  outline: none;  /* Remove default focus outline */
-  box-shadow: 0 0 10px #ffcc00;  /* Add a glow around the button */
+  outline: none; 
+  box-shadow: 0 0 10px #ffcc00; 
 }
-
-/* .exitGameButton:hover {
-    background-color: #ffcc00;
-    color: white;
-} */
 
 .flexBox {
     position: relative;
     margin-left: auto;
     display: flex;
 }
-
-/* .loadingDots {
-    color: #ffcc00;
-    font-family: 'Impact', sans-serif;
-    font-size: inherit;
-    display: inline; 
-} */
-
-/* .loadingDots span {
-    animation: loadingDots 1.5s infinite;
-    opacity: 0;
-    display: inline-block;
-} */
-
-/* .dot1 {
-    animation-delay: 0s;
-} */
-
-/* .dot2 {
-    animation-delay: 0.5s; 
-} */
-
-/* .dot3 {
-    animation-delay: 1s; 
-} */
-
-/* @keyframes loadingDots {
-    0% {
-        opacity: 0;
-    }
-    30% {
-        opacity: 1;
-    }
-    60% {
-        opacity: 0;
-    }
-    100% {
-        opacity: 0;
-    }
-} */
-
 
 
 .readyPlayers {
@@ -192,26 +145,6 @@
     gap: 10px;
   }
   
-  /* .checkMark {
-    color: rgb(221, 235, 66);
-    font-size: 1.5rem;
-  } */
-  
-  /* .readyButton {
-    background-color: #ffcc00;
-    border: none;
-    width: 100px;
-    height: 50px;
-    cursor: pointer;
-    font-family: 'Impact', sans-serif;
-    font-size: 20px;
-    margin-top: 30px;
-  }
-  
-  .readyButton:hover {
-    background-color: green;
-    color: white;
-  } */
 
   @keyframes fade {
     0%, 100% {
