@@ -10,9 +10,22 @@ export default function GameBoardPage() {
   const [answerFeedback, setAnswerFeedback] = useState("");
   const [expandingBox, setExpandingBox] = useState(null);
   const questionRef = useRef(null);
-  const socket = useSocket();
 
   const clickMe = (question, value) => {
+    setExpandingBox({ question, value });
+
+    window.sendMessage({
+      "action": "clickQuestion",
+      "content": question,
+    });
+    
+    setTimeout(() => {
+      setSelectedQuestion(question);
+    }, 500);
+    setAnswerFeedback("");
+  };
+
+  const socketClickMe = (question, value) => {
     setExpandingBox({ question, value });
     setTimeout(() => {
       setSelectedQuestion(question);
@@ -22,10 +35,35 @@ export default function GameBoardPage() {
 
   const closeQuestion = () => {
     setSelectedQuestion(null);
+    window.sendMessage({
+      "action": "closeQuestion",
+      "content": "",
+    });
     setTimeout(() => {
       setExpandingBox(null);
     }, 500);
   };
+
+  const socketCloseQuestion = () => {
+    setSelectedQuestion(null);
+    setTimeout(() => {
+      setExpandingBox(null);
+    }, 500);
+  };
+
+  const handleServerMessage = (message) => {
+    const action = message["action"]
+    if (action == "clickQuestion") {
+      const question = message["content"];
+      console.log(question, question.value)
+      socketClickMe(question, question.value);
+    }
+    if (action == "closeQuestion") {
+      socketCloseQuestion();
+    }
+  };
+
+  const socket = useSocket(handleServerMessage);
 
   const renderCategories = () => {
     if (!Array.isArray(selectedData)) {

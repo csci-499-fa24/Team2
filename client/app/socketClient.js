@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { io } from "socket.io-client";
 
-export const useSocket = () => {
+export const useSocket = (onMessageReceivedCallback) => {
   const socketRef = useRef(null);
   const [roomKey, setRoomKey] = useState("");
   const [socketDisplayName, setSocketDisplayName] = useState("");
@@ -48,7 +48,7 @@ export const useSocket = () => {
   }, []);
 
   useEffect(() => {
-    const socketInstance = io("https://team2-server.onrender.com/");  // Ensure the URL is correct (e.g. localhost for testing)
+    const socketInstance = io("http://localhost:8080/");  // Ensure the URL is correct (e.g. localhost for testing)
     socketRef.current = socketInstance;
 
     console.log(
@@ -68,7 +68,10 @@ export const useSocket = () => {
     });
 
     socketInstance.on("receivedCustomMessage", (message) => {
-      console.log("[From Server: Custom message received] -", message);
+      console.log("[From Server: Custom message received] -", message["action"], message["content"]);
+      if (onMessageReceivedCallback) {
+        onMessageReceivedCallback(message); // Trigger the callback when a message is received
+      }
     });
 
     // Receive rooms object from server and we opt to store it 

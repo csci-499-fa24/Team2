@@ -11,7 +11,10 @@ export default function GameSearchingPage() {
   const selectedData = useSelector((state) => state.selectedData.value);
   const dispatch = useDispatch();
   const router = useRouter();
-  const socket = useSocket();
+
+  const handleServerMessage = (message) => {};
+
+  const socket = useSocket(handleServerMessage);
 
   useEffect(() => {
     fetch(process.env.NEXT_PUBLIC_SERVER_URL + "/api/jeopardy")

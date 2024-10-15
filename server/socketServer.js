@@ -76,6 +76,7 @@ module.exports = function (server) {
         });
 
         socket.on("customMessage", (message) => {
+            // the message object here is different than the one in the client as seen below: it contains displayName and roomKey
             console.log(`Custom message from ${message["displayName"]}: ${message["message"]}, ${message["roomKey"]}`);
             // Emit the message to all sockets in the room except the sender (note use io.to().emit() if you want to everyone in room)
             socket.to(message["roomKey"]).emit("receivedCustomMessage", message["message"]);
