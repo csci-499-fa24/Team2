@@ -44,3 +44,5 @@ client/.env
 
 # local env files
 /server/.env
+
+/server/coverage/

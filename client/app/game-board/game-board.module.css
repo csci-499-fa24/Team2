@@ -1,42 +1,136 @@
 .page {
-    background-color: rgb(0, 0, 1);
-    min-height: 100vh;
-    width: 100vw;
-    height: 100vh; 
+  background-color: rgb(0, 0, 1);
+  font-family: 'Impact', sans-serif;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
 }
 
 .button {
-    width: 300px;
-    height: 145px;
-    margin: 10px;
-    color:  rgb(238, 196, 78);
-    /* flood-color:  rgb(7, 18, 119); */
-    background-color: rgb(7, 18, 119);
-    font-size: 30px;
-    font-family: 'Impact', sans-serif;
-    font-size: 55px;
+  width: 300px;
+  height: 130px;
+  margin: 10px;
+  color: rgb(238, 196, 78); 
+  background-color: rgb(7, 18, 119); 
+  font-size: 55px; 
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.3s ease;
 }
 
+.firstbuttonrow,
 .buttonrow {
-    display: flex; /* Arrange buttons in a row */
-   
-}
-.firstbuttonrow {
-    display: flex; /* Arrange buttons in a row */
+  display: flex; 
 }
 
 .firstrow {
-    width: 300px;
-    height: 145px;
-    margin: 10px;
-    color:  rgb(255, 255, 255);
-    background-color: rgb(7, 18, 119);
-    font-size: 30px;
-    font-family: 'Impact', sans-serif;
-    font-size: 50px;
+  width: 300px;
+  height: 145px;
+  margin: 10px;
+  color: rgb(255, 255, 255);
+  background-color: rgb(7, 18, 119);
+  font-size: 50px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: none;
 }
 
 .button:hover {
-  background-color: rgb(240, 214, 107); /* Change button color on hover */
-  color: white; 
+  background-color: rgb(240, 214, 107);
+  transform: scale(1.1); 
+  color: white;
+}
+
+
+.modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: black;
+  padding: 20px;
+  border: 2px solid black;
+  z-index: 1000;
+}
+
+.modalContent {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+
+.expandingBox {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgb(7, 18, 119);
+  color: rgb(238, 196, 78);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 50px;
+  transition: transform 0.5s ease-in-out;
+  transform: scale(0);
+}
+
+.expandingBox.expanded {
+  transform: scale(1);
+}
+
+.questionContent {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 80%;
+  height: 80%;
+  text-align: center;
+}
+
+.questionText {
+  font-size: 40px;
+  text-align: center;
+  margin-bottom: 30px;
+  margin-top: 10px;
+}
+
+.answerInput {
+  width: 80%;
+  padding: 10px;
+  font-size: 38px;
+  margin-bottom: 20px;
+}
+
+.submitButton {
+  padding: 10px 20px;
+  font-size: 38px;
+  background-color: rgb(238, 196, 78);
+  color: rgb(7, 18, 119);
+  border: none;
+  cursor: pointer;
+  margin-top: 20px;
+  justify-content: center;
+}
+
+.feedback {
+  font-size: 30px;
+  margin-top: 20px;
+}
+
+.closeButton {
+  position: absolute;
+  top: 30px;
+  right: 30px;
+  background-color: rgb(238, 196, 78);
+  color: rgb(7, 18, 119);
+  font-size: 3vw;
+  padding: 5px 15px;
+  cursor: pointer;
 }
