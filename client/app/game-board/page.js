@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import styles from "./game-board.module.css";
 import { useSelector } from "react-redux";
 import { useSocket } from "../socketClient";
@@ -9,63 +9,94 @@ export default function GameBoardPage() {
   const [selectedQuestion, setSelectedQuestion] = useState(null);
   const [answerFeedback, setAnswerFeedback] = useState("");
   const [expandingBox, setExpandingBox] = useState(null);
+  const [disabledQuestions, setDisabledQuestions] = useState([]);
   const questionRef = useRef(null);
 
-  const clickMe = (question, value) => {
-    setExpandingBox({ question, value });
+  const clickMe = useCallback(
+    (question, value) => {
+      if (
+        disabledQuestions.some(
+          (q) => q.category === question.category && q.value === question.value
+        )
+      )
+        return;
 
-    window.sendMessage({
-      "action": "clickQuestion",
-      "content": question,
-    });
-    
-    setTimeout(() => {
-      setSelectedQuestion(question);
-    }, 500);
-    setAnswerFeedback("");
-  };
+      setExpandingBox({ question, value });
 
-  const socketClickMe = (question, value) => {
-    setExpandingBox({ question, value });
-    setTimeout(() => {
-      setSelectedQuestion(question);
-    }, 500);
-    setAnswerFeedback("");
-  };
+      const updatedDisabledQuestions = [...disabledQuestions, question];
+      setDisabledQuestions(updatedDisabledQuestions);
 
-  const closeQuestion = () => {
+      window.sendMessage({
+        action: "clickQuestion",
+        content: {
+          question,
+          disabledQuestions: updatedDisabledQuestions,
+        },
+      });
+
+      setTimeout(() => {
+        setSelectedQuestion(question);
+      }, 500);
+      setAnswerFeedback("");
+    },
+    [disabledQuestions]
+  );
+
+  const socketClickMe = useCallback(
+    (question, value, updatedDisabledQuestions) => {
+      setExpandingBox({ question, value });
+      setDisabledQuestions(updatedDisabledQuestions);
+      setTimeout(() => {
+        setSelectedQuestion(question);
+      }, 500);
+      setAnswerFeedback("");
+    },
+    []
+  );
+
+  const closeQuestion = useCallback(() => {
     setSelectedQuestion(null);
     window.sendMessage({
-      "action": "closeQuestion",
-      "content": "",
+      action: "closeQuestion",
+      content: "",
     });
     setTimeout(() => {
       setExpandingBox(null);
     }, 500);
-  };
+  }, []);
 
-  const socketCloseQuestion = () => {
+  const socketCloseQuestion = useCallback(() => {
     setSelectedQuestion(null);
     setTimeout(() => {
       setExpandingBox(null);
     }, 500);
-  };
+  }, []);
 
-  const handleServerMessage = (message) => {
-    const action = message["action"]
-    if (action == "clickQuestion") {
-      const question = message["content"];
-      console.log(question, question.value)
-      socketClickMe(question, question.value);
-    }
-    if (action == "closeQuestion") {
-      socketCloseQuestion();
-    }
-  };
+  const handleServerMessage = useCallback(
+    (message) => {
+      const action = message["action"];
+      if (action === "clickQuestion") {
+        const { question, disabledQuestions: updatedDisabledQuestions } =
+          message["content"];
+        console.log(
+          "Received clickQuestion:",
+          question,
+          updatedDisabledQuestions
+        );
+        socketClickMe(question, question.value, updatedDisabledQuestions);
+      } else if (action === "closeQuestion") {
+        socketCloseQuestion();
+      } else if (action === "syncDisabledQuestions") {
+        console.log("Syncing disabled questions:", message["content"]);
+        setDisabledQuestions(message["content"]);
+      }
+    },
+    [socketClickMe, socketCloseQuestion]
+  );
 
   const socket = useSocket(handleServerMessage);
 
-  const renderCategories = () => {
+  const renderCategories = useCallback(() => {
     if (!Array.isArray(selectedData)) {
       return <div>No categories available</div>;
     }
@@ -75,9 +106,9 @@ export default function GameBoardPage() {
         {category[0]?.category}
       </button>
     ));
-  };
+  }, [selectedData]);
 
-  const renderRows = () => {
+  const renderRows = useCallback(() => {
     if (!Array.isArray(selectedData)) {
       return null;
     }
@@ -91,11 +122,18 @@ export default function GameBoardPage() {
         <div className={styles.buttonrow} key={rowIndex}>
           {selectedData.map((category, colIndex) => {
             const question = category[rowIndex];
+            const isDisabled = disabledQuestions.some(
+              (q) =>
+                q.category === question?.category && q.value === question?.value
+            );
             return question ? (
               <button
-                className={styles.button}
+                className={`${styles.button} ${
+                  isDisabled ? styles.disabled : ""
+                }`}
                 onClick={() => clickMe(question, question.value)}
                 key={`${rowIndex}-${colIndex}`}
+                disabled={isDisabled}
               >
                 ${question.value}
               </button>
@@ -108,24 +146,36 @@ export default function GameBoardPage() {
           })}
         </div>
       ));
-  };
+  }, [selectedData, disabledQuestions, clickMe]);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const userAnswer = e.target.elements.answer.value.trim().toLowerCase();
-    const correctAnswer = selectedQuestion?.answer?.toLowerCase();
-    if (userAnswer === correctAnswer) {
-      setAnswerFeedback("Correct!");
-    } else {
-      setAnswerFeedback("Wrong!");
-    }
-  };
+  const handleSubmit = useCallback(
+    (e) => {
+      e.preventDefault();
+      const userAnswer = e.target.elements.answer.value.trim().toLowerCase();
+      const correctAnswer = selectedQuestion?.answer?.toLowerCase();
+      if (userAnswer === correctAnswer) {
+        setAnswerFeedback("Correct!");
+      } else {
+        setAnswerFeedback("Wrong!");
+      }
+    },
+    [selectedQuestion]
+  );
 
   useEffect(() => {
     if (selectedQuestion && questionRef.current) {
       questionRef.current.focus();
     }
   }, [selectedQuestion]);
+
+  // Sync disabled questions on component mount
+  useEffect(() => {
+    console.log("Requesting disabled questions");
+    window.sendMessage({
+      action: "getDisabledQuestions",
+      content: "",
+    });
+  }, []);
 
   return (
     <div className={styles.page}>

@@ -31,7 +31,7 @@ export const useSocket = (onMessageReceivedCallback) => {
 
         if (storedDisplayName) {
           setSocketDisplayName(storedDisplayName);
-          socketDisplayNameRef.current = storedDisplayName; 
+          socketDisplayNameRef.current = storedDisplayName;
           console.log(
             `[Client-side Acknowledgement] Retrieved display name from localStorage: ${storedDisplayName}`
           );
@@ -48,7 +48,7 @@ export const useSocket = (onMessageReceivedCallback) => {
   }, []);
 
   useEffect(() => {
-    const socketInstance = io("http://localhost:8080/");  // Ensure the URL is correct (e.g. localhost for testing)
+    const socketInstance = io("http://localhost:8080/"); // Ensure the URL is correct (e.g. localhost for testing)
     socketRef.current = socketInstance;
 
     console.log(
@@ -68,15 +68,19 @@ export const useSocket = (onMessageReceivedCallback) => {
     });
 
     socketInstance.on("receivedCustomMessage", (message) => {
-      console.log("[From Server: Custom message received] -", message["action"], message["content"]);
+      console.log(
+        "[From Server: Custom message received] -",
+        message["action"],
+        message["content"]
+      );
       if (onMessageReceivedCallback) {
         onMessageReceivedCallback(message); // Trigger the callback when a message is received
       }
     });
 
-    // Receive rooms object from server and we opt to store it 
+    // Receive rooms object from server and we opt to store it
     socketInstance.on("receiveRooms", (rooms) => {
-      setRoomsData(rooms); 
+      setRoomsData(rooms);
       console.log("[From Server: Rooms data received from server] -", rooms);
     });
 
@@ -121,10 +125,23 @@ export const useSocket = (onMessageReceivedCallback) => {
       };
     } else {
       window.getRooms = () => {
-        console.log(
-          "[Client-side Acknowledgement] Socket is not initialized."
-        );
+        console.log("[Client-side Acknowledgement] Socket is not initialized.");
       };
+    }
+  }, []);
+
+  useEffect(() => {
+    if (socketRef.current) {
+      window.getPlayersInRoom = () => {
+        console.log(
+          "[Client-side Acknowledgement] Requesting players in the current room..."
+        );
+        socketRef.current.emit("getPlayersInRoom");
+      };
+
+      socketRef.current.on("playersInRoom", (players) => {
+        console.log("[From Server: Players in room] -", players);
+      });
     }
   }, []);
 
@@ -143,9 +160,7 @@ export const useSocket = (onMessageReceivedCallback) => {
         if (socketDisplayNameRef.current) {
           setRoomKey(key);
           localStorage.setItem("roomKey", key);
-          console.log(
-            `[Client-side Acknowledgement] Room key set to: ${key}`
-          );
+          console.log(`[Client-side Acknowledgement] Room key set to: ${key}`);
         } else {
           console.log(
             "[Client-side Acknowledgement] Cannot set room key before setting display name."
