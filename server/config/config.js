@@ -1,7 +1,7 @@
 module.exports = {
     "development": {
       "username": "root",
-      "password": "",
+      "password": "root",
       "database": "jeopardy",
       "host": "127.0.0.1",
       "port": 3306,
