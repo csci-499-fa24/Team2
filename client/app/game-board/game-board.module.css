@@ -1,6 +1,6 @@
 .page {
   background-color: rgb(0, 0, 1);
-  font-family: "Verdana", "Geneva", "Segoe UI", sans-serif;
+  font-family: 'Impact', sans-serif;
   width: 100vw;
   height: 100vh;
   overflow: hidden;
@@ -10,9 +10,9 @@
   width: 300px;
   height: 130px;
   margin: 10px;
-  color: rgb(238, 196, 78);
-  background-color: rgb(7, 18, 119);
-  font-size: 30px;
+  color: rgb(238, 196, 78); 
+  background-color: rgb(7, 18, 119); 
+  font-size: 55px; 
   display: flex;
   justify-content: center;
   align-items: center;
@@ -23,7 +23,7 @@
 
 .firstbuttonrow,
 .buttonrow {
-  display: flex; /* Arrange buttons in a row */
+  display: flex; 
 }
 
 .firstrow {
@@ -32,7 +32,7 @@
   margin: 10px;
   color: rgb(255, 255, 255);
   background-color: rgb(7, 18, 119);
-  font-size: 30px;
+  font-size: 50px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -40,10 +40,11 @@
 }
 
 .button:hover {
-  background-color: rgb(240, 214, 107); /* Change button color on hover */
-  transform: scale(1.1); /* Slightly scale up the button */
+  background-color: rgb(240, 214, 107);
+  transform: scale(1.1); 
   color: white;
 }
+
 
 .modal {
   position: fixed;
@@ -61,6 +62,7 @@
   flex-direction: column;
   gap: 10px;
 }
+
 
 .expandingBox {
   position: fixed;
