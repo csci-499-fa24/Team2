@@ -6,21 +6,14 @@ const express = require('express');
 const app = express();
 const bodyParser = require('body-parser');
 const routes = require("../controllers");
+const adminAuth = require('../lib/firebaseAdmin');
+
 const cors = require('cors')
 app.use(cors({origin: "*"}));
 app.use(express.json());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-if (require.main === module) {
-  const PORT = process.env.PORT || 3000;
-  app.listen(PORT, () => {
-      console.log(`Server is running on port ${PORT}`);
-      isServerRunning = true;
-  });
-}
 app.use("/api", routes);
-
-const adminAuth = require('../lib/firebaseAdmin');
 
 describe('POST /api/verifyToken', () => {
   let verifyIdToken;
@@ -39,10 +32,6 @@ describe('POST /api/verifyToken', () => {
           throw new Error('verifyIdToken is not defined');
       }  
 
-  });
-
-  afterEach(async() => {
-    jest.clearAllMocks(); 
   });
 
   it('should verify a valid token and return the user and 200', async () => {

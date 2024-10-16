@@ -5,7 +5,12 @@ const mockServiceAccount = {
  };
 
 const mockAuth = {
-  apps: [],
+  apps: [
+    {
+    name: '[DEFAULT]', 
+    options: mockServiceAccount
+    }
+  ],
   initializeApp: jest.fn(),
   credential: {
     cert: jest.fn(() => mockServiceAccount),

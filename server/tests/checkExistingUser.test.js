@@ -6,11 +6,13 @@ const express = require('express');
 const app = express();
 const bodyParser = require('body-parser');
 const routes = require("../controllers");
+const adminAuth = require('../lib/firebaseAdmin');
 const cors = require('cors')
 app.use(cors({origin: "*"}));
 app.use(express.json());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+
 if (require.main === module) {
   const PORT = process.env.PORT || 3000;
   app.listen(PORT, () => {
@@ -18,12 +20,10 @@ if (require.main === module) {
       isServerRunning = true;
   });
 }
+
 app.use("/api", routes);
-
-const adminAuth = require('../lib/firebaseAdmin');
-
 describe('GET /api/checkExistingUser/:email', () => {
-    let getUserByEmail;
+    let getUserByEmail, req, res;
 
     beforeEach(async() => {
         jest.resetModules();
@@ -32,6 +32,12 @@ describe('GET /api/checkExistingUser/:email', () => {
             getUserByEmail: jest.fn(),
         });
 
+        req = { params: {} };  
+        res = {
+            status: jest.fn().mockReturnThis(),  
+            json: jest.fn(),  
+        };
+        
         getUserByEmail = adminAuth.auth().getUserByEmail; 
         if (getUserByEmail) {
             getUserByEmail.mockClear(); 
@@ -42,6 +48,19 @@ describe('GET /api/checkExistingUser/:email', () => {
       
     afterEach(async() => {
         jest.clearAllMocks();
+    });
+
+    it('should return 404 if no email is provided', async () => {
+        const response = await request(app).get(`/api/checkExistingUser/`);
+        expect(response.status).toBe(404);
+    });
+
+    it('should return 401 if invalid email is provided', async () => {
+        const email = 'invalidemail';
+        const response = await request(app).get(`/api/checkExistingUser/${email}`);
+
+        expect(response.status).toBe(401);
+        expect(response.body).toHaveProperty('error', 'Invalid email');
     });
 
     it('should return 200 and user information if the user exists', async () => {
@@ -59,14 +78,14 @@ describe('GET /api/checkExistingUser/:email', () => {
         expect(response.body).toHaveProperty('uid', mockUserRecord.uid);
     });
 
-    it('should return 404 if the user does not exist', async () => {
+    it('should return 400 if the user does not exist', async () => {
         const email = 'nonexistent@example.com';
 
         getUserByEmail.mockRejectedValue(new Error('User not found'));
 
         const response = await request(app).get(`/api/checkExistingUser/${email}`);
 
-        expect(response.status).toBe(404);
+        expect(response.status).toBe(400);
         expect(response.body).toHaveProperty('message', 'User not found'); 
     });
 });

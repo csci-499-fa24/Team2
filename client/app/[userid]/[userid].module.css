@@ -195,6 +195,12 @@
   margin-top: 50px;
 }
 
+.noOnlinePlayerMessage {
+  font-size: 1rem;
+  display: flex;
+  justify-content: center;
+}
+
 .playerGrid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
@@ -209,6 +215,9 @@
   border-radius: 8px;
   padding: 0.5rem;
   transition: transform 0.2s;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap; 
 }
 
 .playerCard:hover {
@@ -232,6 +241,7 @@
 .playerName {
   font-size: 0.8rem;
   text-align: center;
+  width: 100%;
 }
 
 .availableRooms ul {

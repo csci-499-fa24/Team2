@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { initializeFirebase } from "../lib/firebaseClient";
+import { initializeFirebase, getFirebaseFirestore } from "../lib/firebaseClient";
+import { updateDoc, doc, getDoc, getDocs, collection, query, where } from "firebase/firestore";
 import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
 import Image from "next/image";
 import jeopardyLogo from "../icons/Jeopardy-Symbol.png";
@@ -19,8 +20,9 @@ const JeopardyLoggedInPage = () => {
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [loadingAuthState, setLoadingAuthState] = useState(true);
   const [selectedRoom, setSelectedRoom] = useState(null);
+  const [onlinePlayers, setOnlinePlayers] = useState(new Set());
   const socket = useSocket();
-
+  const db = getFirebaseFirestore();
   const [newRoom, setNewRoom] = useState({
     name: "",
     isPrivate: false,
@@ -30,12 +32,54 @@ const JeopardyLoggedInPage = () => {
   const router = useRouter();
 
   useEffect(() => {
-    if (userid) {
-        // console.log('User ID:', userid);
-        setUsername(userid);
+    const fetchUserData = async (userId) => {
+      const userRef = doc(db, 'users', userId);
+      const userSnapshot = await getDoc(userRef);
+    
+      if (userSnapshot.exists()) {
+        console.log('User data:', userSnapshot.data());
+        setUsername(userSnapshot.data().displayName);
+      } else {
+        console.log('No such document!');
+      }
+    };
+
+    const getActivePlayers = async () => {
+      try{
+        const fireStoreQuery = query(
+          collection(db, "users"),
+          where('status', '==', 'online')
+        );
+        
+        const querySnapshot = await getDocs(fireStoreQuery);
+        const activePlayers = new Set();
+
+        querySnapshot.forEach((doc) => {
+          const playerName = doc.data().displayName;
+          const playerId = doc.data().uid;
+          if (playerId != userid && !onlinePlayers.has(playerName)) {
+            console.log('Adding player:', playerName, " and username:", username);
+            // console.log("users: ", onlinePlayers);  
+            // console.log(playerId, userid);
+            activePlayers.add(playerName);
+          }else {
+            console.log('Player already exists:', playerName);  
+          }
+        });
+
+        setOnlinePlayers(activePlayers);
+      } catch (error) {
+        console.error('Error fetching active players:', error);
+      }
     }
 
-  }, []); 
+    if (userid) {
+      fetchUserData(userid);
+    }
+
+    getActivePlayers();
+
+  }, [userid, db]); 
 
   useEffect(() => {
     initializeFirebase();
@@ -43,9 +87,7 @@ const JeopardyLoggedInPage = () => {
 
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
-        // console.log("User is logged in", user);
         if (userid) {
-          // console.log('User ID:', userid);
           setUsername(userid);
         }
       } else {
@@ -65,15 +107,6 @@ const JeopardyLoggedInPage = () => {
       return <div>Loading...</div>;
   }
 
-  const onlinePlayers = [
-    "Alan",
-    "Michael",
-    "Shelly",
-    "Tiffany",
-    "Vicki",
-    "Yulin",
-  ];
-
   const availableRooms = [
     "Trivia Masters",
     "Quiz Champions",
@@ -82,8 +115,20 @@ const JeopardyLoggedInPage = () => {
     "Fact Finders",
   ];
 
+  const updateUserStatus = async (uid, status) => {
+    try{
+      const userRef = doc(db, "users", uid);
+      await updateDoc(userRef, {
+        status: status,
+      });
+    } catch (error) {
+        console.error('Error updating user status:', error);
+    }
+  }
+
   const handleLogout = async() => {
     try{
+      await updateUserStatus(userid, "offline");
       await signOut(getAuth());
       setIsSigningOut(true);
       alert("Successfully logged out!");
@@ -200,8 +245,9 @@ const JeopardyLoggedInPage = () => {
         <div className={styles.gameInfoContainer}>
           <section className={styles.onlinePlayers}>
             <h2>Online Players</h2>
+            {onlinePlayers.size === 0 ? <div className={styles.noOnlinePlayerMessage}>No players online yet. Invite your friends!</div> : null}
             <div className={styles.playerGrid}>
-              {onlinePlayers.map((player, index) => (
+              {Array.from(onlinePlayers).map((player, index) => (
                 <div key={index} className={styles.playerCard}>
                   <div className={styles.playerAvatar}>{player[0]}</div>
                   <div className={styles.playerName}>{player}</div>
