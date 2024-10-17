@@ -8,65 +8,65 @@ module.exports = function (server) {
     });
     
     const rooms = {
-        "": [], // Default room for users without a room
+        "": {}, // Default room for users without a room, stores players and their money
     };
     
     io.on("connection", (socket) => {
         let currentDisplayName = "";
-        let currentRoomKey = "";
+        let currentRoomKey = ""; // Initially, the user is in the default room
 
         console.log("New connection established:", socket.id);
 
+        // Event listener for setting the display name
         socket.on("displayName", (displayName) => {
             currentDisplayName = displayName;
             console.log(`Display name received: ${currentDisplayName}`);
 
-            // Add to the default room if no room key is assigned yet
-            if (!currentRoomKey) {
-                rooms[""].push(currentDisplayName);
-            } else {
-                // Add the user to their room if they have one
-                if (!rooms[currentRoomKey]) {
-                    rooms[currentRoomKey] = [];
-                }
-                rooms[currentRoomKey].push(currentDisplayName);
-            }
+            // Add player to the default room with a starting balance of 0
+            rooms[""][currentDisplayName] = 0; // Default starting money in the default room
+            currentRoomKey = ""; // By default, user is in the default room
+            
+            // there's a bug here, they'll always be in the default room for some reason
+            // will fix later
 
+            console.log(`User "${currentDisplayName}" added to the default room with 0 balance.`);
             console.log("Updated rooms object after displayName set:", rooms);
         });
 
+        // Event listener for setting the roomKey
         socket.on("roomKey", (roomKey) => {
             console.log(`Room key received: ${roomKey}, Current Display Name: ${currentDisplayName}`);
 
-            // Check if displayName is set; this validation is also done client side, so it shouldn't come to this
             if (!currentDisplayName) {
                 console.log("Display name not set. Prompting client to set display name.");
                 socket.emit("promptDisplayName", "Please set your display name before joining a room.");
                 return;
             }
 
-            // Remove the user from the default room (also a catch-all for when a user rejoins)
-            if (rooms[""].includes(currentDisplayName)) {
-                rooms[""] = rooms[""].filter((name) => name !== currentDisplayName);
-                console.log(`User "${currentDisplayName}" removed from default room.`);
+            // Check if the player is in the default room and remove them
+            // there's a bug here, they won't get removed for some reason will fix later
+            if (currentRoomKey === "" && rooms[""][currentDisplayName]) {
+                delete rooms[""][currentDisplayName]; // Remove the player from the default room
+                socket.leave(""); // Leave the default room on the server-side
+                console.log(`User "${currentDisplayName}" removed from the default room.`);
             }
 
-            // Remove the user from any previously assigned room
-            if (currentRoomKey) {
-                rooms[currentRoomKey] = rooms[currentRoomKey].filter((name) => name !== currentDisplayName);
-                // Make the socket leave the previous room
-                socket.leave(currentRoomKey);
+            // Check if the player is in another room and remove them from that room
+            if (currentRoomKey && currentRoomKey !== roomKey && rooms[currentRoomKey]) {
+                delete rooms[currentRoomKey][currentDisplayName]; // Remove from the previous room
+                socket.leave(currentRoomKey); // Leave the previous room
+                console.log(`User "${currentDisplayName}" removed from room "${currentRoomKey}".`);
             }
 
-            // Assign the user to the new room
+            // Update the current room key to the new room
             currentRoomKey = roomKey;
-            if (!rooms[roomKey]) {
-                rooms[roomKey] = [];
-            }
-            rooms[roomKey].push(currentDisplayName);
 
-            // actual joining of room here
-            socket.join(roomKey);
+            // Add the player to the new room
+            if (!rooms[roomKey]) {
+                rooms[roomKey] = {}; // Create the room if it doesn't exist
+            }
+            rooms[roomKey][currentDisplayName] = 0; // Default starting money in the new room
+            socket.join(roomKey); // Join the new room
 
             console.log(`User "${currentDisplayName}" joined room "${roomKey}"`);
             console.log("Updated rooms object after roomKey set:", rooms);
@@ -75,24 +75,44 @@ module.exports = function (server) {
             socket.emit("confirmReceivedRoom", `You joined room: ${roomKey}`);
         });
 
+        // Event listener for custom messages
         socket.on("customMessage", (message) => {
             console.log(`Custom message from ${message["displayName"]}: ${message["message"]}, ${message["roomKey"]}`);
-            // Emit the message to all sockets in the room except the sender (note use io.to().emit() if you want to everyone in room)
             socket.to(message["roomKey"]).emit("receivedCustomMessage", message["message"]);
         });
 
+        // Event listener for requesting room data
         socket.on("getRooms", () => {
-            console.log(`Rooms data requested by ${currentDisplayName}`);
             socket.emit("receiveRooms", rooms);  // Send rooms object back to the client
         });
 
-        socket.on("disconnect", () => {
-            if (currentRoomKey) {
-                rooms[currentRoomKey] = rooms[currentRoomKey].filter((name) => name !== currentDisplayName);
-                // sockets leaves the room upon disconnection
-                socket.leave(currentRoomKey);
+        // Event listener for setting money amounts
+        socket.on("setMoneyAmount", ({ displayName, roomKey, money }) => {
+            console.log(`Money update received: ${displayName} in room ${roomKey} now has ${money}`);
+        
+            // Ensure the displayName and roomKey are valid
+            if (displayName && roomKey) {
+                if (!rooms[roomKey]) {
+                    rooms[roomKey] = {}; // Create the room if it doesn't exist
+                }
+        
+                if (rooms[roomKey][displayName] !== undefined) {
+                    rooms[roomKey][displayName] = money; // Update the player's money
+                    console.log(`Updated money for ${displayName} in room ${roomKey}: ${money}`);
+                } else {
+                    console.log(`Player ${displayName} is not in room ${roomKey}`);
+                }
             }
-            console.log(`User ${currentDisplayName} disconnected from room "${currentRoomKey}"`);
+        });
+        
+        // Event listener for handling disconnects
+        socket.on("disconnect", () => {
+            // Remove the user from their current room when they disconnect
+            if (currentRoomKey && rooms[currentRoomKey]) {
+                delete rooms[currentRoomKey][currentDisplayName]; // Remove player from the room object
+                socket.leave(currentRoomKey);
+                console.log(`User ${currentDisplayName} disconnected and removed from room "${currentRoomKey}".`);
+            }
             console.log("Updated rooms object after disconnect:", rooms);
         });
     });

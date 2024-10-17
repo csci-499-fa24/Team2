@@ -1,13 +1,13 @@
 import { useEffect, useState, useRef } from "react";
 import { io } from "socket.io-client";
 
-export const useSocket = () => {
+export const useSocket = (onMessageReceivedCallback) => {
   const socketRef = useRef(null);
   const [roomKey, setRoomKey] = useState("");
   const [socketDisplayName, setSocketDisplayName] = useState("");
   const [socketMessage, setSocketMessage] = useState("");
   const [roomsData, setRoomsData] = useState(null);
-
+  const [money, setMoney] = useState(0);
   // Create a ref to store socketDisplayName synchronously, as diplayName then setting roomKey timing matters
   const socketDisplayNameRef = useRef("");
 
@@ -20,18 +20,21 @@ export const useSocket = () => {
         // On route '/' meaning user starts fresh, clear localStorage, otherwise we assume user wants to persist connection
         localStorage.removeItem("displayName");
         localStorage.removeItem("roomKey");
+        localStorage.removeItem("money"); // Clear money on fresh start
         setSocketDisplayName("");
         setRoomKey("");
+        setMoney(0);
         socketDisplayNameRef.current = "";
         console.log("[Client-side Acknowledgement] localStorage cleared.");
       } else {
-        // On other routes like changing game-board view, get roomKey and displayName from localStorage
+        // On other routes like changing game-board view, get roomKey, displayName, and money from localStorage
         const storedDisplayName = localStorage.getItem("displayName");
         const storedRoomKey = localStorage.getItem("roomKey");
+        const storedMoney = localStorage.getItem("money");
 
         if (storedDisplayName) {
           setSocketDisplayName(storedDisplayName);
-          socketDisplayNameRef.current = storedDisplayName; 
+          socketDisplayNameRef.current = storedDisplayName;
           console.log(
             `[Client-side Acknowledgement] Retrieved display name from localStorage: ${storedDisplayName}`
           );
@@ -43,12 +46,19 @@ export const useSocket = () => {
             `[Client-side Acknowledgement] Retrieved room key from localStorage: ${storedRoomKey}`
           );
         }
+
+        if (storedMoney) {
+          setMoney(Number(storedMoney));
+          console.log(
+            `[Client-side Acknowledgement] Retrieved money from localStorage: ${storedMoney}`
+          );
+        }
       }
     }
   }, []);
 
   useEffect(() => {
-    const socketInstance = io("https://team2-server.onrender.com/");  // Ensure the URL is correct (e.g. localhost for testing)
+    const socketInstance = io("https://team2-server.onrender.com/"); // Ensure the URL is correct (e.g. localhost for testing)
     socketRef.current = socketInstance;
 
     console.log(
@@ -68,13 +78,20 @@ export const useSocket = () => {
     });
 
     socketInstance.on("receivedCustomMessage", (message) => {
-      console.log("[From Server: Custom message received] -", message);
+      console.log(
+        "[From Server: Custom message received] -",
+        message["action"],
+        message["content"]
+      );
+      if (onMessageReceivedCallback) {
+        onMessageReceivedCallback(message); // Trigger the callback when a message is received
+      }
     });
 
-    // Receive rooms object from server and we opt to store it 
+    // Receive rooms object from server and we opt to store it
     socketInstance.on("receiveRooms", (rooms) => {
-      setRoomsData(rooms); 
-      console.log("[From Server: Rooms data received from server] -", rooms);
+      setRoomsData(rooms);
+      // console.log("[From Server: Rooms data received from server] -", rooms);
     });
 
     return () => {
@@ -97,6 +114,22 @@ export const useSocket = () => {
     }
   }, [roomKey]);
 
+  // Load money amount from localStorage on component mount
+  useEffect(() => {
+    const storedMoney = localStorage.getItem("money");
+    if (storedMoney) {
+      setMoney(Number(storedMoney));
+      console.log("[Client-side Acknowledgement] Loaded money from localStorage.");
+    }
+  }, []);
+
+  // Save money amount to localStorage whenever it updates
+  useEffect(() => {
+    if (money !== null) {
+      localStorage.setItem("money", money);
+    }
+  }, [money]);
+
   useEffect(() => {
     if (socketRef.current && socketMessage) {
       socketRef.current.emit("customMessage", {
@@ -111,17 +144,27 @@ export const useSocket = () => {
   useEffect(() => {
     if (socketRef.current) {
       window.getRooms = () => {
-        console.log(
-          "[Client-side Acknowledgement] Requesting rooms data from server..."
-        );
         socketRef.current.emit("getRooms"); // here we make the actual request for the rooms object from server
       };
     } else {
       window.getRooms = () => {
-        console.log(
-          "[Client-side Acknowledgement] Socket is not initialized."
-        );
+        console.log("[Client-side Acknowledgement] Socket is not initialized.");
       };
+    }
+  }, []);
+
+  useEffect(() => {
+    if (socketRef.current) {
+      window.getPlayersInRoom = () => {
+        console.log(
+          "[Client-side Acknowledgement] Requesting players in the current room..."
+        );
+        socketRef.current.emit("getPlayersInRoom");
+      };
+
+      socketRef.current.on("playersInRoom", (players) => {
+        console.log("[From Server: Players in room] -", players);
+      });
     }
   }, []);
 
@@ -140,13 +183,24 @@ export const useSocket = () => {
         if (socketDisplayNameRef.current) {
           setRoomKey(key);
           localStorage.setItem("roomKey", key);
-          console.log(
-            `[Client-side Acknowledgement] Room key set to: ${key}`
-          );
+          console.log(`[Client-side Acknowledgement] Room key set to: ${key}`);
         } else {
           console.log(
             "[Client-side Acknowledgement] Cannot set room key before setting display name."
           );
+        }
+      };
+
+      window.setMoneyAmount = (amount) => {
+        if (typeof amount === "number") {
+          setMoney(amount); // Update local money state
+          if (socketRef.current) {
+            socketRef.current.emit("setMoneyAmount", {
+              displayName: localStorage.getItem("displayName"),
+              roomKey: localStorage.getItem("roomKey"),
+              money: amount,
+            }); // Communicate the money amount to the server
+          }
         }
       };
 
