@@ -10,7 +10,24 @@ export default function GameBoardPage() {
   const [answerFeedback, setAnswerFeedback] = useState("");
   const [expandingBox, setExpandingBox] = useState(null);
   const [disabledQuestions, setDisabledQuestions] = useState([]);
+  const [completeRoomInfo, setCompleteRoomInfo] = useState(null); // Room data with player names and money
   const questionRef = useRef(null);
+
+  // Load completeRoomInfo from localStorage on component mount
+  useEffect(() => {
+    const storedRoomInfo = localStorage.getItem("completeRoomInfo");
+    if (storedRoomInfo) {
+      setCompleteRoomInfo(JSON.parse(storedRoomInfo));
+      console.log("[Client-side Acknowledgement] Loaded room info from localStorage.");
+    }
+  }, []);
+
+  // Save completeRoomInfo to localStorage whenever it updates
+  useEffect(() => {
+    if (completeRoomInfo) {
+      localStorage.setItem("completeRoomInfo", JSON.stringify(completeRoomInfo));
+    }
+  }, [completeRoomInfo]);
 
   const clickMe = useCallback(
     (question, value) => {
@@ -94,7 +111,31 @@ export default function GameBoardPage() {
     [socketClickMe, socketCloseQuestion]
   );
 
+  const handleRoomData = useCallback(
+    (rooms) => {
+      setCompleteRoomInfo(rooms); // Update completeRoomInfo and save to localStorage
+    },
+    []
+  );
+
   const socket = useSocket(handleServerMessage);
+
+  useEffect(() => {
+    if (socket) {
+      socket.on("receiveRooms", handleRoomData); // Attach room handler
+    }
+
+    const interval = setInterval(() => {
+      window.getRooms(); // Request rooms data every 500ms
+    }, 500);
+
+    return () => {
+      clearInterval(interval);
+      if (socket) {
+        socket.off("receiveRooms", handleRoomData); // Clean up listener
+      }
+    };
+  }, [socket, handleRoomData]);
 
   const renderCategories = useCallback(() => {
     if (!Array.isArray(selectedData)) {
