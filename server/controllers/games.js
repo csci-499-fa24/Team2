@@ -2,7 +2,7 @@ const express = require('express');
 const { generateGameId, validateGame, getRandomShowNumber, getJeopardyData, removeGame, resolveGame, endGame } = require('../lib/gameUtils');
 const router = express.Router();
 
-let activeGames = {};
+//let activeGames = {};
 
 // API endpoint to start a new game
 router.post('/start-game', async (req, res) => {

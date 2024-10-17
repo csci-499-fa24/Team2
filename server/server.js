@@ -18,6 +18,7 @@ const server = http.createServer(app);
 
 // Use game routes
 app.use("/api", gameRoutes);
+global.activeGames = {}; // Define activeGames as a global variable
 
 // Database connection and server start
 if (process.env.NODE_ENV !== 'test') {
