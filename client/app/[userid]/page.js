@@ -153,7 +153,7 @@ const JeopardyLoggedInPage = () => {
         const data = await response.json();
         console.log("Room created successfully:", data);
 
-        // Set the sockets room key using the setRoomKey function
+        // Set the room key using the setRoomKey function
         window.setRoomKey(data.gameId);
 
         // Redirect to the waiting page using a relative path
@@ -165,6 +165,14 @@ const JeopardyLoggedInPage = () => {
     } catch (error) {
       console.error("Error creating room:", error);
     }
+  };
+
+  const handleJoinRoom = (roomKey) => {
+    // Set the room key using the setRoomKey function
+    window.setRoomKey(roomKey);
+
+    // Redirect to the waiting page using a relative path
+    router.push("/waiting-page");
   };
 
   const handleWatchTutorial = () => {
@@ -309,7 +317,7 @@ const JeopardyLoggedInPage = () => {
                     <li key={index}>
                       <button
                         className={`${styles.roomButton} ${selectedRoom === room ? styles.selectedRoom : ""}`}
-                        onClick={() => setSelectedRoom(room)}
+                        onClick={() => handleJoinRoom(room)}
                       >
                         {room}
                       </button>
