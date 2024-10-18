@@ -350,7 +350,7 @@ const JeopardyLoggedInPage = () => {
                 </button>
               </div>
               <div className={styles.buttonRow}>
-                <button className={styles.viewAllRoomsButton} onClick={fetchAvailableRooms}>Refresh Games</button>
+                <button className={styles.viewAllRoomsButton} onClick={fetchAvailableRooms}>Refresh Rooms</button>
                 <button className={styles.createRoomButton} onClick={handleCreateRoom}>Create New Room</button>
               </div>
             </section>
