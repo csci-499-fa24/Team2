@@ -12,6 +12,7 @@ import styles from "./[userid].module.css";
 import { useSocket } from "../socketClient";
 
 const JeopardyLoggedInPage = () => {
+  // State variables for user details, rooms, pagination, etc.
   const [username, setUsername] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
@@ -20,14 +21,16 @@ const JeopardyLoggedInPage = () => {
   const [onlinePlayers, setOnlinePlayers] = useState(new Set());
   const [availableRooms, setAvailableRooms] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const roomsPerPage = 7;
+  const roomsPerPage = 7; // Define how many rooms to show per page
   const socket = useSocket();
   const db = getFirebaseFirestore();
   const { userid } = useParams();
   const router = useRouter();
 
+  // URL for the backend server, sourced from environment variables
   const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL;
 
+  // Fetch available rooms from the backend
   const fetchAvailableRooms = async () => {
     try {
       const response = await fetch(`${serverUrl}/api/active-games`);
@@ -42,6 +45,7 @@ const JeopardyLoggedInPage = () => {
     }
   };
 
+  // Effect to fetch user data and list of active players when the component mounts
   useEffect(() => {
     const fetchUserData = async (userId) => {
       const userRef = doc(db, 'users', userId);
@@ -91,6 +95,7 @@ const JeopardyLoggedInPage = () => {
 
   }, [userid, db]);
 
+  // Effect to manage Firebase authentication state and redirect if not logged in
   useEffect(() => {
     initializeFirebase();
     const auth = getAuth();
@@ -112,10 +117,12 @@ const JeopardyLoggedInPage = () => {
     return () => unsubscribe();
   }, [userid, isSigningOut, loadingAuthState]);
 
+  // If there is no user ID, display a loading message
   if (!userid) {
     return <div>Loading...</div>;
   }
 
+  // Function to update user status (e.g., online/offline)
   const updateUserStatus = async (uid, status) => {
     try {
       const userRef = doc(db, "users", uid);
@@ -127,6 +134,7 @@ const JeopardyLoggedInPage = () => {
     }
   };
 
+  // Handle user logout, update status, and redirect to home page
   const handleLogout = async () => {
     try {
       await updateUserStatus(userid, "offline");
@@ -140,6 +148,7 @@ const JeopardyLoggedInPage = () => {
     }
   };
 
+  // Create a new game room and redirect to the waiting page
   const handleCreateRoom = async () => {
     try {
       const response = await fetch(`${serverUrl}/api/start-game`, {
@@ -167,6 +176,7 @@ const JeopardyLoggedInPage = () => {
     }
   };
 
+  // Handle joining an existing room by setting the room key and redirecting
   const handleJoinRoom = (roomKey) => {
     // Set the room key using the setRoomKey function
     window.setRoomKey(roomKey);
@@ -175,14 +185,17 @@ const JeopardyLoggedInPage = () => {
     router.push("/waiting-page");
   };
 
+  // Open a new tab with the tutorial video
   const handleWatchTutorial = () => {
     window.open("https://www.youtube.com/watch?v=Hc0J2jmGnow", "_blank");
   };
 
+  // Calculate total pages based on the number of available rooms and rooms per page
   const totalPages = Math.ceil(availableRooms.length / roomsPerPage);
   const startIndex = (currentPage - 1) * roomsPerPage;
   const paginatedRooms = availableRooms.slice(startIndex, startIndex + roomsPerPage);
 
+  // Pagination controls to navigate between pages
   const handleNextPage = () => {
     if (currentPage < totalPages) {
       setCurrentPage(currentPage + 1);
