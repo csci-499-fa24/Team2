@@ -12,7 +12,7 @@ import styles from "./[userid].module.css";
 import { useSocket } from "../socketClient";
 
 const JeopardyLoggedInPage = () => {
-  // State variables for user details, rooms, pagination, etc.
+  // State variables to manage user information, rooms, and online players
   const [username, setUsername] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
@@ -21,16 +21,15 @@ const JeopardyLoggedInPage = () => {
   const [onlinePlayers, setOnlinePlayers] = useState(new Set());
   const [availableRooms, setAvailableRooms] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const roomsPerPage = 7; // Define how many rooms to show per page
-  const socket = useSocket();
-  const db = getFirebaseFirestore();
-  const { userid } = useParams();
-  const router = useRouter();
+  const roomsPerPage = 7;
+  const socket = useSocket(); // Custom hook for managing socket connections
+  const db = getFirebaseFirestore(); // Firestore instance
+  const { userid } = useParams(); // Get the user ID from URL parameters
+  const router = useRouter(); // Router instance to handle navigation
 
-  // URL for the backend server, sourced from environment variables
   const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL;
 
-  // Fetch available rooms from the backend
+  // Fetches the list of active game rooms from the server
   const fetchAvailableRooms = async () => {
     try {
       const response = await fetch(`${serverUrl}/api/active-games`);
@@ -45,8 +44,8 @@ const JeopardyLoggedInPage = () => {
     }
   };
 
-  // Effect to fetch user data and list of active players when the component mounts
   useEffect(() => {
+    // Fetch user data from Firestore
     const fetchUserData = async (userId) => {
       const userRef = doc(db, 'users', userId);
       const userSnapshot = await getDoc(userRef);
@@ -59,6 +58,7 @@ const JeopardyLoggedInPage = () => {
       }
     };
 
+    // Fetches the list of currently active players from Firestore
     const getActivePlayers = async () => {
       try {
         const fireStoreQuery = query(
@@ -86,6 +86,7 @@ const JeopardyLoggedInPage = () => {
       }
     };
 
+    // If the user is logged in, fetch their data
     if (userid) {
       fetchUserData(userid);
     }
@@ -95,11 +96,11 @@ const JeopardyLoggedInPage = () => {
 
   }, [userid, db]);
 
-  // Effect to manage Firebase authentication state and redirect if not logged in
   useEffect(() => {
     initializeFirebase();
     const auth = getAuth();
 
+    // Monitor authentication state
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
         if (userid) {
@@ -117,12 +118,12 @@ const JeopardyLoggedInPage = () => {
     return () => unsubscribe();
   }, [userid, isSigningOut, loadingAuthState]);
 
-  // If there is no user ID, display a loading message
+  // Display loading indicator if the user ID is not available
   if (!userid) {
     return <div>Loading...</div>;
   }
 
-  // Function to update user status (e.g., online/offline)
+  // Update the user's status in Firestore
   const updateUserStatus = async (uid, status) => {
     try {
       const userRef = doc(db, "users", uid);
@@ -134,7 +135,7 @@ const JeopardyLoggedInPage = () => {
     }
   };
 
-  // Handle user logout, update status, and redirect to home page
+  // Handle user logout
   const handleLogout = async () => {
     try {
       await updateUserStatus(userid, "offline");
@@ -148,7 +149,7 @@ const JeopardyLoggedInPage = () => {
     }
   };
 
-  // Create a new game room and redirect to the waiting page
+  // Handle creating a new room
   const handleCreateRoom = async () => {
     try {
       const response = await fetch(`${serverUrl}/api/start-game`, {
@@ -176,7 +177,7 @@ const JeopardyLoggedInPage = () => {
     }
   };
 
-  // Handle joining an existing room by setting the room key and redirecting
+  // Handle joining an existing room
   const handleJoinRoom = (roomKey) => {
     // Set the room key using the setRoomKey function
     window.setRoomKey(roomKey);
@@ -185,23 +186,24 @@ const JeopardyLoggedInPage = () => {
     router.push("/waiting-page");
   };
 
-  // Open a new tab with the tutorial video
+  // Open the tutorial video in a new tab
   const handleWatchTutorial = () => {
     window.open("https://www.youtube.com/watch?v=Hc0J2jmGnow", "_blank");
   };
 
-  // Calculate total pages based on the number of available rooms and rooms per page
+  // Pagination calculations
   const totalPages = Math.ceil(availableRooms.length / roomsPerPage);
   const startIndex = (currentPage - 1) * roomsPerPage;
   const paginatedRooms = availableRooms.slice(startIndex, startIndex + roomsPerPage);
 
-  // Pagination controls to navigate between pages
+  // Move to the next page of rooms
   const handleNextPage = () => {
     if (currentPage < totalPages) {
       setCurrentPage(currentPage + 1);
     }
   };
 
+  // Move to the previous page of rooms
   const handlePrevPage = () => {
     if (currentPage > 1) {
       setCurrentPage(currentPage - 1);
@@ -338,17 +340,19 @@ const JeopardyLoggedInPage = () => {
                   ))}
                 </ul>
               )}
-              <div className={styles.paginationControls}>
-                <button onClick={handlePrevPage} disabled={currentPage === 1}>
-                  Previous
-                </button>
-                <span style={{ margin: "0 15px" }}>
-                  Page {currentPage} of {totalPages}
-                </span>
-                <button onClick={handleNextPage} disabled={currentPage === totalPages}>
-                  Next
-                </button>
-              </div>
+              {availableRooms.length > 0 && (
+                <div className={styles.paginationControls}>
+                  <button onClick={handlePrevPage} disabled={currentPage === 1}>
+                    Previous
+                  </button>
+                  <span style={{ margin: "0 15px" }}>
+                    Page {currentPage} of {totalPages}
+                  </span>
+                  <button onClick={handleNextPage} disabled={currentPage === totalPages}>
+                    Next
+                  </button>
+                </div>
+              )}
               <div className={styles.buttonRow}>
                 <button className={styles.viewAllRoomsButton} onClick={fetchAvailableRooms}>Refresh Rooms</button>
                 <button className={styles.createRoomButton} onClick={handleCreateRoom}>Create New Room</button>
