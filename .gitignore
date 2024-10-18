@@ -29,6 +29,7 @@
 
 # local env files
 client/.env
+client/.env/local
 
 # vercel
 /client/.vercel
