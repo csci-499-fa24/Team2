@@ -153,14 +153,12 @@ const JeopardyLoggedInPage = () => {
         const data = await response.json();
         console.log("Room created successfully:", data);
 
-        // TODO: Add functionality to redirect the user to the new room
-        // router.push(`/room/${data.gameId}`);
+        // Set the sockets room key using the setRoomKey function
+        window.setRoomKey(data.gameId);
 
-        // TODO: Call another function to set up additional room parameters or settings
-        // setupNewRoom(data.gameId);
+        // Redirect to the waiting page using a relative path
+        router.push("/waiting-page");
 
-        // Refresh the list of available rooms after creating a new one
-        fetchAvailableRooms();
       } else {
         console.error("Failed to create room");
       }
