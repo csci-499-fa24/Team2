@@ -24,7 +24,7 @@ export default function AccountEmailPassword({action}) {
             await setDoc(userRef, {
                 email: user.email,
                 uid: user.uid,
-                displayName: user.displayName || `user ${user.uid}`,
+                displayName: user.email,
                 status: 'online',
                 lastLogin: new Date(),
             });

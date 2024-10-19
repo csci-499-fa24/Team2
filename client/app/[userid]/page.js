@@ -58,9 +58,6 @@ const JeopardyLoggedInPage = () => {
           const playerName = doc.data().displayName;
           const playerId = doc.data().uid;
           if (playerId != userid && !onlinePlayers.has(playerName)) {
-            console.log('Adding player:', playerName, " and username:", username);
-            // console.log("users: ", onlinePlayers);  
-            // console.log(playerId, userid);
             activePlayers.add(playerName);
           }else {
             console.log('Player already exists:', playerName);  
@@ -126,6 +123,10 @@ const JeopardyLoggedInPage = () => {
     }
   }
 
+  const viewProfile = () => {
+    router.push(`/${userid}/profile`);
+  }
+
   const handleLogout = async() => {
     try{
       await updateUserStatus(userid, "offline");
@@ -170,7 +171,7 @@ const JeopardyLoggedInPage = () => {
           </button>
           {isDropdownOpen && (
             <div className={styles.dropdown}>
-              <button>View Profile</button>
+              <button onClick={viewProfile}>View Profile</button>
               <button onClick={handleLogout}>Log out</button>
             </div>
           )}
