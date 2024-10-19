@@ -2,12 +2,10 @@
 
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { initializeFirebase, getFirebaseFirestore } from "../lib/firebaseClient";
-import { updateDoc, doc, getDoc, getDocs, collection, query, where } from "firebase/firestore";
-import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
+import { getFirebaseFirestore } from "../lib/firebaseClient";
+import { getDocs, collection, query, where } from "firebase/firestore";
+import Navbar from "../components/navbar";
 import Image from "next/image";
-import jeopardyLogo from "../icons/Jeopardy-Symbol.png";
-import userIcon from "../icons/user.png";
 import roomIcon from "../icons/room.png";
 import keyIcon from "../icons/key.png";
 import playersIcon from "../icons/players.png";
@@ -15,10 +13,6 @@ import styles from "./[userid].module.css";
 import { useSocket } from "../socketClient";
 
 const JeopardyLoggedInPage = () => {
-  const [username, setUsername] = useState("");
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [isSigningOut, setIsSigningOut] = useState(false);
-  const [loadingAuthState, setLoadingAuthState] = useState(true);
   const [selectedRoom, setSelectedRoom] = useState(null);
   const [onlinePlayers, setOnlinePlayers] = useState(new Set());
   const socket = useSocket();
@@ -32,18 +26,6 @@ const JeopardyLoggedInPage = () => {
   const router = useRouter();
 
   useEffect(() => {
-    const fetchUserData = async (userId) => {
-      const userRef = doc(db, 'users', userId);
-      const userSnapshot = await getDoc(userRef);
-    
-      if (userSnapshot.exists()) {
-        console.log('User data:', userSnapshot.data());
-        setUsername(userSnapshot.data().displayName);
-      } else {
-        console.log('No such document!');
-      }
-    };
-
     const getActivePlayers = async () => {
       try{
         const fireStoreQuery = query(
@@ -70,39 +52,9 @@ const JeopardyLoggedInPage = () => {
       }
     }
 
-    if (userid) {
-      fetchUserData(userid);
-    }
-
     getActivePlayers();
 
   }, [userid, db]); 
-
-  useEffect(() => {
-    initializeFirebase();
-    const auth = getAuth();
-
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        if (userid) {
-          setUsername(userid);
-        }
-      } else {
-        if (!isSigningOut && loadingAuthState) {
-          // console.log("User is not logged in");
-          alert("You are not logged in. Please log in to continue.");
-          router.push("/");
-        }
-      }
-      setLoadingAuthState(false);
-    });
-
-    return () => unsubscribe();
-  }, [userid, isSigningOut, loadingAuthState]);
-
-  if (!userid) {
-      return <div>Loading...</div>;
-  }
 
   const availableRooms = [
     "Trivia Masters",
@@ -111,34 +63,6 @@ const JeopardyLoggedInPage = () => {
     "Knowledge Arena",
     "Fact Finders",
   ];
-
-  const updateUserStatus = async (uid, status) => {
-    try{
-      const userRef = doc(db, "users", uid);
-      await updateDoc(userRef, {
-        status: status,
-      });
-    } catch (error) {
-        console.error('Error updating user status:', error);
-    }
-  }
-
-  const viewProfile = () => {
-    router.push(`/${userid}/profile`);
-  }
-
-  const handleLogout = async() => {
-    try{
-      await updateUserStatus(userid, "offline");
-      await signOut(getAuth());
-      setIsSigningOut(true);
-      alert("Successfully logged out!");
-      router.push("/");
-    }catch(error){
-      console.error('Error:', error);
-      alert("Error logging out. Please try again.");
-    }
-  };
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -150,33 +74,7 @@ const JeopardyLoggedInPage = () => {
 
   return (
     <div className={styles.container}>
-      <header className={styles.header}>
-        <div className={styles.logoContainer}>
-          <Image
-            src={jeopardyLogo}
-            alt="Jeopardy Logo"
-            width={300}
-            height={100}
-          />
-          <div className={styles.withFriends}>With Friends!</div>
-        </div>
-        <div className={styles.userContainer}>
-          <Image src={userIcon} alt="User Icon" width={40} height={40} />
-          <div className={styles.username}>{username}</div>
-          <button
-            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-            className={styles.dropdownButton}
-          >
-            ▼
-          </button>
-          {isDropdownOpen && (
-            <div className={styles.dropdown}>
-              <button onClick={viewProfile}>View Profile</button>
-              <button onClick={handleLogout}>Log out</button>
-            </div>
-          )}
-        </div>
-      </header>
+      <Navbar />
 
       <main className={styles.main}>
         <section className={styles.howToPlay}>

@@ -1,0 +1,15 @@
+.profileContainer {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    width: 100%;
+    margin: 1rem;
+}
+
+.test {
+    font-size: x-large;
+}
