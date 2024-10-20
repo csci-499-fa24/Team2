@@ -23,7 +23,11 @@ export const getFirebaseAuth = () => {
   return getAuth(getApp());
 };
 
+let firestore;
 export const getFirebaseFirestore = () => {
-  initializeFirebase();
-  return getFirestore(getApp());
+  if(!firestore){
+    initializeFirebase();
+    firestore = getFirestore(getApp());
+  }
+  return firestore;
 }

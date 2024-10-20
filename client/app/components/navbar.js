@@ -1,7 +1,7 @@
 import React, {useState, useEffect} from 'react';
 import { useParams, useRouter } from "next/navigation";
 import { useSelector, useDispatch } from 'react-redux';
-import { logoutUser, fetchUserData, monitorAuthState } from '../authSlice';
+import { logoutUser, fetchUserData, monitorAuthState } from '../redux/authSlice';
 import Image from "next/image";
 import jeopardyLogo from "../icons/Jeopardy-Symbol.png";
 import userIcon from "../icons/user.png";
@@ -10,7 +10,7 @@ import styles from './navbar.module.css';
 const Navbar = () => {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const { userid } = useParams();
-    const { user, username } = useSelector((state) => state.auth);
+    const { user } = useSelector((state) => state.auth);
     const dispatch = useDispatch();
     const router = useRouter();
 
@@ -19,15 +19,16 @@ const Navbar = () => {
             router.push("/");
         }else{
             dispatch(fetchUserData(userid));
+            console.log("username:", user.displayName);
         }
-    }, [user, userid, dispatch]);
+    }, [userid, dispatch]);
 
     useEffect(() => {
         const unsubscribe = dispatch(monitorAuthState());
         return () => {
             unsubscribe();
         }
-    }, [dispatch]);
+    }, []);
 
     const viewProfile = () => {
         router.push(`/${userid}/profile`);
@@ -57,7 +58,7 @@ const Navbar = () => {
             </div>
             <div className={styles.userContainer}>
             <Image src={userIcon} alt="User Icon" width={40} height={40} />
-            <div className={styles.username}>{username}</div>
+            {user && user.displayName ? <div className={styles.username}>{user.displayName}</div> : null}
             <button
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                 className={styles.dropdownButton}

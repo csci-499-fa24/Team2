@@ -3,7 +3,9 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { getFirebaseFirestore } from "../lib/firebaseClient";
-import { getDocs, collection, query, where } from "firebase/firestore";
+import { getDocs, collection, query, where, onSnapshot } from "firebase/firestore";
+import { useDispatch, useSelector } from "react-redux";
+import { getCurrentUser, setActiveUsers } from "../redux/authSlice";
 import Navbar from "../components/navbar";
 import Image from "next/image";
 import roomIcon from "../icons/room.png";
@@ -14,7 +16,8 @@ import { useSocket } from "../socketClient";
 
 const JeopardyLoggedInPage = () => {
   const [selectedRoom, setSelectedRoom] = useState(null);
-  const [onlinePlayers, setOnlinePlayers] = useState(new Set());
+  const dispatch = useDispatch();
+  const onlinePlayers = useSelector((state) => state.auth.activeUsers);
   const socket = useSocket();
   const db = getFirebaseFirestore();
   const [newRoom, setNewRoom] = useState({
@@ -26,35 +29,19 @@ const JeopardyLoggedInPage = () => {
   const router = useRouter();
 
   useEffect(() => {
-    const getActivePlayers = async () => {
-      try{
-        const fireStoreQuery = query(
-          collection(db, "users"),
-          where('status', '==', 'online')
-        );
-        
-        const querySnapshot = await getDocs(fireStoreQuery);
-        const activePlayers = new Set();
-
-        querySnapshot.forEach((doc) => {
-          const playerName = doc.data().displayName;
-          const playerId = doc.data().uid;
-          if (playerId != userid && !onlinePlayers.has(playerName)) {
-            activePlayers.add(playerName);
-          }else {
-            console.log('Player already exists:', playerName);  
-          }
-        });
-
-        setOnlinePlayers(activePlayers);
-      } catch (error) {
-        console.error('Error fetching active players:', error);
-      }
-    }
+    const getActivePlayers = async () => { 
+      const getQuery = query(collection(db, "users"), where("status", "==", "online"));
+      const unsubscribe = onSnapshot(getQuery, (querySnapshot) => {
+        const activePlayers = snapshot.docs.map((doc) => doc.data().displayName);
+        const uniquePlayers = [...new Set([...onlinePlayers, ...activePlayers])];
+        dispatch(setActiveUsers(uniquePlayers));
+      });
+      return () => unsubscribe();
+    };
 
     getActivePlayers();
 
-  }, [userid, db]); 
+  }, [dispatch, db, onlinePlayers]); 
 
   const availableRooms = [
     "Trivia Masters",

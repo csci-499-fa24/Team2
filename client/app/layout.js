@@ -5,7 +5,7 @@ import "./globals.css";
 import ReduxProvider from "./ReduxProvider";
 import { Provider, useDispatch } from "react-redux";
 import { store } from "./redux/store";
-import { monitorAuthState } from "./authSlice";
+import { monitorAuthState } from "./redux/authSlice";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
