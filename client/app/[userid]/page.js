@@ -3,9 +3,9 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { getFirebaseFirestore } from "../lib/firebaseClient";
-import { getDocs, collection, query, where, onSnapshot } from "firebase/firestore";
+import { collection, query, where, onSnapshot } from "firebase/firestore";
 import { useDispatch, useSelector } from "react-redux";
-import { getCurrentUser, setActiveUsers } from "../redux/authSlice";
+import { setActiveUsers } from "../redux/authSlice";
 import Navbar from "../components/navbar";
 import Image from "next/image";
 import roomIcon from "../icons/room.png";

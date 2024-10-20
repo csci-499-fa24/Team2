@@ -20,7 +20,10 @@ const authSlice = createSlice({
       state.loading = false;
     },
     updateUser: (state, action) => {
-      state.user = action.payload;
+      state.user = {
+        ...state.user,
+        ...action.payload,
+      };
       state.loading = false;
     },
     clearUser: (state) => {
@@ -29,6 +32,10 @@ const authSlice = createSlice({
     },
     setLoading: (state, action) => {
       state.loading = action.payload;
+    },
+    setDisplayName: (state, action) => {
+      state.user.displayName = action.payload;
+      state.loading = false;
     },
     setActiveUsers: (state, action) => {
       state.activeUsers = [...action.payload];
@@ -90,6 +97,48 @@ export const fetchUserData = (userId) => async (dispatch) => {
   }
 };
 
+export const updateUserData = (uid, email, displayName) => async (dispatch, getState) => {
+  try{
+    dispatch(setLoading(true));
+    console.log("From updateUserData thunk:");
+    console.log("uid:", uid, "email:", email, "displayName:", displayName);
+    console.log("filled")
+    const userRef = doc(getFirebaseFirestore(), "users", uid);
+    const { user } = getState().auth;
+    console.log("user:", user);
+
+    if (user){
+      await updateDoc(userRef, {email, displayName});
+      dispatch(updateUser({email, displayName}));
+    } 
+  } catch (error) {
+    console.error('Error updating user data:', error);
+  } 
+};
+
+export const updateDisplayName = (uid, displayName) => async (dispatch, getState) => {
+  try{
+    const { user } = getState().auth;
+    console.log("user:", user);
+
+    if (user){
+      try{
+        const db = getFirebaseFirestore();
+        const userRef = doc(db, 'users', displayName);
+        const userSnapshot = await getDoc(userRef);
+        if (!userSnapshot.exists()) {
+          await updateDoc(userRef, {displayName});
+          dispatch(updateUser({displayName}));
+        } 
+      } catch (error) {
+        console.error('Username already exists!', error);
+      }
+    } 
+  } catch (error) {
+    console.error('Error updating user data:', error);
+  } 
+};
+
 export const updateUserStatus = (uid, status) => async (dispatch, getState) => {
   try{
       dispatch(setLoading(true));
@@ -145,5 +194,5 @@ export const logoutUser = () => async (dispatch, getState) => {
   }
 };
 
-export const { setUser, updateUser, clearUser, setLoading, setUsername, setActiveUsers, addActiveUser, removeActiveUser } = authSlice.actions;
+export const { setUser, updateUser, clearUser, setLoading, setUsername, setDisplayName, setActiveUsers, addActiveUser, removeActiveUser } = authSlice.actions;
 export default authSlice.reducer;

@@ -1,7 +1,6 @@
 import React, {useState} from 'react';
 import { getFirebaseAuth, getFirebaseFirestore } from '../lib/firebaseClient';
-// import { doc, setDoc } from 'firebase/firestore';
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, updateCurrentUser } from 'firebase/auth';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
 import { createUserDocument, updateUserStatus } from '../redux/authSlice';
 import { useDispatch } from 'react-redux';
 import { useRouter } from 'next/navigation';
