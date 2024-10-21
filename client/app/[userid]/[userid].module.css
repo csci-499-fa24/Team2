@@ -3,6 +3,7 @@
   background-color: #00008b;
   color: white;
   font-family: sans-serif;
+  overflow-y: scroll;
 }
 
 .main {

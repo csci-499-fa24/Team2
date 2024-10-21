@@ -8,21 +8,10 @@ import { useDispatch, useSelector } from "react-redux";
 import { setActiveUsers } from "../redux/authSlice";
 import Navbar from "../components/navbar";
 import ProtectedRoute from "../components/protectedRoute";
-import Image from "next/image";
-import roomIcon from "../icons/room.png";
-import keyIcon from "../icons/key.png";
-import playersIcon from "../icons/players.png";
-import jeopardyLogo from "../icons/Jeopardy-Symbol.png";
-import userIcon from "../icons/user.png";
 import styles from "./[userid].module.css";
 import { useSocket } from "../socketClient";
 
 const JeopardyLoggedInPage = () => {
-  // State variables to manage user information, rooms, and online players
-  const [username, setUsername] = useState("");
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [isSigningOut, setIsSigningOut] = useState(false);
-  const [loadingAuthState, setLoadingAuthState] = useState(true);
   const [selectedRoom, setSelectedRoom] = useState(null);
   const [availableRooms, setAvailableRooms] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -33,12 +22,6 @@ const JeopardyLoggedInPage = () => {
   const router = useRouter(); // Router instance to handle navigation
   const dispatch = useDispatch();
   const onlinePlayers = useSelector((state) => state.auth.activeUsers);
-//   const [newRoom, setNewRoom] = useState({
-//     name: "",
-//     isPrivate: false,
-//     maxPlayers: 3,
-//   });
-
   const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL;
 
   // Fetches the list of active game rooms from the server
@@ -64,21 +47,15 @@ const JeopardyLoggedInPage = () => {
         console.log("Active Players from page.js: ", activePlayers);
         const uniquePlayers = [...new Set([...onlinePlayers, ...activePlayers])];
         dispatch(setActiveUsers(uniquePlayers));
-    });
-    return () => unsubscribe();
-  };
+      });
+      return () => unsubscribe();
+    };
+    getActivePlayers();
+  }, [dispatch, db]); 
 
   useEffect(() => {
     fetchAvailableRooms();
   }, []); 
-
-  const availableRooms = [
-    "Trivia Masters",
-    "Quiz Champions",
-    "Brainiac Zone",
-    "Knowledge Arena",
-    "Fact Finders",
-  ];
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -86,128 +63,6 @@ const JeopardyLoggedInPage = () => {
       ...prevRoom,
       [name]: type === "checkbox" ? checked : value,
     }));
-  };
-
-  return (
-    // <ProtectedRoute>
-      <div className={styles.container}>
-        <Navbar />
-
-        <main className={styles.main}>
-          <section className={styles.howToPlay}>
-            <h2>How To Play</h2>
-            <div className={styles.rules}>
-              <h3>Game Structure:</h3>
-              <ul>
-                <li>
-                  Jeopardy! consists of three rounds: Jeopardy!, Double Jeopardy!,
-                  and Final Jeopardy!
-                </li>
-                <li>
-                  The Jeopardy! and Double Jeopardy! rounds each feature six
-                  categories with five clues each.
-                </li>
-                <li>
-                  Clue values in Jeopardy! range from $200 to $1000, and in Double
-                  Jeopardy!, they're doubled.
-                </li>
-              </ul>
-              <h3>Gameplay:</h3>
-              <ul>
-                <li>Select a category and dollar amount from the game board.</li>
-                <li>Read the clue carefully and formulate your response.</li>
-                <li>
-                  Always phrase your answer in the form of a question, e.g., "What
-                  is...?" or "Who is...?"
-                </li>
-                <li>
-                  Correct answers add the clue's dollar amount to your score;
-                  incorrect answers deduct the same amount.
-                </li>
-                <li>
-                  The player with control of the board selects the next clue.
-                </li>
-              </ul>
-              <h3>Special Rules:</h3>
-              <ul>
-                <li>
-                  Daily Doubles: Hidden on the board, they allow you to wager up
-                  to your entire score or the highest dollar amount on the board.
-                </li>
-                <li>
-                  Final Jeopardy!: All players can wager any amount up to their
-                  total score on the final clue.
-                </li>
-                <li>
-                  Timing: You have a limited time to buzz in after the clue is
-                  read, and then to provide your answer.
-                </li>
-              </ul>
-              <h3>Winning:</h3>
-              <ul>
-                <li>
-                  The player with the highest score at the end of Final Jeopardy!
-                  wins the game and keeps their winnings.
-                </li>
-                <li>
-                  Returning champions can continue playing until defeated or
-                  reaching certain win limits.
-                </li>
-              </ul>
-=======
-  }, [userid, db]);
-
-  useEffect(() => {
-    initializeFirebase();
-    const auth = getAuth();
-
-    // Monitor authentication state
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        if (userid) {
-          setUsername(userid);
-        }
-      } else {
-        if (!isSigningOut && loadingAuthState) {
-          alert("You are not logged in. Please log in to continue.");
-          router.push("/");
-        }
-      }
-      setLoadingAuthState(false);
-    });
-
-    return () => unsubscribe();
-  }, [userid, isSigningOut, loadingAuthState]);
-
-  // Display loading indicator if the user ID is not available
-  if (!userid) {
-    return <div>Loading...</div>;
-  }
-
-  // Update the user's status in Firestore
-  const updateUserStatus = async (uid, status) => {
-    try {
-      const userRef = doc(db, "users", uid);
-      await updateDoc(userRef, {
-        status: status,
-      });
-    } catch (error) {
-      console.error("Error updating user status:", error);
-    }
-  };
-
-  // Handle user logout
-  const handleLogout = async () => {
-    try {
-      await updateUserStatus(userid, "offline");
-      await signOut(getAuth());
-      setIsSigningOut(true);
-      alert("Successfully logged out!");
-      router.push("/");
-    } catch (error) {
-      console.error("Error:", error);
-      alert("Error logging out. Please try again.");
-    }
   };
 
   // Handle creating a new room
@@ -273,6 +128,7 @@ const JeopardyLoggedInPage = () => {
 
   return (
     <div className={styles.container}>
+      <Navbar />
       <main className={styles.main}>
         <section className={styles.howToPlay}>
           <h2>How To Play</h2>
@@ -352,6 +208,7 @@ const JeopardyLoggedInPage = () => {
             </div>
             }
           </section>
+        </div>
 
           <div className={styles.lowerGameInfo}>
             <section className={styles.availableRooms}>
@@ -394,7 +251,6 @@ const JeopardyLoggedInPage = () => {
           </div>
         </main>
       </div>
-    // </ProtectedRoute>
   );
 };
 
