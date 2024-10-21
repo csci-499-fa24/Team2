@@ -4,6 +4,50 @@
   width: 100vw;
   height: 100vh;
   overflow: hidden;
+  display: flex;
+}
+
+.gameBoard {
+  width: 80%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.boardContent {
+  flex-grow: 1;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 10px;
+  padding: 10px;
+}
+
+.playerScores {
+  width: 20%;
+  height: 100%;
+  background-color: rgb(7, 18, 119);
+  color: rgb(238, 196, 78);
+  padding: 20px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.playerScores h2 {
+  font-size: 28px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.playerScore {
+  font-size: 24px;
+  margin-bottom: 15px;
+  padding: 10px;
+  background-color: rgba(238, 196, 78, 0.1);
+  border-radius: 5px;
+  width: 100%;
+  text-align: center;
 }
 
 .button {

@@ -3,7 +3,6 @@ import React, { useState, useRef, useEffect, useCallback } from "react";
 import styles from "./game-board.module.css";
 import { useSelector } from "react-redux";
 import { useSocket } from "../socketClient";
-import { setLazyProp } from "next/dist/server/api-utils";
 
 export default function GameBoardPage() {
   const selectedData = useSelector((state) => state.selectedData.value);
@@ -11,8 +10,9 @@ export default function GameBoardPage() {
   const [answerFeedback, setAnswerFeedback] = useState("");
   const [expandingBox, setExpandingBox] = useState(null);
   const [disabledQuestions, setDisabledQuestions] = useState([]);
-  const [completeRoomInfo, setCompleteRoomInfo] = useState(null); // Room data with player names and money
+  const [completeRoomInfo, setCompleteRoomInfo] = useState(null);
   const [answeredAlready, setAnsweredAlready] = useState(false);
+  const [playerScores, setPlayerScores] = useState({});
   const questionRef = useRef(null);
 
   // Load completeRoomInfo from localStorage on component mount
@@ -20,14 +20,30 @@ export default function GameBoardPage() {
     const storedRoomInfo = localStorage.getItem("completeRoomInfo");
     if (storedRoomInfo) {
       setCompleteRoomInfo(JSON.parse(storedRoomInfo));
-      console.log("[Client-side Acknowledgement] Loaded room info from localStorage.");
+      console.log(
+        "[Client-side Acknowledgement] Loaded room info from localStorage."
+      );
     }
   }, []);
 
   // Save completeRoomInfo to localStorage whenever it updates
   useEffect(() => {
     if (completeRoomInfo) {
-      localStorage.setItem("completeRoomInfo", JSON.stringify(completeRoomInfo));
+      localStorage.setItem(
+        "completeRoomInfo",
+        JSON.stringify(completeRoomInfo)
+      );
+    }
+  }, [completeRoomInfo]);
+
+  // Update playerScores when completeRoomInfo changes
+  useEffect(() => {
+    const currentRoomKey = localStorage.getItem("roomKey");
+    const storedRoomInfo = localStorage.getItem("completeRoomInfo");
+    if (storedRoomInfo) {
+      const parsedRoomInfo = JSON.parse(storedRoomInfo);
+      const currentRoomObject = parsedRoomInfo[currentRoomKey];
+      setPlayerScores(currentRoomObject || {});
     }
   }, [completeRoomInfo]);
 
@@ -45,7 +61,10 @@ export default function GameBoardPage() {
       const updatedDisabledQuestions = [...disabledQuestions, question];
       setDisabledQuestions(updatedDisabledQuestions);
 
-      console.log("For Testing Purposes, Correct Answers Is:", question.answer.toLowerCase())
+      console.log(
+        "For Testing Purposes, Correct Answer Is:",
+        question.answer.toLowerCase()
+      );
       setAnsweredAlready(false);
 
       window.sendMessage({
@@ -117,28 +136,25 @@ export default function GameBoardPage() {
     [socketClickMe, socketCloseQuestion]
   );
 
-  const handleRoomData = useCallback(
-    (rooms) => {
-      setCompleteRoomInfo(rooms); // Update completeRoomInfo and save to localStorage
-    },
-    []
-  );
+  const handleRoomData = useCallback((rooms) => {
+    setCompleteRoomInfo(rooms);
+  }, []);
 
   const socket = useSocket(handleServerMessage);
 
   useEffect(() => {
     if (socket) {
-      socket.on("receiveRooms", handleRoomData); // Attach room handler
+      socket.on("receiveRooms", handleRoomData);
     }
 
     const interval = setInterval(() => {
-      window.getRooms(); // Request rooms data every second
+      window.getRooms();
     }, 1000);
 
     return () => {
       clearInterval(interval);
       if (socket) {
-        socket.off("receiveRooms", handleRoomData); // Clean up listener
+        socket.off("receiveRooms", handleRoomData);
       }
     };
   }, [socket, handleRoomData]);
@@ -198,27 +214,41 @@ export default function GameBoardPage() {
   const handleSubmit = useCallback(
     (e) => {
       e.preventDefault();
-      
+
       if (answeredAlready) {
-        setAnswerFeedback("Sorry You Can't Answer Again!");
+        setAnswerFeedback("Sorry, you can't answer again!");
         return;
       }
-  
+
       const userAnswer = e.target.elements.answer.value.trim().toLowerCase();
       const correctAnswer = selectedQuestion?.answer?.toLowerCase();
-  
+      const currentDisplayName = localStorage.getItem("displayName");
+
       if (userAnswer === correctAnswer) {
-        setMoneyAmount(Number(localStorage.getItem("money")) + Number(selectedQuestion.value));
+        const newMoney =
+          Number(localStorage.getItem("money")) +
+          Number(selectedQuestion.value);
+        window.setMoneyAmount(newMoney);
         setAnswerFeedback("Correct!");
+        setPlayerScores((prevScores) => ({
+          ...prevScores,
+          [currentDisplayName]: `$${newMoney}`,
+        }));
         setTimeout(() => {
           closeQuestion();
         }, 1000);
       } else {
-        setMoneyAmount(Number(localStorage.getItem("money")) - Number(selectedQuestion.value));
+        const newMoney =
+          Number(localStorage.getItem("money")) -
+          Number(selectedQuestion.value);
+        window.setMoneyAmount(newMoney);
         setAnswerFeedback("Wrong!");
+        setPlayerScores((prevScores) => ({
+          ...prevScores,
+          [currentDisplayName]: `$${newMoney}`,
+        }));
       }
-  
-      // Set answeredAlready to true after the first submission
+
       setAnsweredAlready(true);
     },
     [selectedQuestion, answeredAlready, closeQuestion]
@@ -244,6 +274,14 @@ export default function GameBoardPage() {
       <div className={styles.gameBoard}>
         <div className={styles.firstbuttonrow}>{renderCategories()}</div>
         {renderRows()}
+      </div>
+      <div className={styles.playerScores}>
+        <h2>Player Scores</h2>
+        {Object.entries(playerScores).map(([player, score]) => (
+          <div key={player} className={styles.playerScore}>
+            {player}: {score}
+          </div>
+        ))}
       </div>
       {expandingBox && (
         <div
