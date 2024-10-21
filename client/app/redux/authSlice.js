@@ -1,4 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit';
+import { useEffect } from 'react';
 import { getAuth, onAuthStateChanged, signOut, updateEmail } from "firebase/auth";
 import { initializeFirebase } from "../lib/firebaseClient";
 import { getFirebaseFirestore } from '../lib/firebaseClient';
@@ -99,24 +100,15 @@ export const fetchUserData = (userId) => async (dispatch) => {
 };
 
 export const updateDisplayName = (uid, displayName) => async (dispatch, getState) => {
-  // console.log("From updateDisplayName thunk:");
-  // console.log("uid:", uid, "displayName:", displayName);
   try{
     const { user } = getState().auth;
-    // console.log("user:", user);
-
     if (user){
-      // console.log("user exists");
       dispatch(setLoading(true));
-      // console.log("here")
+
       const db = getFirebaseFirestore();
-      // console.log("db:", db);
       const usersRef = collection(db, 'users');
-      // console.log("usersRef:", usersRef);
       const querySnapshot = await getDocs(query(usersRef, where("displayName", "==", displayName)));
-      // console.log("querySnapshot:", querySnapshot);
       if (querySnapshot.empty) {
-        // console.log("doesn't exist")
         const userRef = doc(db, 'users', uid);
         await updateDoc(userRef, { displayName });
         dispatch(updateUser({ displayName }));
@@ -142,17 +134,12 @@ export const updateUserEmail = (uid, email) => async (dispatch, getState) => {
     console.log("user:", user);
 
     if (user){
-      // console.log("user exists");
       dispatch(setLoading(true));
-      // console.log("here")
+
       const db = getFirebaseFirestore();
-      // console.log("db:", db);
       const usersRef = collection(db, 'users');
-      // console.log("usersRef:", usersRef);
       const querySnapshot = await getDocs(query(usersRef, where("email", "==", email)));
-      // console.log("querySnapshot:", querySnapshot);
       if (querySnapshot.empty) {
-        // console.log("doesn't exist")
         const userAuth = getAuth().currentUser;
         await updateEmail(userAuth, email);
         const userRef = doc(db, 'users', uid);
@@ -172,15 +159,20 @@ export const updateUserEmail = (uid, email) => async (dispatch, getState) => {
   } 
 };
 
-export const updateUserStatus = (uid, status) => async (dispatch, getState) => {
+export const updateUserStatus = (uid, displayName, status) => async (dispatch, getState) => {
   try{
       dispatch(setLoading(true));
       const userRef = doc(getFirebaseFirestore(), "users", uid);
       await updateDoc(userRef, {status});
       const {activeUsers} = getState().auth;
+      console.log("activeUsers:", activeUsers, "uid:", uid);
       
       if(status === 'offline' && activeUsers.includes(uid)) {
         dispatch(removeActiveUser(uid));
+        
+        if(status === 'offline' && activeUsers.includes(displayName)) {
+          dispatch(removeActiveUser(displayName));
+        }
       } else if (!activeUsers.includes(uid)) {
         dispatch(addActiveUser(uid));
       }
@@ -189,42 +181,57 @@ export const updateUserStatus = (uid, status) => async (dispatch, getState) => {
   }
 }
 
+let unsubscribeAuth = null;
+
 // Thunk to handle Firebase authentication state change
 export const monitorAuthState = () => (dispatch, getState) => {
+  // console.log("monitoring state")
+  if(unsubscribeAuth) {
+    // console.log("unsubscribe function exists")
+    unsubscribeAuth(); // calls existing function
+    unsubscribeAuth = null; // resetting to prevent it from being called again
+  }
+
   initializeFirebase();
   const auth = getAuth();
 
   dispatch(setLoading(true));
 
-  const unsubscribe = onAuthStateChanged(auth, (user) => {
-    console.log("unsubscribe function called");
-    // const { loading } = getState().auth;
-    // dispatch(setLoading(false));
+  unsubscribeAuth = onAuthStateChanged(auth, async(user) => {
     if(user) {
+      // console.log("user logged in")
       const { uid, email, displayName } = user;
-      dispatch(setUser({ uid, email, displayName }));
-      updateUserStatus(uid, 'online');
-    } else if (!user && !dispatch(logoutUser())) {
-      alert("You are not logged in! Please log in.");
+      await dispatch(setUser({ uid, email, displayName }));
+      await dispatch(updateUserStatus(uid, displayName, 'online'));
     } else {
+      // console.log("user logged out")
       dispatch(clearUser());
     }
 
-    setLoading(false);
+    dispatch(setLoading(false));
   });
 
-  return () => unsubscribe();
+  return () => {
+    if(unsubscribeAuth){
+      unsubscribeAuth();
+      unsubscribeAuth = null;
+    }
+  }
 };
 
 export const logoutUser = () => async (dispatch, getState) => {
   const auth = getAuth();
   const user = getState().auth.user;
+  // console.log"From logoutUser thunk");
   try{
     if (user) {
-      await updateUserStatus(user.uid, 'offline');
+      // console.log("User exists");
+      await dispatch(updateUserStatus(user.uid, user.displayName, 'offline'));
+      // console.log("User status updated to offline");
     }
+    // console.log("Logging out...");
     await signOut(auth);
-    dispatch(clearUser());
+    // console.log("Logged out!");
   } catch (error) {
     console.error('Error logging out:', error);
   }

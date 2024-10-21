@@ -133,7 +133,7 @@ const JeopardyLoggedInPage = () => {
           <div className={styles.gameInfoContainer}>
             <section className={styles.onlinePlayers}>
               <h2>Online Players</h2>
-              {onlinePlayers.size === 0 ? <div className={styles.noOnlinePlayerMessage}>No players online yet. Invite your friends!</div> : null}
+              {onlinePlayers.size === 0 ? <div className={styles.noOnlinePlayerMessage}>No players online yet. Invite your friends!</div> :
               <div className={styles.playerGrid}>
                 {Array.from(onlinePlayers).map((player, index) => (
                   <div key={index} className={styles.playerCard}>
@@ -142,6 +142,7 @@ const JeopardyLoggedInPage = () => {
                   </div>
                 ))}
               </div>
+              }
             </section>
 
             <div className={styles.lowerGameInfo}>

@@ -91,7 +91,7 @@ export default function AccountEmailPassword({action}) {
             });
             const data = await response.json();
             if (response.ok) {
-                await dispatch(updateUserStatus(user.uid, 'online'));
+                // await dispatch(updateUserStatus(user.uid, 'online'));
                 alert("Signed in!");
                 router.push(`/${uid}`);
             }else if(response.status === 400) {

@@ -19,22 +19,19 @@ const Navbar = () => {
             router.push("/");
         }else{
             dispatch(fetchUserData(userid));
-            console.log("username:", user.displayName);
         }
     }, [userid, dispatch]);
-
-    useEffect(() => {
-        const unsubscribe = dispatch(monitorAuthState());
-        return () => {
-            unsubscribe();
-        }
-    }, []);
 
     const viewProfile = () => {
         router.push(`/${userid}/profile`);
     }
 
     const handleLogout = async() => {
+        if(!user) {
+            alert("You are not logged in.");
+            return;
+        }
+        
         try{
             await dispatch(logoutUser());
             alert("Successfully logged out!");
