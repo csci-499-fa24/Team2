@@ -36,6 +36,12 @@ a {
   text-decoration: none;
 }
 
+h2 {
+  font-size: 1.8rem;
+  margin-bottom: 1rem;
+  color: #ffcc00;
+}
+
 button {
   padding: 8px;
   background-color: #007bff;

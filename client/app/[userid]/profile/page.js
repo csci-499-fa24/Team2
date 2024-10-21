@@ -81,19 +81,19 @@ const ProfilePage = () => {
             <div>
                 <Navbar />
                 <div className={styles.profileContainer}>
-                    <h1>Hello, {displayName}!</h1>
+                    <h2 className={styles.profileGreeting}>Hello, {displayName}!</h2>
                     <form className={styles.formContainer}>
-                        <label htmlFor="email">Email:</label>
-                        <input type="email" name="email" id="email" disabled
+                        <label htmlFor="email" className={styles.inputLabel}>Email:</label>
+                        <input type="email" name="email" id="email" disabled className={styles.inputField + " " + styles.disabledInput}
                         placeholder={userEmail} onChange={(e) => setNewEmail(e.target.value)}/>
 
-                        <label htmlFor="displayName">Display Name:</label>
-                        <input type="text" name="displayName" id="displayName" 
+                        <label htmlFor="displayName" className={styles.inputLabel}>Display Name:</label>
+                        <input type="text" name="displayName" id="displayName" className={styles.inputField}
                         placeholder={displayName} onChange={(e) => setNewDisplayName(e.target.value)}/>
                     </form>
                     <div className={styles.buttonsContainer}>
-                    <button onClick={handleForm} >Update Profile</button>
-                    <button onClick={() => router.push(`/${userid}`)}>Go back</button>
+                    <button className={styles.buttons} onClick={handleForm} >Update Profile</button>
+                    <button className={styles.buttons} onClick={() => router.push(`/${userid}`)}>Go back</button>
                     </div>
                 </div>
             </div>
