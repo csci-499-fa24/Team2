@@ -34,6 +34,7 @@ const JeopardyLoggedInPage = () => {
       const getQuery = query(collection(db, "users"), where("status", "==", "online"));
       const unsubscribe = onSnapshot(getQuery, (querySnapshot) => {
         const activePlayers = querySnapshot.docs.map((doc) => doc.data().displayName);
+        console.log("Active Players from page.js: ", activePlayers);
         const uniquePlayers = [...new Set([...onlinePlayers, ...activePlayers])];
         dispatch(setActiveUsers(uniquePlayers));
       });
@@ -42,7 +43,7 @@ const JeopardyLoggedInPage = () => {
 
     getActivePlayers();
 
-  }, [dispatch, db  ]); 
+  }, [dispatch, db]); 
 
   const availableRooms = [
     "Trivia Masters",

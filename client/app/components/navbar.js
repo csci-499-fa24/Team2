@@ -1,7 +1,7 @@
 import React, {useState, useEffect} from 'react';
 import { useParams, useRouter } from "next/navigation";
 import { useSelector, useDispatch } from 'react-redux';
-import { logoutUser, fetchUserData, monitorAuthState } from '../redux/authSlice';
+import { logoutUser, fetchUserData } from '../redux/authSlice';
 import Image from "next/image";
 import jeopardyLogo from "../icons/Jeopardy-Symbol.png";
 import userIcon from "../icons/user.png";
@@ -31,7 +31,7 @@ const Navbar = () => {
             alert("You are not logged in.");
             return;
         }
-        
+
         try{
             await dispatch(logoutUser());
             alert("Successfully logged out!");

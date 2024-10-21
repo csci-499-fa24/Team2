@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import { getFirebaseAuth, getFirebaseFirestore } from '../lib/firebaseClient';
+import { getFirebaseAuth } from '../lib/firebaseClient';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
 import { createUserDocument } from '../redux/authSlice';
 import { useDispatch } from 'react-redux';
@@ -11,7 +11,6 @@ import userIcon from "../icons/user.png";
 export default function AccountEmailPassword({action}) {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const db = getFirebaseFirestore();
     const dispatch = useDispatch();
 
     const router = useRouter();
@@ -91,7 +90,6 @@ export default function AccountEmailPassword({action}) {
             });
             const data = await response.json();
             if (response.ok) {
-                // await dispatch(updateUserStatus(user.uid, 'online'));
                 alert("Signed in!");
                 router.push(`/${uid}`);
             }else if(response.status === 400) {

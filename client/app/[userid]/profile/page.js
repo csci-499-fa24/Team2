@@ -34,34 +34,38 @@ const ProfilePage = () => {
         const displayNameToUpdate = newDisplayName === "" ? displayName : newDisplayName;
         console.log("email:", emailToUpdate, "displayName:", displayNameToUpdate, "userid:", userid);
 
-        if(displayNameToUpdate !== displayName) {
-            try {
-                console.log("update in progress");
-                const isDisplayNameUpdated = await dispatch(updateDisplayName(userid, displayNameToUpdate));
-                console.log("updatedDisplayName:", isDisplayNameUpdated);
-                if (isDisplayNameUpdated) {
-                    alert("Profile displayName updated successfully");
-                }else {
-                    alert("Display name already exists. Please choose another one.");
+        if(displayNameToUpdate !== displayName || emailToUpdate !== userEmail) {
+            if(displayNameToUpdate !== displayName) {
+                try {
+                    console.log("update in progress");
+                    const isDisplayNameUpdated = await dispatch(updateDisplayName(userid, displayNameToUpdate));
+                    console.log("updatedDisplayName:", isDisplayNameUpdated);
+                    if (isDisplayNameUpdated) {
+                        alert("Profile displayName updated successfully");
+                    }else {
+                        alert("Display name already exists. Please choose another one.");
+                    }
+                } catch (error) {
+                    alert("Error updating profile. Please try again.");
                 }
-            } catch (error) {
-                alert("Error updating profile. Please try again.");
             }
-        }
 
-        if(emailToUpdate !== userEmail) {
-            try {
-                console.log("update in progress");
-                const isEmailUpdated = await dispatch(updateUserEmail(userid, emailToUpdate));
-                console.log("updatedDisplayName:", isEmailUpdated);
-                if (isEmailUpdated) {
-                    alert("Profile Email updated successfully");
-                }else {
-                    alert("Email already exists. Please choose another one.");
+            if(emailToUpdate !== userEmail) {
+                try {
+                    console.log("update in progress");
+                    const isEmailUpdated = await dispatch(updateUserEmail(userid, emailToUpdate));
+                    console.log("updatedDisplayName:", isEmailUpdated);
+                    if (isEmailUpdated) {
+                        alert("Profile Email updated successfully");
+                    }else {
+                        alert("Email already exists. Please choose another one.");
+                    }
+                } catch (error) {
+                    alert("Error updating profile. Please try again.");
                 }
-            } catch (error) {
-                alert("Error updating profile. Please try again.");
             }
+        }else {
+            alert("No changes made.");
         }
     }
     
