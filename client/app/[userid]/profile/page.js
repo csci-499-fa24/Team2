@@ -21,18 +21,18 @@ const ProfilePage = () => {
     useEffect(() => {
         if(!user && !loading) {
             router.push("/");
-        }else {
+        }else if (user) {
             setUserEmail(user.email);
             setDisplayName(user.displayName);
         }
-    }, [userid, user, loading]);
+    }, [userid, user]);
 
     const handleForm = async(e) => {
-        console.log("HANDLING FORM")
         e.preventDefault();
         const emailToUpdate = newEmail ===  "" ? userEmail : newEmail;
         const displayNameToUpdate = newDisplayName === "" ? displayName : newDisplayName;
-        console.log("email:", emailToUpdate, "displayName:", displayNameToUpdate, "userid:", userid);
+        let updatedName = false;
+        let updatedEmail = false;
 
         if(displayNameToUpdate !== displayName || emailToUpdate !== userEmail) {
             if(displayNameToUpdate !== displayName) {
@@ -41,9 +41,9 @@ const ProfilePage = () => {
                     const isDisplayNameUpdated = await dispatch(updateDisplayName(userid, displayNameToUpdate));
                     console.log("updatedDisplayName:", isDisplayNameUpdated);
                     if (isDisplayNameUpdated) {
-                        alert("Profile displayName updated successfully");
+                        updatedName = true;
                     }else {
-                        alert("Display name already exists. Please choose another one.");
+                        updatedName = false;
                     }
                 } catch (error) {
                     alert("Error updating profile. Please try again.");
@@ -52,18 +52,25 @@ const ProfilePage = () => {
 
             if(emailToUpdate !== userEmail) {
                 try {
-                    console.log("update in progress");
                     const isEmailUpdated = await dispatch(updateUserEmail(userid, emailToUpdate));
-                    console.log("updatedDisplayName:", isEmailUpdated);
                     if (isEmailUpdated) {
-                        alert("Profile Email updated successfully");
+                        updatedEmail = true
                     }else {
-                        alert("Email already exists. Please choose another one.");
+                        updatedEmail = false
                     }
                 } catch (error) {
                     alert("Error updating profile. Please try again.");
                 }
             }
+
+            if(updatedName || updatedEmail) {
+                alert("Profile updated successfully.");
+            } else if (!updatedName){
+                alert("Display name already exists. Please choose another one.");
+            } else if (!updatedEmail){
+                alert("Email already exists. Please choose another one.");
+            }
+
         }else {
             alert("No changes made.");
         }

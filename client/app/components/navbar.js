@@ -20,7 +20,7 @@ const Navbar = () => {
         }else{
             dispatch(fetchUserData(userid));
         }
-    }, [userid, loading, dispatch]);
+    }, [userid, dispatch]);
 
     const viewProfile = () => {
         router.push(`/${userid}/profile`);
