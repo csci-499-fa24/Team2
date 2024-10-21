@@ -1,5 +1,4 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { useEffect } from 'react';
 import { getAuth, onAuthStateChanged, signOut, updateEmail } from "firebase/auth";
 import { initializeFirebase } from "../lib/firebaseClient";
 import { getFirebaseFirestore } from '../lib/firebaseClient';
@@ -60,14 +59,16 @@ export const getCurrentUser = () => {
   return auth.currentUser;
 };  
 
-export const createUserDocument = async(user) => {
+export const createUserDocument = (uid, email) => async (dispatch) => {
+  console.log("From createUserDocument thunk:");
+  console.log(uid, email)
   try{
       const db = getFirebaseFirestore();
-      const userRef = doc(db, 'users', user.uid);
+      const userRef = doc(db, 'users', uid);
       await setDoc(userRef, {
-          email: user.email,
-          uid: user.uid,
-          displayName: user.email,
+          email: email,
+          uid: uid,
+          displayName: email,
           status: 'online',
           lastLogin: new Date(),
       }); 

@@ -1,7 +1,7 @@
 import React, {useState} from 'react';
 import { getFirebaseAuth, getFirebaseFirestore } from '../lib/firebaseClient';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
-import { createUserDocument, updateUserStatus } from '../redux/authSlice';
+import { createUserDocument } from '../redux/authSlice';
 import { useDispatch } from 'react-redux';
 import { useRouter } from 'next/navigation';
 import styles from "../page.module.css";
@@ -48,7 +48,7 @@ export default function AccountEmailPassword({action}) {
                 });
                 const data = await response.json();
                 if (response.ok) {
-                    await dispatch(createUserDocument(user));
+                    await dispatch(createUserDocument(user.uid, user.email));
                     alert("Account created!");
                     router.push(`/${uid}`);
                 }else if(response.status === 400) {
