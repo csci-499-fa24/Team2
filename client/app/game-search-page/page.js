@@ -16,17 +16,17 @@ export default function GameSearchingPage() {
 
   const socket = useSocket(handleServerMessage);
 
-  useEffect(() => {
-    fetch(process.env.NEXT_PUBLIC_SERVER_URL + "/api/jeopardy")
-      .then((response) => response.json())
-      .then((data) => {
-        setJeopardies(data);
-        console.log("Fetched Data:", data);
-      })
-      .catch((error) => {
-        console.error("Error fetching data:", error);
-      });
-  }, []);
+  // useEffect(() => {
+  //   fetch(process.env.NEXT_PUBLIC_SERVER_URL + "/api/jeopardy")
+  //     .then((response) => response.json())
+  //     .then((data) => {
+  //       setJeopardies(data);
+  //       console.log("Fetched Data:", data);
+  //     })
+  //     .catch((error) => {
+  //       console.error("Error fetching data:", error);
+  //     });
+  // }, []);
 
   const fetchShowData = (showNumber) => {
     fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/jeopardy/${showNumber}`)
@@ -39,6 +39,23 @@ export default function GameSearchingPage() {
       })
       .catch((error) => {
         console.error("Error fetching show data:", error);
+      });
+  };
+
+  const startGame = () => {
+    fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/start-game/`, {
+      method: "POST"
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        dispatch(setSelectedData(data.gameId));
+        console.log(selectedData);
+      })
+      .then(() => {
+        router.push("../game-board/");
+      })
+      .catch((error) => {
+        console.error("Failed to start the game:", error);
       });
   };
 
@@ -110,7 +127,7 @@ export default function GameSearchingPage() {
     <div>
       <h1>Jeopardy Show Numbers</h1>
       <div style={{ display: "flex", flexWrap: "wrap" }}>
-        {jeopardies.map((Jeopardies, index) => (
+        {/* {jeopardies.map((Jeopardies, index) => (
           <button
             className={styles.button}
             key={index}
@@ -118,8 +135,10 @@ export default function GameSearchingPage() {
           >
             Show Number: {Jeopardies.show_number}
           </button>
-        ))}
+        ))} */}
+        <button className={styles.button} onClick={() => startGame()}>Start Game</button>
       </div>
+      
     </div>
   );
 }
