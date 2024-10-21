@@ -6,4 +6,4 @@ export const store = configureStore({
     selectedData: dataReducer,
     auth: authReducer
   },
-})
+});

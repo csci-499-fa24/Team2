@@ -1,8 +1,8 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
+import { getAuth, onAuthStateChanged, signOut, updateEmail } from "firebase/auth";
 import { initializeFirebase } from "../lib/firebaseClient";
 import { getFirebaseFirestore } from '../lib/firebaseClient';
-import { doc, setDoc, getDoc, updateDoc } from "firebase/firestore";
+import { doc, setDoc, getDoc, getDocs, updateDoc, query, where, collection } from "firebase/firestore";
 
 const initialState = {
   user: null,
@@ -61,6 +61,7 @@ export const getCurrentUser = () => {
 
 export const createUserDocument = async(user) => {
   try{
+      const db = getFirebaseFirestore();
       const userRef = doc(db, 'users', user.uid);
       await setDoc(userRef, {
           email: user.email,
@@ -68,74 +69,106 @@ export const createUserDocument = async(user) => {
           displayName: user.email,
           status: 'online',
           lastLogin: new Date(),
-      });
+      }); 
   } catch (error) {
       console.error('Error creating user document:', error);
   }
 };
 
 export const fetchUserData = (userId) => async (dispatch) => {
-  if (userId) {
-    dispatch(setLoading(true));
-    const db = getFirebaseFirestore();
-    const userRef = doc(db, 'users', userId);
-    const userSnapshot = await getDoc(userRef);
+  if (!userId) return console.error('No user ID provided!');
 
-    if (userSnapshot.exists()) {
-      console.log('User data:', userSnapshot.data());
-      const userData = userSnapshot.data();
-      dispatch(setUser({
-        uid: userData.uid,
-        email: userData.email,
-        displayName: userData.displayName,
-      })); 
-    } else {
-      console.log('No such document!');
-    }
+  dispatch(setLoading(true));
+  const db = getFirebaseFirestore();
+  const userRef = doc(db, 'users', userId);
+  const userSnapshot = await getDoc(userRef);
+
+  if (userSnapshot.exists()) {
+    console.log('User data:', userSnapshot.data());
+    const userData = userSnapshot.data();
+    dispatch(setUser({
+      uid: userData.uid,
+      email: userData.email,
+      displayName: userData.displayName,
+    })); 
   } else {
-    console.error('No user ID provided!');
+    console.log('No such document!');
   }
-};
 
-export const updateUserData = (uid, email, displayName) => async (dispatch, getState) => {
-  try{
-    dispatch(setLoading(true));
-    console.log("From updateUserData thunk:");
-    console.log("uid:", uid, "email:", email, "displayName:", displayName);
-    console.log("filled")
-    const userRef = doc(getFirebaseFirestore(), "users", uid);
-    const { user } = getState().auth;
-    console.log("user:", user);
-
-    if (user){
-      await updateDoc(userRef, {email, displayName});
-      dispatch(updateUser({email, displayName}));
-    } 
-  } catch (error) {
-    console.error('Error updating user data:', error);
-  } 
+  // dispatch(setLoading(false));
 };
 
 export const updateDisplayName = (uid, displayName) => async (dispatch, getState) => {
+  // console.log("From updateDisplayName thunk:");
+  // console.log("uid:", uid, "displayName:", displayName);
+  try{
+    const { user } = getState().auth;
+    // console.log("user:", user);
+
+    if (user){
+      // console.log("user exists");
+      dispatch(setLoading(true));
+      // console.log("here")
+      const db = getFirebaseFirestore();
+      // console.log("db:", db);
+      const usersRef = collection(db, 'users');
+      // console.log("usersRef:", usersRef);
+      const querySnapshot = await getDocs(query(usersRef, where("displayName", "==", displayName)));
+      // console.log("querySnapshot:", querySnapshot);
+      if (querySnapshot.empty) {
+        // console.log("doesn't exist")
+        const userRef = doc(db, 'users', uid);
+        await updateDoc(userRef, { displayName });
+        dispatch(updateUser({ displayName }));
+        return true;
+      } else {
+        console.log('Username already exists!');
+        return false; // displayName not updated because it exists
+      }
+    } else {
+      console.log("User not found");
+    }
+  } catch (error) {
+    console.error('Error updating user data:', error);
+    throw error;
+  } 
+};
+
+export const updateUserEmail = (uid, email) => async (dispatch, getState) => {
+  console.log("From updateDisplayName thunk:");
+  console.log("uid:", uid, "email:", email);
   try{
     const { user } = getState().auth;
     console.log("user:", user);
 
     if (user){
-      try{
-        const db = getFirebaseFirestore();
-        const userRef = doc(db, 'users', displayName);
-        const userSnapshot = await getDoc(userRef);
-        if (!userSnapshot.exists()) {
-          await updateDoc(userRef, {displayName});
-          dispatch(updateUser({displayName}));
-        } 
-      } catch (error) {
-        console.error('Username already exists!', error);
+      // console.log("user exists");
+      dispatch(setLoading(true));
+      // console.log("here")
+      const db = getFirebaseFirestore();
+      // console.log("db:", db);
+      const usersRef = collection(db, 'users');
+      // console.log("usersRef:", usersRef);
+      const querySnapshot = await getDocs(query(usersRef, where("email", "==", email)));
+      // console.log("querySnapshot:", querySnapshot);
+      if (querySnapshot.empty) {
+        // console.log("doesn't exist")
+        const userAuth = getAuth().currentUser;
+        await updateEmail(userAuth, email);
+        const userRef = doc(db, 'users', uid);
+        await updateDoc(userRef, { email });
+        dispatch(updateUser({ email }));
+        return true;
+      } else {
+        console.log('email already exists!');
+        return false;
       }
-    } 
+    } else {
+      console.log("User not found");
+    }
   } catch (error) {
     console.error('Error updating user data:', error);
+    throw error;
   } 
 };
 
@@ -157,7 +190,7 @@ export const updateUserStatus = (uid, status) => async (dispatch, getState) => {
 }
 
 // Thunk to handle Firebase authentication state change
-export const monitorAuthState = () => (dispatch) => {
+export const monitorAuthState = () => (dispatch, getState) => {
   initializeFirebase();
   const auth = getAuth();
 
@@ -165,6 +198,8 @@ export const monitorAuthState = () => (dispatch) => {
 
   const unsubscribe = onAuthStateChanged(auth, (user) => {
     console.log("unsubscribe function called");
+    // const { loading } = getState().auth;
+    // dispatch(setLoading(false));
     if(user) {
       const { uid, email, displayName } = user;
       dispatch(setUser({ uid, email, displayName }));
@@ -174,7 +209,8 @@ export const monitorAuthState = () => (dispatch) => {
     } else {
       dispatch(clearUser());
     }
-    dispatch(setLoading(false));
+
+    setLoading(false);
   });
 
   return () => unsubscribe();

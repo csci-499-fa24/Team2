@@ -3,9 +3,10 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
-import { updateUserData } from "../../redux/authSlice";
+import { updateDisplayName, updateUserEmail} from "../../redux/authSlice";
 import styles from './profile.module.css';
 import Navbar from '@/app/components/navbar';
+import ProtectedRoute from '@/app/components/protectedRoute';
 
 const ProfilePage = () => {
     const { userid } = useParams();
@@ -26,44 +27,66 @@ const ProfilePage = () => {
         }
     }, [userid, user]);
 
-    const handleForm = (e) => {
+    const handleForm = async(e) => {
+        console.log("HANDLING FORM")
         e.preventDefault();
-        const updateEmail = newEmail ===  "" ? userEmail : newEmail;
-        const updateDisplayName = newDisplayName === "" ? displayName : newDisplayName;
-        console.log("email:", updateEmail, "displayName:", updateDisplayName, "userid:", userid);
+        const emailToUpdate = newEmail ===  "" ? userEmail : newEmail;
+        const displayNameToUpdate = newDisplayName === "" ? displayName : newDisplayName;
+        console.log("email:", emailToUpdate, "displayName:", displayNameToUpdate, "userid:", userid);
 
-        if(updateEmail !== userEmail || updateDisplayName !== displayName) {
+        if(displayNameToUpdate !== displayName) {
             try {
-            dispatch(updateUserData(userid, updateEmail, updateDisplayName));
-            alert("Profile updated successfully");
+                console.log("update in progress");
+                const isDisplayNameUpdated = await dispatch(updateDisplayName(userid, displayNameToUpdate));
+                console.log("updatedDisplayName:", isDisplayNameUpdated);
+                if (isDisplayNameUpdated) {
+                    alert("Profile displayName updated successfully");
+                }else {
+                    alert("Display name already exists. Please choose another one.");
+                }
             } catch (error) {
                 alert("Error updating profile. Please try again.");
             }
-        } else {
-            alert("No new changes inputted.");
+        }
+
+        if(emailToUpdate !== userEmail) {
+            try {
+                console.log("update in progress");
+                const isEmailUpdated = await dispatch(updateUserEmail(userid, emailToUpdate));
+                console.log("updatedDisplayName:", isEmailUpdated);
+                if (isEmailUpdated) {
+                    alert("Profile Email updated successfully");
+                }else {
+                    alert("Email already exists. Please choose another one.");
+                }
+            } catch (error) {
+                alert("Error updating profile. Please try again.");
+            }
         }
     }
     
     return (
-        <div>
-            <Navbar />
-            <div className={styles.profileContainer}>
-                <h1>Hello, {displayName}!</h1>
-                <form className={styles.formContainer}>
-                    <label htmlFor="email">Email:</label>
-                    <input type="email" name="email" id="email" 
-                    placeholder={userEmail} onChange={(e) => setNewEmail(e.target.value)}/>
+        // <ProtectedRoute>
+            <div>
+                <Navbar />
+                <div className={styles.profileContainer}>
+                    <h1>Hello, {displayName}!</h1>
+                    <form className={styles.formContainer}>
+                        <label htmlFor="email">Email:</label>
+                        <input type="email" name="email" id="email" disabled
+                        placeholder={userEmail} onChange={(e) => setNewEmail(e.target.value)}/>
 
-                    <label htmlFor="displayName">Display Name:</label>
-                    <input type="text" name="displayName" id="displayName" 
-                    placeholder={displayName} onChange={(e) => setNewDisplayName(e.target.value)}/>
-                </form>
-                <div className={styles.buttonsContainer}>
-                <button onClick={handleForm} >Update Profile</button>
-                <button onClick={() => router.push(`/${userid}`)}>Go back</button>
+                        <label htmlFor="displayName">Display Name:</label>
+                        <input type="text" name="displayName" id="displayName" 
+                        placeholder={displayName} onChange={(e) => setNewDisplayName(e.target.value)}/>
+                    </form>
+                    <div className={styles.buttonsContainer}>
+                    <button onClick={handleForm} >Update Profile</button>
+                    <button onClick={() => router.push(`/${userid}`)}>Go back</button>
+                    </div>
                 </div>
             </div>
-        </div>
+        // </ProtectedRoute> 
     );
 };
 
