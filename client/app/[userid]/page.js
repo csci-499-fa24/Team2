@@ -138,8 +138,8 @@ const JeopardyLoggedInPage = () => {
               <div className={styles.playerGrid}>
                 {Array.from(onlinePlayers).map((player, index) => (
                   <div key={index} className={styles.playerCard}>
-                    <div className={styles.playerAvatar}>{player[0]}</div>
-                    <div className={styles.playerName}>{player}</div>
+                    {player && player[0] ? <div className={styles.playerAvatar}>{player[0]}</div> : null}
+                    {player ? <div className={styles.playerName}>{player}</div> : null}
                   </div>
                 ))}
               </div>

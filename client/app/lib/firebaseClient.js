@@ -1,6 +1,6 @@
 import { initializeApp, getApp, getApps } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
-import { getAuth } from "firebase/auth";
+import { getAuth, setPersistence, browserLocalPersistence } from "firebase/auth";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -18,9 +18,18 @@ export const initializeFirebase = () => {
   }
 };
 
-export const getFirebaseAuth = () => {
+export const getFirebaseAuth = async() => {
   initializeFirebase();
-  return getAuth(getApp());
+  
+  const auth = getAuth(getApp());
+  try {
+    await setPersistence(auth, browserLocalPersistence);
+    console.log("Local persistence set");
+  }catch (error) {
+    console.log("Error setting local persistence:", error);
+  }
+
+  return auth;
 };
 
 let firestore;

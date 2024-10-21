@@ -20,7 +20,7 @@ export default function AccountEmailPassword({action}) {
     }
     
     const createNewAccount = async() => {
-        const auth = getFirebaseAuth();
+        const auth = await getFirebaseAuth();
         const serverURL = process.env.NEXT_PUBLIC_SERVER_URL;
         const userExists = await fetch(`${serverURL}/api/checkExistingUser/${email}`, {
             method: 'GET',
@@ -76,7 +76,7 @@ export default function AccountEmailPassword({action}) {
         }
 
         try{
-            const auth = getFirebaseAuth();
+            const auth = await getFirebaseAuth();
             const userCredential = await signInWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
             const uid = user.uid;

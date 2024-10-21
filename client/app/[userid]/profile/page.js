@@ -11,7 +11,7 @@ import ProtectedRoute from '@/app/components/protectedRoute';
 const ProfilePage = () => {
     const { userid } = useParams();
     const router = useRouter();
-    const { user } = useSelector((state) => state.auth);
+    const { user, loading } = useSelector((state) => state.auth);
     const [userEmail, setUserEmail] = useState("");
     const [newEmail, setNewEmail] = useState("");
     const [displayName, setDisplayName] = useState("");
@@ -19,13 +19,13 @@ const ProfilePage = () => {
     const dispatch = useDispatch();
 
     useEffect(() => {
-        if(!user) {
+        if(!user && !loading) {
             router.push("/");
         }else {
             setUserEmail(user.email);
             setDisplayName(user.displayName);
         }
-    }, [userid, user]);
+    }, [userid, user, loading]);
 
     const handleForm = async(e) => {
         console.log("HANDLING FORM")

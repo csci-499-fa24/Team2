@@ -10,17 +10,17 @@ import styles from './navbar.module.css';
 const Navbar = () => {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const { userid } = useParams();
-    const { user } = useSelector((state) => state.auth);
+    const { user, loading } = useSelector((state) => state.auth);
     const dispatch = useDispatch();
     const router = useRouter();
 
     useEffect(() => {
-        if(!user) {
+        if(!user && !loading) {
             router.push("/");
         }else{
             dispatch(fetchUserData(userid));
         }
-    }, [userid, dispatch]);
+    }, [userid, loading, dispatch]);
 
     const viewProfile = () => {
         router.push(`/${userid}/profile`);
