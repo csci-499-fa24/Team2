@@ -5,6 +5,7 @@ import { useSelector } from "react-redux";
 import { useSocket } from "../socketClient";
 import { useRouter } from "next/navigation";
 import { setSelectedData } from "../redux/data";
+import { setLazyProp } from "next/dist/server/api-utils";
 
 export default function GameBoardPage() {
   const selectedData = useSelector((state) => state.selectedData.value);
@@ -15,6 +16,7 @@ export default function GameBoardPage() {
   const [expandingBox, setExpandingBox] = useState(null);
   const [disabledQuestions, setDisabledQuestions] = useState([]);
   const [completeRoomInfo, setCompleteRoomInfo] = useState(null); // Room data with player names and money
+  const [answeredAlready, setAnsweredAlready] = useState(false);
   const questionRef = useRef(null);
   const router = useRouter();
 
@@ -111,6 +113,9 @@ export default function GameBoardPage() {
       const updatedDisabledQuestions = [...disabledQuestions, question];
       setDisabledQuestions(updatedDisabledQuestions);
 
+      console.log("For Testing Purposes, Correct Answers Is:", question.answer.toLowerCase())
+      setAnsweredAlready(false);
+
       window.sendMessage({
         action: "clickQuestion",
         content: {
@@ -135,6 +140,7 @@ export default function GameBoardPage() {
         setSelectedQuestion(question);
       }, 500);
       setAnswerFeedback("");
+      setAnsweredAlready(false);
     },
     []
   );
@@ -194,8 +200,8 @@ export default function GameBoardPage() {
     }
 
     const interval = setInterval(() => {
-      window.getRooms(); // Request rooms data every 500ms
-    }, 500);
+      window.getRooms(); // Request rooms data every second
+    }, 1000);
 
     return () => {
       clearInterval(interval);
@@ -320,15 +326,30 @@ export default function GameBoardPage() {
   const handleSubmit = useCallback(
     (e) => {
       e.preventDefault();
+      
+      if (answeredAlready) {
+        setAnswerFeedback("Sorry You Can't Answer Again!");
+        return;
+      }
+  
       const userAnswer = e.target.elements.answer.value.trim().toLowerCase();
       const correctAnswer = selectedQuestion?.answer?.toLowerCase();
+  
       if (userAnswer === correctAnswer) {
+        setMoneyAmount(Number(localStorage.getItem("money")) + Number(selectedQuestion.value));
         setAnswerFeedback("Correct!");
+        setTimeout(() => {
+          closeQuestion();
+        }, 1000);
       } else {
+        setMoneyAmount(Number(localStorage.getItem("money")) - Number(selectedQuestion.value));
         setAnswerFeedback("Wrong!");
       }
+  
+      // Set answeredAlready to true after the first submission
+      setAnsweredAlready(true);
     },
-    [selectedQuestion]
+    [selectedQuestion, answeredAlready, closeQuestion]
   );
 
   useEffect(() => {
