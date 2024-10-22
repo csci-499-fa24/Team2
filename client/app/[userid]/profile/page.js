@@ -41,8 +41,8 @@ const ProfilePage = () => {
                     const isDisplayNameUpdated = await dispatch(updateDisplayName(userid, displayNameToUpdate));
                     console.log("updatedDisplayName:", isDisplayNameUpdated);
                     if (isDisplayNameUpdated) {
-                        updatedName = true;
                         setDisplayName(newDisplayName);
+                        updatedName = true;
                     } else {
                         updatedName = false;
                     }
