@@ -7,6 +7,7 @@ import { updateDisplayName, updateUserEmail } from "../../redux/authSlice";
 import styles from './profile.module.css';
 import Navbar from '@/app/components/navbar';
 import ProtectedRoute from '@/app/components/protectedRoute';
+import { useSocket } from "../socketClient";
 
 const ProfilePage = () => {
     const { userid } = useParams();
@@ -41,7 +42,7 @@ const ProfilePage = () => {
                     const isDisplayNameUpdated = await dispatch(updateDisplayName(userid, displayNameToUpdate));
                     console.log("updatedDisplayName:", isDisplayNameUpdated);
                     if (isDisplayNameUpdated) {
-                        setDisplayName(newDisplayName);
+                        useSocket.setDisplayName(newDisplayName);
                         updatedName = true;
                     } else {
                         updatedName = false;
