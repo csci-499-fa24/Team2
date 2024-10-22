@@ -223,45 +223,7 @@ export default function GameBoardPage() {
     ));
   }, [roundInfo]);
 
-  // const renderRows = useCallback(() => {
-  //   if (!Array.isArray(selectedData)) {
-  //     return null;
-  //   }
-
-  //   const maxRows = Math.max(
-  //     ...selectedData.map((category) => category.length)
-  //   );
-  //   return Array(maxRows)
-  //     .fill()
-  //     .map((_, rowIndex) => (
-  //       <div className={styles.buttonrow} key={rowIndex}>
-  //         {selectedData.map((category, colIndex) => {
-  //           const question = category[rowIndex];
-  //           const isDisabled = disabledQuestions.some(
-  //             (q) =>
-  //               q.category === question?.category && q.value === question?.value
-  //           );
-  //           return question ? (
-  //             <button
-  //               className={`${styles.button} ${
-  //                 isDisabled ? styles.disabled : ""
-  //               }`}
-  //               onClick={() => clickMe(question, question.value)}
-  //               key={`${rowIndex}-${colIndex}`}
-  //               disabled={isDisabled}
-  //             >
-  //               ${question.value}
-  //             </button>
-  //           ) : (
-  //             <div
-  //               key={`${rowIndex}-${colIndex}`}
-  //               className={styles.emptyCell}
-  //             ></div>
-  //           );
-  //         })}
-  //       </div>
-  //     ));
-  // }, [selectedData, disabledQuestions, clickMe]);
+  // Old render rows code moved to the bottom
   
   //NEW: function that returns the desire question according to the category and value and store into selectedQuestion
   const fetchQuestion = (category, value) => {
@@ -271,7 +233,7 @@ export default function GameBoardPage() {
         if (data && data.question) {
           setSelectedQuestion(data);
           console.log("Question fetched:", selectedQuestion);
-          //console.log("Question fetched:", data.question);
+          clickMe(data, value);
         } else {
           console.error("No question found for the given category and value.");
         }
@@ -296,7 +258,7 @@ export default function GameBoardPage() {
         maxValues = roundInfo[i].values.length;
       }
     }
-    
+  
     // Create rows
     for (let rowIndex = 0; rowIndex < maxValues; rowIndex++) {
       const buttonRow = (
@@ -305,11 +267,18 @@ export default function GameBoardPage() {
             // Safely access the value at the current row index
             const value = Array.isArray(categoryData.values) ? categoryData.values[rowIndex] : "";
             const category = categoryData.category;
+  
+            // Check if the question is disabled
+            const isDisabled = disabledQuestions.some(
+              (q) => q.category === category && q.value === value
+            );
+  
             return (
               <button
                 key={categoryIndex}
-                className={styles.button}
+                className={`${styles.button} ${isDisabled ? styles.disabled : ""}`} // Apply disabled styling
                 onClick={() => fetchQuestion(category, value)}
+                disabled={isDisabled} // Disable the button interaction
               >
                 {value || ""}
               </button>
@@ -414,3 +383,43 @@ export default function GameBoardPage() {
     </div>
   );
 }
+
+  // const renderRows = useCallback(() => {
+  //   if (!Array.isArray(selectedData)) {
+  //     return null;
+  //   }
+
+  //   const maxRows = Math.max(
+  //     ...selectedData.map((category) => category.length)
+  //   );
+  //   return Array(maxRows)
+  //     .fill()
+  //     .map((_, rowIndex) => (
+  //       <div className={styles.buttonrow} key={rowIndex}>
+  //         {selectedData.map((category, colIndex) => {
+  //           const question = category[rowIndex];
+  //           const isDisabled = disabledQuestions.some(
+  //             (q) =>
+  //               q.category === question?.category && q.value === question?.value
+  //           );
+  //           return question ? (
+  //             <button
+  //               className={`${styles.button} ${
+  //                 isDisabled ? styles.disabled : ""
+  //               }`}
+  //               onClick={() => clickMe(question, question.value)}
+  //               key={`${rowIndex}-${colIndex}`}
+  //               disabled={isDisabled}
+  //             >
+  //               ${question.value}
+  //             </button>
+  //           ) : (
+  //             <div
+  //               key={`${rowIndex}-${colIndex}`}
+  //               className={styles.emptyCell}
+  //             ></div>
+  //           );
+  //         })}
+  //       </div>
+  //     ));
+  // }, [selectedData, disabledQuestions, clickMe]);
