@@ -1,7 +1,8 @@
 import React, {useState} from 'react';
-import { getFirebaseAuth, getFirebaseFirestore } from '../lib/firebaseClient';
-import { doc, setDoc } from 'firebase/firestore';
+import { getFirebaseAuth } from '../lib/firebaseClient';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
+import { createUserDocument } from '../redux/authSlice';
+import { useDispatch } from 'react-redux';
 import { useRouter } from 'next/navigation';
 import styles from "../page.module.css";
 import Image from "next/image";
@@ -10,31 +11,16 @@ import userIcon from "../icons/user.png";
 export default function AccountEmailPassword({action}) {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const db = getFirebaseFirestore();
+    const dispatch = useDispatch();
 
     const router = useRouter();
     const checkPasswordRequirements = (password) => {
         const passwordRegex = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$/;
         return passwordRegex.test(password);
     }
-
-    const createUserDocument = async(user) => {
-        try{
-            const userRef = doc(db, 'users', user.uid);
-            await setDoc(userRef, {
-                email: user.email,
-                uid: user.uid,
-                displayName: user.displayName || `user ${user.uid}`,
-                status: 'online',
-                lastLogin: new Date(),
-            });
-        } catch (error) {
-            console.error('Error creating user document:', error);
-        }
-    }
     
     const createNewAccount = async() => {
-        const auth = getFirebaseAuth();
+        const auth = await getFirebaseAuth();
         const serverURL = process.env.NEXT_PUBLIC_SERVER_URL;
         const userExists = await fetch(`${serverURL}/api/checkExistingUser/${email}`, {
             method: 'GET',
@@ -61,7 +47,7 @@ export default function AccountEmailPassword({action}) {
                 });
                 const data = await response.json();
                 if (response.ok) {
-                    await createUserDocument(user);
+                    await dispatch(createUserDocument(user.uid, user.email));
                     alert("Account created!");
                     router.push(`/${uid}`);
                 }else if(response.status === 400) {
@@ -90,7 +76,7 @@ export default function AccountEmailPassword({action}) {
         }
 
         try{
-            const auth = getFirebaseAuth();
+            const auth = await getFirebaseAuth();
             const userCredential = await signInWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
             const uid = user.uid;
@@ -104,7 +90,6 @@ export default function AccountEmailPassword({action}) {
             });
             const data = await response.json();
             if (response.ok) {
-                await createUserDocument(user);
                 alert("Signed in!");
                 router.push(`/${uid}`);
             }else if(response.status === 400) {
