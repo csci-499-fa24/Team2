@@ -59,7 +59,7 @@ export const useSocket = (onMessageReceivedCallback) => {
 
   useEffect(() => {
     //https://team2-server.onrender.com/
-    const socketInstance = io("http://localhost:8080"); // Ensure the URL is correct (e.g. localhost for testing)
+    const socketInstance = io("https://team2-server.onrender.com/"); // Ensure the URL is correct (e.g. localhost for testing)
     socketRef.current = socketInstance;
 
     console.log(
