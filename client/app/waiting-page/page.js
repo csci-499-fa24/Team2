@@ -1,13 +1,18 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation'
 import jeopardyLogo from "../icons/Jeopardy-Symbol.png";
 import Image from 'next/image';
 import styles from './waiting-page.module.css';
+import { useSocket } from "../socketClient";
 
 export default function WaitingPage() {
   const [isPlayerReady, setIsPlayerReady] = useState(false);
   const [showRules, setShowRules] = useState(false); 
+
+  const [completeRoomInfo, setCompleteRoomInfo] = useState(null);
+  const handleServerMessage = () => {};
+  const socket = useSocket(handleServerMessage);
 
   const handleReadyClick = () => {
     setIsPlayerReady(!isPlayerReady);
@@ -28,6 +33,44 @@ export default function WaitingPage() {
   const roomNumber = [
     "4680" 
   ]
+
+  useEffect(() => {
+    const storedRoomInfo = localStorage.getItem("completeRoomInfo");
+    if (storedRoomInfo) {
+      setCompleteRoomInfo(JSON.parse(storedRoomInfo));
+      console.log("[Client-side Acknowledgement] Loaded room info from localStorage.");
+    }
+  }, []);
+
+  useEffect(() => {
+    if (completeRoomInfo) {
+      localStorage.setItem("completeRoomInfo", JSON.stringify(completeRoomInfo));
+    }
+  }, [completeRoomInfo]);
+
+  const handleRoomData = useCallback(
+    (rooms) => {
+      setCompleteRoomInfo(rooms); // Update completeRoomInfo and save to localStorage
+    },
+    []
+  );
+
+  useEffect(() => {
+    if (socket) {
+      socket.on("receiveRooms", handleRoomData); // Attach room handler
+    }
+
+    const interval = setInterval(() => {
+      window.getRooms(); // Request rooms data every 500ms
+    }, 500);
+
+    return () => {
+      clearInterval(interval);
+      if (socket) {
+        socket.off("receiveRooms", handleRoomData); // Clean up listener
+      }
+    };
+  }, [socket, handleRoomData]);
 
   return (
     <div className={styles.page}>
