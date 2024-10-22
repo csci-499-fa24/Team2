@@ -33,10 +33,6 @@
       setLoading: (state, action) => {
         state.loading = action.payload;
       },
-      setDisplayName: (state, action) => {
-        state.user.displayName = action.payload;
-        state.loading = false;
-      },
       setActiveUsers: (state, action) => {
         state.activeUsers = [...action.payload];
         state.loading = false;
@@ -176,10 +172,6 @@
         const {activeUsers} = getState().auth;
         console.log("activeUsers from updateUserStatus:", activeUsers, "uid:", uid);
         console.log("current status", status);
-        
-        // if(status === 'offline' && activeUsers.includes(uid)) {
-        //   console.log("removing active userid", uid);
-        //   dispatch(removeActiveUser(uid));
           
         if(status === 'offline' && activeUsers.includes(displayName)) {
           console.log("removing active user displayName", displayName);
@@ -189,10 +181,6 @@
           console.log("adding active user displayName", displayName);
           await dispatch(addActiveUser(displayName));
         }
-        // } else if (status === "online" && !activeUsers.includes(uid)) {
-        //   console.log("adding active userid", uid);
-        //   dispatch(addActiveUser(uid));
-        // }
     } catch (error) {
         console.error('Error getting data:', error);
     }
@@ -254,5 +242,5 @@
     }
   };
 
-  export const { setUser, updateUser, clearUser, setLoading, setUsername, setDisplayName, setActiveUsers, addActiveUser, removeActiveUser } = authSlice.actions;
+  export const { setUser, updateUser, clearUser, setLoading, setUsername, setActiveUsers, addActiveUser, removeActiveUser } = authSlice.actions;
   export default authSlice.reducer;
