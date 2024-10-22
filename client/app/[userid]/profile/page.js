@@ -42,7 +42,7 @@ const ProfilePage = () => {
                     console.log("updatedDisplayName:", isDisplayNameUpdated);
                     if (isDisplayNameUpdated) {
                         updatedName = true;
-                        setDisplayName(user.newDisplayName);
+                        setDisplayName(newDisplayName);
                     } else {
                         updatedName = false;
                     }
