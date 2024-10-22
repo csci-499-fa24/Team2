@@ -7,7 +7,6 @@ import { updateDisplayName, updateUserEmail } from "../../redux/authSlice";
 import styles from './profile.module.css';
 import Navbar from '@/app/components/navbar';
 import ProtectedRoute from '@/app/components/protectedRoute';
-import { useSocket } from "../socketClient";
 
 const ProfilePage = () => {
     const { userid } = useParams();
