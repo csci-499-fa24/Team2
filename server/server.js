@@ -6,7 +6,8 @@ const http = require('http');
 const db = require('./models');
 const app = express();
 const initializeSockets = require('./socketServer');
-const gameRoutes = require('./controllers/games');
+const routes = require('./controllers');
+
 
 app.use(cors({ origin: "*" }));
 app.use(express.json());
@@ -16,8 +17,8 @@ app.use(bodyParser.urlencoded({ extended: true }));
 const port = process.env.PORT || 8080;
 const server = http.createServer(app);
 
-// Use game routes
-app.use("/api", gameRoutes);
+app.use("/api", routes);
+
 global.activeGames = {}; // Define activeGames as a global variable
 
 // Database connection and server start
