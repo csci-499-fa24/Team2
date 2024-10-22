@@ -1,53 +1,59 @@
 "use client";
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation'
+import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import jeopardyLogo from "../icons/Jeopardy-Symbol.png";
 import Image from 'next/image';
 import styles from './waiting-page.module.css';
 
 export default function WaitingPage() {
-  const [isPlayerReady, setIsPlayerReady] = useState(false);
-  const [showRules, setShowRules] = useState(false); 
+  const [players, setPlayers] = useState([
+    { name: 'Shelly', ready: false },
+    { name: 'Alan', ready: false },
+    { name: 'Micheal', ready: false },
+    { name: 'Yulin', ready: false },
+    { name: 'Vicki', ready: false },
+    { name: 'Tiffany', ready: false },
+  ]);
+  const [showRules, setShowRules] = useState(false);
 
-  const handleReadyClick = () => {
-    setIsPlayerReady(!isPlayerReady);
+  const handlePlayerReadyToggle = (index) => {
+    setPlayers(players.map((player, i) => 
+      i === index ? { ...player, ready: !player.ready } : player
+    ));
+  };
+
+  const toggleAllPlayersReady = () => {
+    const allReady = players.every(player => player.ready);
+    setPlayers(players.map(player => ({ ...player, ready: !allReady })));
   };
 
   const toggleRules = () => {
     setShowRules(!showRules);
   };
 
-
-
-  const router = useRouter()  // Initialize router
-  
-
-
-  const message = "Waiting for players...";
-
-  const roomNumber = [
-    "4680" 
-  ]
+  const router = useRouter(); 
+  const roomNumber = ["4680"];
 
   return (
     <div className={styles.page}>
       <header className={styles.header}>
-      <div className={styles.headerContainer}>
-        <div className={styles.logoContainer}>
-         <Image
-            src={jeopardyLogo}
-            alt="Jeopardy Logo"
-            width={200}
-            height={100}
-          />
-          <div className={styles.withFriends}>With Friends!</div>
+        <div className={styles.headerContainer}>
+          <div className={styles.logoContainer}>
+            <Image
+              src={jeopardyLogo}
+              alt="Jeopardy Logo"
+              width={200}
+              height={100}
+            />
+            <div className={styles.withFriends}>With Friends!</div>
           </div>
           <div className={styles.exitButtonContainer}>
-            <button className={styles.exitButton} onClick={() => router.push('/user')}>Exit Room</button> 
+            <button className={styles.exitButton} onClick={() => router.push('/user')}>Exit Room</button>
           </div>
         </div>
       </header>
-      <div className={styles.roomNumber}> 
+
+      <div className={styles.roomNumber}>
         <h1>
           Room Number: 
           {roomNumber.map((room, index) => (
@@ -55,43 +61,39 @@ export default function WaitingPage() {
           ))}
         </h1>
       </div>
+
       <div className={styles.waitingContent}>
         <h1 className={styles.playerStatus}>
-        {message.split('').map((char, index) => (
-          char === ' ' ? (
-            <span key={index} className={styles.space}></span>
-          ) : (
-            <span key={index} className={styles.animatedLetter} style={{ animationDelay: `${index * 0.1}s` }}>
-              {char}
-            </span>
-          )
-        ))}
+          Waiting for players...
         </h1>
       </div>
+
       <div className={styles.readyPlayers}>
-        <div className={`${styles.playerCircle} ${isPlayerReady ? styles.readyPlayerCircle : ''}`}>
-          Shelly {isPlayerReady ? '✔' : ''}
-        </div>
-        <div className={styles.playerCircle}>Alan</div>
-        <div className={styles.playerCircle}>Micheal</div>
-        <div className={styles.playerCircle}>Yulin</div>
-        <div className={styles.playerCircle}>Vicki</div>
-        <div className={styles.playerCircle}>Tiffany</div>
+        {players.map((player, index) => (
+          <div 
+            key={index} 
+            className={`${styles.playerCircle} ${player.ready ? styles.readyPlayerCircle : ''}`}
+            onClick={() => handlePlayerReadyToggle(index)} 
+          >
+            {player.name} {player.ready ? '✔' : ''}
+          </div>
+        ))}
       </div>
+
       <div>
-        <button 
-          className={`${styles.readyButton} ${isPlayerReady ? styles.readyButtonActive : ''}`} 
-          onClick={handleReadyClick}
+        <button
+          className={`${styles.readyButton} ${players.every(player => player.ready) ? styles.readyButtonActive : ''}`}
+          onClick={() => router.push('/game-search-page')}
         >
-          {isPlayerReady ? 'Ready' : 'Not Ready'}
+          Ready
         </button>
       </div>
-      
+
       {/* Toggle Rules */}
       <div className={styles.rulesToggle} onClick={toggleRules}>
         {showRules ? 'Hide Rules' : 'Show Rules'}
       </div>
-      
+
       <div className={`${styles.rulesBox} ${showRules ? styles.active : ''}`}>
         <h2 className={styles.gameRules}>Jeopardy Game Rules</h2>
         <ul>
