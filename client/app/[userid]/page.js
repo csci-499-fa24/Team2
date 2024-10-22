@@ -27,7 +27,7 @@ const JeopardyLoggedInPage = () => {
   // Fetches the list of active game rooms from the server
   const fetchAvailableRooms = async () => {
     try {
-      const response = await fetch(`${serverUrl}/api/active-games`);
+      const response = await fetch(`${serverUrl}/api/games/active-games`);
       if (response.ok) {
         const data = await response.json();
         setAvailableRooms(data.activeGames || []);
@@ -68,7 +68,7 @@ const JeopardyLoggedInPage = () => {
   // Handle creating a new room
   const handleCreateRoom = async () => {
     try {
-      const response = await fetch(`${serverUrl}/api/start-game`, {
+      const response = await fetch(`${serverUrl}/api/games/start-game`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
