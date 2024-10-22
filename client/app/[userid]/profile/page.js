@@ -41,7 +41,7 @@ const ProfilePage = () => {
                     const isDisplayNameUpdated = await dispatch(updateDisplayName(userid, displayNameToUpdate));
                     console.log("updatedDisplayName:", isDisplayNameUpdated);
                     if (isDisplayNameUpdated) {
-                        useSocket.setDisplayName(newDisplayName);
+                        window.setDisplayName(newDisplayName);
                         updatedName = true;
                     } else {
                         updatedName = false;
