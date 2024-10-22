@@ -16,39 +16,13 @@ export default function GameSearchingPage() {
 
   const socket = useSocket(handleServerMessage);
 
-  // useEffect(() => {
-  //   fetch(process.env.NEXT_PUBLIC_SERVER_URL + "/api/jeopardy")
-  //     .then((response) => response.json())
-  //     .then((data) => {
-  //       setJeopardies(data);
-  //       console.log("Fetched Data:", data);
-  //     })
-  //     .catch((error) => {
-  //       console.error("Error fetching data:", error);
-  //     });
-  // }, []);
-
-  const fetchShowData = (showNumber) => {
-    fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/jeopardy/${showNumber}`)
-      .then((response) => response.json())
-      .then((data) => {
-        const organizedData = organizeJeopardyData(data);
-        dispatch(setSelectedData(organizedData));
-        console.log("Fetched and Organized Show Data:", organizedData);
-        router.push("../game-board/");
-      })
-      .catch((error) => {
-        console.error("Error fetching show data:", error);
-      });
-  };
-
   const startGame = () => {
-    fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/start-game/`, {
+    fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/games/start-game/`, {
       method: "POST"
     })
       .then((response) => response.json())
       .then((data) => {
-        dispatch(setSelectedData(data.gameId));
+        dispatch(setSelectedData(localStorage.getItem("roomKey")));
         console.log(selectedData);
       })
       .then(() => {
@@ -123,20 +97,12 @@ export default function GameSearchingPage() {
     console.log("Selected Data Updated:", selectedData);
   }, [selectedData]);
 
+  startGame();
+  
   return (
     <div>
       <h1>Jeopardy Show Numbers</h1>
       <div style={{ display: "flex", flexWrap: "wrap" }}>
-        {/* {jeopardies.map((Jeopardies, index) => (
-          <button
-            className={styles.button}
-            key={index}
-            onClick={() => fetchShowData(Jeopardies.show_number)}
-          >
-            Show Number: {Jeopardies.show_number}
-          </button>
-        ))} */}
-        <button className={styles.button} onClick={() => startGame()}>Start Game</button>
       </div>
       
     </div>

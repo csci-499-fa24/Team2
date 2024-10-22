@@ -33,7 +33,7 @@ export default function GameBoardPage() {
 
   //NEW: Function to update round state
   const updateRound = () => {
-    fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/round-info/${selectedData}`)
+    fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/games/round-info/${selectedData}`)
     .then((response) => response.json())
     .then((data) => {
       setRound(data.round);
@@ -45,7 +45,7 @@ export default function GameBoardPage() {
 
   //NEW: Return the current round of that game like jeopardy/double/final with all the categories and values
   useEffect(() => {
-    fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/round-info/${selectedData}`)
+    fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/games/round-info/${selectedData}`)
     .then((response) => response.json())
     .then((data) => {
       setRoundInfo(data.roundInfo);
@@ -74,7 +74,7 @@ export default function GameBoardPage() {
   const nextRound = () => {
     console.log("current gameID: ", selectedData);
     if(round == "Final Jeopardy!") {
-      fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/end-game/${selectedData}`, {
+      fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/games/end-game/${selectedData}`, {
         method: "POST"
       })
       .then((response) => console.log(response))
@@ -83,7 +83,7 @@ export default function GameBoardPage() {
         router.push("../game-search-page/");
       })
     } else {
-      fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/next-round/${selectedData}`, {
+      fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/games/next-round/${selectedData}`, {
         method: "POST"
       })
       .then(() => {
@@ -240,7 +240,7 @@ export default function GameBoardPage() {
   
   //NEW: function that returns the desire question according to the category and value and store into selectedQuestion
   const fetchQuestion = (category, value) => {
-    fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/question/${selectedData}?category=${encodeURIComponent(category)}&value=${encodeURIComponent(value)}`)
+    fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/games/question/${selectedData}?category=${encodeURIComponent(category)}&value=${encodeURIComponent(value)}`)
       .then((response) => response.json())
       .then((data) => {
         if (data && data.question) {
