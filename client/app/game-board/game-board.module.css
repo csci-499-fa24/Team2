@@ -182,3 +182,37 @@
   background-color: grey;
   cursor: not-allowed;
 }
+
+.incorrectNotification {
+  position: fixed;
+  top: 20px;
+  left: 20px; /* Move to top-left corner */
+  padding: 20px 40px; /* Increase size */
+  background-color: #ff4d4f; /* red-ish color */
+  color: white;
+  border-radius: 8px;
+  font-weight: bold;
+  font-size: 1.2rem;
+  z-index: 1000;
+  animation: fadeout 9s ease-out; /* Triple display time */
+}
+
+.correctNotification {
+  position: fixed;
+  top: 20px;
+  left: 20px; /* Move to top-left corner */
+  padding: 20px 40px; /* Increase size */
+  background-color: #4CAF50; /* red-ish color */
+  color: white;
+  border-radius: 8px;
+  font-weight: bold;
+  font-size: 1.2rem;
+  z-index: 1000;
+  animation: fadeout 9s ease-out; /* Triple display time */
+}
+
+@keyframes fadeout {
+  0% { opacity: 1; }
+  85% { opacity: 0.9; }
+  100% { opacity: 0; }
+}
