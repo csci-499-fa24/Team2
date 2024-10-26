@@ -10,8 +10,10 @@ import Navbar from "../components/navbar";
 import ProtectedRoute from "../components/protectedRoute";
 import styles from "./[userid].module.css";
 import { useSocket } from "../socketClient";
+import { setSelectedData } from "../redux/data";
 
 const JeopardyLoggedInPage = () => {
+  const selectedData = useSelector((state) => state.selectedData.value);
   const [selectedRoom, setSelectedRoom] = useState(null);
   const [availableRooms, setAvailableRooms] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -77,6 +79,8 @@ const JeopardyLoggedInPage = () => {
 
         // Redirect to the waiting page using a relative path
         router.push("/waiting-page");
+        dispatch(setSelectedData(localStorage.getItem("roomKey")));
+        console.log("Updated RoomID: ", selectedData);
 
       } else {
         console.error("Failed to create room");

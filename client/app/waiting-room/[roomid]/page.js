@@ -102,8 +102,8 @@ export default function WaitingPage() {
 
       <div>
         <button
-          className={styles.readyButton}
-          onClick={() => router.push('/game-search-page')}
+          className={`${styles.readyButton} ${players.every(player => player.ready) ? styles.readyButtonActive : ''}`}
+          onClick={() => router.push('/game-board')}
         >
           Ready
         </button>
