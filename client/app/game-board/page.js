@@ -17,6 +17,8 @@ export default function GameBoardPage() {
   const [completeRoomInfo, setCompleteRoomInfo] = useState(null);
   const [answeredAlready, setAnsweredAlready] = useState(false);
   const [playerScores, setPlayerScores] = useState({});
+  const [incorrectNotification, setIncorrectNotification] = useState(null);
+  const [correctNotification, setCorrectNotification] = useState(null);
   const questionRef = useRef(null);
   const router = useRouter();
 
@@ -30,6 +32,21 @@ export default function GameBoardPage() {
       );
     }
   }, []);
+
+  // Function to show incorrect answer notification
+  const OtherUserIncorrectPopUp = (name) => {
+    setIncorrectNotification(`${name} has answered incorrectly!`);
+    setTimeout(() => {
+      setIncorrectNotification(null); // Clear notification after 3 seconds
+    }, 3000);
+  };
+
+  const OtherUserCorrectPopUp = (name) => {
+    setCorrectNotification(`${name} has answered correctly!`);
+    setTimeout(() => {
+      setCorrectNotification(null);
+    }, 3000); // 
+  };
 
   //NEW: Function to update round state
   const updateRound = () => {
@@ -183,19 +200,20 @@ export default function GameBoardPage() {
     (message) => {
       const action = message["action"];
       if (action === "clickQuestion") {
-        const { question, disabledQuestions: updatedDisabledQuestions } =
-          message["content"];
-        console.log(
-          "Received clickQuestion:",
-          question,
-          updatedDisabledQuestions
-        );
+        const { question, disabledQuestions: updatedDisabledQuestions } = message["content"];
+        console.log("Received clickQuestion:", question, updatedDisabledQuestions);
         socketClickMe(question, question.value, updatedDisabledQuestions);
       } else if (action === "closeQuestion") {
         socketCloseQuestion();
       } else if (action === "syncDisabledQuestions") {
         console.log("Syncing disabled questions:", message["content"]);
         setDisabledQuestions(message["content"]);
+      }
+      else if (action === "notifyOthersAboutIncorrect") {
+        OtherUserIncorrectPopUp(message["content"]["name"]);
+      }
+      else if (action === "notifyOthersAboutCorrect") {
+        OtherUserCorrectPopUp(message["content"]["name"]);
       }
     },
     [socketClickMe, socketCloseQuestion]
@@ -317,7 +335,22 @@ export default function GameBoardPage() {
   const handleSubmit = useCallback(
     (e) => {
       e.preventDefault();
-  
+      
+      function isCorrectAnswer(correctAnswer, playerResponse) {
+        // Clean up both correct answer and player response by keeping only a-z and A-Z
+        const cleanCorrectAnswer = correctAnswer.replace(/[^a-zA-Z]/g, "").toLowerCase();
+        const cleanPlayerResponse = playerResponse.replace(/[^a-zA-Z]/g, "").toLowerCase();
+        // has to match up to 60%
+        const matchThreshold = Math.ceil(cleanCorrectAnswer.length * 0.6);
+        // Count the number of matching characters
+        let matchCount = 0;
+        for (let i = 0; i < cleanPlayerResponse.length; i++) {
+            if (cleanCorrectAnswer[i] === cleanPlayerResponse[i]) {
+                matchCount++;
+            }
+        }
+        return matchCount >= matchThreshold;
+      }
       if (answeredAlready) {
         setAnswerFeedback("Sorry, you can't answer again!");
         return;
@@ -329,7 +362,7 @@ export default function GameBoardPage() {
   
       // Safely parse the stored money value and initialize to 0 if it's null or invalid
       const currentMoney = Number(localStorage.getItem("money")) || 0;
-      if (userAnswer + "\r" === correctAnswer) {
+      if (isCorrectAnswer(correctAnswer, userAnswer)) {
         // Correct answer, so increase the money
         const newMoney = currentMoney + Number(selectedQuestion.value.substring(1));
         // Update the localStorage with the new money amount
@@ -341,10 +374,20 @@ export default function GameBoardPage() {
           ...prevScores,
           [currentDisplayName]: `$${newMoney}`,
         }));
+        window.sendMessage({
+          action: "notifyOthersAboutCorrect",
+          content: {"name": localStorage.getItem("displayName")}
+        });
         setTimeout(() => {
           closeQuestion();
         }, 1000);
-      } else {
+      } 
+      else {
+        // let other players know something is incorrect
+        window.sendMessage({
+          action: "notifyOthersAboutIncorrect",
+          content: {"name": localStorage.getItem("displayName")}
+        });
         // Incorrect answer, so decrease the money
         const newMoney = currentMoney - Number(selectedQuestion.value.substring(1));
         // Update the localStorage with the new money amount
@@ -427,49 +470,19 @@ export default function GameBoardPage() {
           )}
         </div>
       )}
+      {incorrectNotification && (
+        <div className={styles.incorrectNotification}>
+          {incorrectNotification}
+        </div>
+      )}
+      {correctNotification && (
+        <div className={styles.correctNotification}>
+          {correctNotification}
+        </div>
+      )}
       <div>
         <button onClick={nextRound}>NextRound!</button>
       </div>
     </div>
   );
 }
-
-  // const renderRows = useCallback(() => {
-  //   if (!Array.isArray(selectedData)) {
-  //     return null;
-  //   }
-
-  //   const maxRows = Math.max(
-  //     ...selectedData.map((category) => category.length)
-  //   );
-  //   return Array(maxRows)
-  //     .fill()
-  //     .map((_, rowIndex) => (
-  //       <div className={styles.buttonrow} key={rowIndex}>
-  //         {selectedData.map((category, colIndex) => {
-  //           const question = category[rowIndex];
-  //           const isDisabled = disabledQuestions.some(
-  //             (q) =>
-  //               q.category === question?.category && q.value === question?.value
-  //           );
-  //           return question ? (
-  //             <button
-  //               className={`${styles.button} ${
-  //                 isDisabled ? styles.disabled : ""
-  //               }`}
-  //               onClick={() => clickMe(question, question.value)}
-  //               key={`${rowIndex}-${colIndex}`}
-  //               disabled={isDisabled}
-  //             >
-  //               ${question.value}
-  //             </button>
-  //           ) : (
-  //             <div
-  //               key={`${rowIndex}-${colIndex}`}
-  //               className={styles.emptyCell}
-  //             ></div>
-  //           );
-  //         })}
-  //       </div>
-  //     ));
-  // }, [selectedData, disabledQuestions, clickMe]);
