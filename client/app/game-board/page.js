@@ -106,6 +106,7 @@ export default function GameBoardPage() {
       .then(() => {
         console.log("moving onto ther round");
         updateRound();
+        calledNextRound();
       })
       .catch((err) => console.log("round can't proceed:", err))
     }
@@ -188,6 +189,20 @@ export default function GameBoardPage() {
       setExpandingBox(null);
     }, 500);
   }, []);
+  
+  //triggering nextRound message function
+  const calledNextRound = useCallback(() => {
+    console.log("triggered calledNextRound");
+    window.sendMessage({
+      action: "calledNextRound",
+      content: "",
+    });
+  }, [])
+
+  //receiving nextRound message function
+  const socketNextRound = useCallback(() => {
+    updateRound();
+  }, [])
 
   const socketCloseQuestion = useCallback(() => {
     setSelectedQuestion(null);
@@ -214,6 +229,9 @@ export default function GameBoardPage() {
       }
       else if (action === "notifyOthersAboutCorrect") {
         OtherUserCorrectPopUp(message["content"]["name"]);
+      } else if (action === "calledNextRound") {
+        console.log("nextRound action also triggered")
+        socketNextRound(message["content"]["name"])
       }
     },
     [socketClickMe, socketCloseQuestion]
