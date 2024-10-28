@@ -30,27 +30,23 @@ export default function WaitingPage() {
     const roomKey = localStorage.getItem("roomKey");
     console.log(roomKey);
     const completeRoomInfo = JSON.parse(localStorage.getItem("completeRoomInfo"));
-
-    if(roomKey) {
-      setRoomNumber(roomKey);
-      console.log("setting room key as:", roomKey);
-    }
   
     if (roomKey && completeRoomInfo && completeRoomInfo[roomKey]) {
       setPlayers(completeRoomInfo[roomKey]);
     }
   
-    if (socket && roomKey) {
+    if (socket) {
       socket.emit('request_players_list', { roomKey });
     }
-  }, [socket, roomNumber]);
+  }, [socket]);
 
   // Toggle for showing game rules
   const toggleRules = () => {
     setShowRules(!showRules);
   };
 
-  // console.log("Current players:", players);
+  // const roomNumber = ["4680"];
+  console.log("Current players:", players);
 
   return (
     <div className={styles.page}>

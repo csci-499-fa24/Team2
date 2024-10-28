@@ -7,6 +7,7 @@ export const useSocket = (onMessageReceivedCallback) => {
   const [roomKey, setRoomKey] = useState("");
   const [socketDisplayName, setSocketDisplayName] = useState("");
   const user = useSelector((state) => state.auth.user);
+  console.log("socketDisplayName: ", socketDisplayName);
   const [socketMessage, setSocketMessage] = useState("");
   const [roomsData, setRoomsData] = useState(null);
   const [playersInRoom, setPlayersInRoom] = useState([]);
