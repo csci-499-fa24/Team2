@@ -5,10 +5,13 @@ import jeopardyLogo from "../icons/Jeopardy-Symbol.png";
 import Image from 'next/image';
 import styles from './waiting-page.module.css';
 import { useSocket } from "../socketClient";
+import { useSelector } from 'react-redux';
 
 export default function WaitingPage() {
+  const user = useSelector((state) => state.auth.user);
   const [players, setPlayers] = useState({});
   const [showRules, setShowRules] = useState(false);
+  const [roomNumber, setRoomNumber] = useState("");
   const router = useRouter();
 
   const socket = useSocket((message) => {
@@ -29,6 +32,8 @@ export default function WaitingPage() {
   
     if (roomKey && completeRoomInfo && completeRoomInfo[roomKey]) {
       setPlayers(completeRoomInfo[roomKey]);
+      console.log("setting room key as:", roomKey);
+      setRoomNumber(roomKey);
     }
   
     if (socket) {
@@ -41,7 +46,6 @@ export default function WaitingPage() {
     setShowRules(!showRules);
   };
 
-  const roomNumber = ["4680"];
   console.log("Current players:", players);
 
   return (
@@ -58,7 +62,7 @@ export default function WaitingPage() {
             <div className={styles.withFriends}>With Friends!</div>
           </div>
           <div className={styles.exitButtonContainer}>
-            <button className={styles.exitButton} onClick={() => router.push('/user')}>
+            <button className={styles.exitButton} onClick={() => router.push(`/${user.uid}`)}>
               Exit Room
             </button>
           </div>
@@ -67,10 +71,10 @@ export default function WaitingPage() {
 
       <div className={styles.roomNumber}>
         <h1>
-          Room Number: 
-          {roomNumber.map((room, index) => (
+          Room Number: {roomNumber}
+          {/* {roomNumber.map((room, index) => (
             <span key={index}> {room} </span>
-          ))}
+          ))} */}
         </h1>
       </div>
 
