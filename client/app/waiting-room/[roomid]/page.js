@@ -3,8 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import jeopardyLogo from "../../icons/Jeopardy-Symbol.png";
 import Image from 'next/image';
-import styles from '../waiting-page.module.css';
-import { useSocket } from "../../socketClient";
+import styles from './waiting-page.module.css';
+import { useSocket } from "../socketClient";
 import { useSelector } from 'react-redux';
 
 export default function WaitingPage() {
@@ -33,6 +33,8 @@ export default function WaitingPage() {
   
     if (roomKey && completeRoomInfo && completeRoomInfo[roomKey]) {
       setPlayers(completeRoomInfo[roomKey]);
+      console.log("setting room key as:", roomKey);
+      setRoomNumber(roomKey);
     }
   
     if (socket) {
@@ -45,7 +47,6 @@ export default function WaitingPage() {
     setShowRules(!showRules);
   };
 
-  // const roomNumber = ["4680"];
   console.log("Current players:", players);
 
   return (
