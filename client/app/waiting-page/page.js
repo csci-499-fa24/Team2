@@ -14,33 +14,35 @@ export default function WaitingPage() {
   const socket = useSocket((message) => {
     console.log("Message received from server:", message);
     if (message.type === 'player_joined') {
- 
       setPlayers(prevPlayers => ({
         ...prevPlayers,
         [message.playerName]: message.playerStatus,
       }));
     } else if (message.type === 'players_list') {
-   
       setPlayers(message.players);
     }
   });
 
-
   useEffect(() => {
     const roomKey = localStorage.getItem("roomKey");
     const completeRoomInfo = JSON.parse(localStorage.getItem("completeRoomInfo"));
-
+  
     if (roomKey && completeRoomInfo && completeRoomInfo[roomKey]) {
       setPlayers(completeRoomInfo[roomKey]);
     }
-  }, []);
+  
+    if (socket) {
+      socket.emit('request_players_list', { roomKey });
+    }
+  }, [socket]);
 
   // Toggle for showing game rules
   const toggleRules = () => {
     setShowRules(!showRules);
   };
 
-  const roomNumber = ["4680"]; // Placeholder room number, replace with dynamic data if needed.
+  const roomNumber = ["4680"];
+  console.log("Current players:", players);
 
   return (
     <div className={styles.page}>
@@ -82,11 +84,11 @@ export default function WaitingPage() {
         {Object.keys(players).length > 0 ? (
           Object.keys(players).map((player, index) => (
             <div key={index} className={styles.playerCircle}>
-              {player}: {players[player]} 
+              {player}
             </div>
           ))
         ) : (
-          <div>No players in the room yet.</div>
+          <div>No players in the room.</div>
         )}
       </div>
 

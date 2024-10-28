@@ -1,15 +1,26 @@
 import { useEffect, useState, useRef } from "react";
 import { io } from "socket.io-client";
+import { useSelector } from "react-redux";
 
 export const useSocket = (onMessageReceivedCallback) => {
   const socketRef = useRef(null);
   const [roomKey, setRoomKey] = useState("");
   const [socketDisplayName, setSocketDisplayName] = useState("");
+  const user = useSelector((state) => state.auth.user);
+  console.log("socketDisplayName: ", socketDisplayName);
   const [socketMessage, setSocketMessage] = useState("");
   const [roomsData, setRoomsData] = useState(null);
   const [money, setMoney] = useState(0);
   // Create a ref to store socketDisplayName synchronously, as diplayName then setting roomKey timing matters
   const socketDisplayNameRef = useRef("");
+
+  // setting socket displayName from logged in user
+  useEffect(() => {
+    if (user) {
+      setDisplayName(user.displayName);
+      socketDisplayNameRef.current = user.displayName;
+    }
+  }, [user]);
 
   // Change localStorage based on the current route, this is how we handle persistence
   useEffect(() => {
@@ -32,11 +43,13 @@ export const useSocket = (onMessageReceivedCallback) => {
         const storedRoomKey = localStorage.getItem("roomKey");
         const storedMoney = localStorage.getItem("money");
 
-        if (storedDisplayName) {
+        if (socketDisplayName) {
           setSocketDisplayName(storedDisplayName);
-          socketDisplayNameRef.current = storedDisplayName;
+          socketDisplayNameRef.current = socketDisplayName;
           console.log(
             `[Client-side Acknowledgement] Retrieved display name from localStorage: ${storedDisplayName}`
+            // `[Client-side Acknowledgement] Retrieved display name from user login: ${socketDisplayName}`
+
           );
         }
 
@@ -106,6 +119,8 @@ export const useSocket = (onMessageReceivedCallback) => {
   useEffect(() => {
     if (socketRef.current && socketDisplayName) {
       socketRef.current.emit("displayName", socketDisplayName);
+      localStorage.setItem("displayName", socketDisplayName);
+      console.log(`[Client-side Acknowledgement] Display name set automatically to ${socketDisplayName}` );
     }
   }, [socketDisplayName]);
 

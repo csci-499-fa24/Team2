@@ -1,5 +1,5 @@
   import { createSlice } from '@reduxjs/toolkit';
-  import { getAuth, onAuthStateChanged, signOut, updateEmail, setPersistence, browserLocalPersistence } from "firebase/auth";
+  import { getAuth, onAuthStateChanged, signOut, updateEmail } from "firebase/auth";
   import { initializeFirebase } from "../lib/firebaseClient";
   import { getFirebaseFirestore } from '../lib/firebaseClient';
   import { doc, setDoc, getDoc, getDocs, updateDoc, query, where, collection } from "firebase/firestore";
