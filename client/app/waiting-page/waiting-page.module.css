@@ -1,9 +1,9 @@
 .page {
-    background-color: rgb(7, 18, 119);
-    min-height: 100vh; 
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+  background-color: rgb(7, 18, 119);
+  min-height: 100vh; 
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .header {
@@ -18,16 +18,15 @@
 }
 
 .headerContainer {
- display: flex;
- justify-content: center;
- align-items: center;
- width:100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
 }
 
 .logoContainer {
   display: flex;
   justify-content: center;
-  /* align-items: center; */
   gap: 1rem; 
   flex-grow: 1; 
 } 
@@ -38,7 +37,7 @@
   color: #ffcc00;
   font-family: 'Impact', sans-serif;
   justify-content: center;
-  align-items:center;
+  align-items: center;
   display: flex;
 }
 
@@ -57,9 +56,6 @@
   border-radius: 8px;
   cursor: pointer;
   transition: background-color 0.3s ease, transform 0.3s ease;
-  /* margin-left:auto; */
-  /* display:flex; */
-  /* align-items: end;  */
 }
 
 .exitButton:hover {
@@ -72,18 +68,17 @@
   font-size: 15px;
   font-family: 'Impact', sans-serif;
   margin-top: 20px;
-  /* justify-content: flex-start; */
   align-self: flex-start; 
   width: 100%; 
   display: flex;
-  margin-left:auto;
+  margin-left: auto;
   margin-right: -15px;
 }
 
 .playerStatus {
-    color: #ffcc00;
-    font-family: 'Impact', sans-serif;
-    margin-top: 50px;
+  color: #ffcc00;
+  font-family: 'Impact', sans-serif;
+  margin-top: 50px;
 }
 
 .animatedLetter {
@@ -92,8 +87,6 @@
   opacity: 0; 
   animation: fadeIn 5s forwards; 
   animation-iteration-count: infinite; 
-  margin: 0;
-  padding: 0; 
 }
 
 @keyframes fadeIn {
@@ -110,12 +103,10 @@
   }
 }
 
-
 .space {
   display: inline-block; 
   width: 0.2em; 
 }
-
 
 .exitButton:focus {
   outline: none; 
@@ -123,177 +114,152 @@
 }
 
 .flexBox {
-    position: relative;
-    margin-left: auto;
-    display: flex;
+  position: relative;
+  margin-left: auto;
+  display: flex;
 }
 
+/* New Player Box styles */
 
 .readyPlayers {
-    margin-top: 30px;
-    display: flex;
-    flex-direction: row;
-    gap: 20px; 
-    font-family: 'Impact', sans-serif;
-    font-size: 25px;
-    color: #ffcc00;
-  }
-  
-  .player {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  
-
-  @keyframes fade {
-    0%, 100% {
-        opacity: 0.5;
-    }
-    50% {
-        opacity: 1;
-    }
+  margin-top: 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 50%; /* Adjust as needed */
+  font-family: 'Impact', sans-serif;
+  font-size: 25px;
+  color: #ffcc00;
+  align-items: center;
 }
 
-.waitingAnimation {
-    animation: fade 2s infinite;
-    color: rgb(192,192,192);
+.playerBox {
+  width: 100%;
+  background-color: #002366; 
+  color: #ffd700; 
+  border: 2px solid #ffd700;
+  border-radius: 8px; 
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 16px;
+  font-weight: bold;
+  padding: 10px;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+  cursor: pointer;
 }
-  
- 
 
-  .readyButton {
-    background-color: #28a745;
-    border: none;
-    color: white;
-    padding: 10px 20px;
-    cursor: pointer;
-    transition: background-color 0.3s ease, color 0.3s ease;
-    position: relative;
-    width: 170px;
-    height: 70px;
-    cursor: pointer;
-    font-family: 'Impact', sans-serif;
-    font-size: 20px;
-    margin-top: 70px;
-  }
-  
-  .readyButton::before {
-    content: 'Ready';
-    color: #fafafa;
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    opacity: 0;
-    transition: opacity 0.3s ease;
-  }
-  
-  .readyButton:hover::before {
-    opacity: 1;
-  }
-  
-  .readyButton:hover {
-    color: transparent;
-    background-color:#28a745;
-  }
-  
-  .readyButtonActive {
-    background-color: #28a745; 
-    color: white;
-  }
-  
-  .readyButtonActive::before {
-    content: 'Not Ready';
-    color: white;
-    opacity: 0;
-    font-size: 20px;
-  }
-  
-   
-  .readyButtonActive:hover::before {
-    opacity: 1;
-  }
-  
-  .readyButtonActive:hover {
-    color: transparent;
-    background-color:#ffcc00;
-  }
+.playerBox:hover {
+  background-color: #ffd700;
+  color: #002366;
+  transform: scale(1.05);
+}
 
-  .playerCircle {
-    width: 80px;
-    height: 80px;
-    background-color: #002366; 
-    color: #ffd700; 
-    border: 2px solid #ffd700;
-    border-radius: 50%; 
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 16px;
-    font-weight: bold;
-    margin: 0 10px;
-    transition: background-color 0.3s ease, transform 0.3s ease;
-    margin-top: 50px;
-  }
-  
-  .playerCircle:hover {
-    background-color: #ffd700; 
-    color: #002366;
-    transform: scale(1.1);
-  }
-  
- 
-  .readyPlayerCircle {
-    background-color: #28a745; 
-    color: white;
-    border: 2px solid #28a745; 
-  }
+.readyPlayerBox {
+  background-color: #28a745;
+  color: white;
+  border: 2px solid #28a745;
+}
 
-  .rulesToggle {
-    margin-top: 50px;
-    font-family: 'Impact', sans-serif;
-    cursor: pointer; 
-    color:#ffcc00;
-  }
-  
-  .rulesToggle:hover {
-    color: #f3f4f5;
-    text-decoration: underline; 
-  }
-  .gameRules {
-    font-family: 'Impact', sans-serif;
-    color:#002366;
-    font-size: 15px;
-  }
+.readyButton {
+  background-color: #28a745;
+  border: none;
+  color: white;
+  padding: 10px 20px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  position: relative;
+  width: 170px;
+  height: 70px;
+  font-family: 'Impact', sans-serif;
+  font-size: 20px;
+  margin-top: 70px;
+}
 
-  .rulesBox {
-    position: fixed; 
-    bottom: 20px; 
-    right: 20px; 
-    background-color:#ffcc00; 
-    border: 2px solid #ccc; 
-    border-radius: 8px; 
-    padding: 10px; 
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-    opacity: 0; 
-    transition: opacity 0.3s ease, transform 0.3s ease; 
-    transform: translateY(20px); 
-    z-index: 10;
-    /* font-size: 10px; */
-  }
+.readyButton::before {
+  content: 'Ready';
+  color: #fafafa;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
 
-  .rulesBox.active {
-    opacity: 1; 
-    transform: translateY(0);
-  }
+.readyButton:hover::before {
+  opacity: 1;
+}
 
-  .rulesBox ul {
-    padding-left: 20px; 
-    margin: 0; 
-  }
-  
-  .rulesBox li {
-    margin-bottom: 10px; 
-  }
-  
+.readyButton:hover {
+  color: transparent;
+  background-color: #28a745;
+}
+
+.readyButtonActive {
+  background-color: #28a745; 
+  color: white;
+}
+
+.readyButtonActive::before {
+  content: 'Not Ready';
+  color: white;
+  opacity: 0;
+  font-size: 20px;
+}
+
+.readyButtonActive:hover::before {
+  opacity: 1;
+}
+
+.readyButtonActive:hover {
+  color: transparent;
+  background-color: #ffcc00;
+}
+
+.rulesToggle {
+  margin-top: 50px;
+  font-family: 'Impact', sans-serif;
+  cursor: pointer; 
+  color: #ffcc00;
+}
+
+.rulesToggle:hover {
+  color: #f3f4f5;
+  text-decoration: underline; 
+}
+
+.gameRules {
+  font-family: 'Impact', sans-serif;
+  color: #002366;
+  font-size: 15px;
+}
+
+.rulesBox {
+  position: fixed; 
+  bottom: 20px; 
+  right: 20px; 
+  background-color: #ffcc00; 
+  border: 2px solid #ccc; 
+  border-radius: 8px; 
+  padding: 10px; 
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  opacity: 0; 
+  transition: opacity 0.3s ease, transform 0.3s ease; 
+  transform: translateY(20px); 
+  z-index: 10;
+}
+
+.rulesBox.active {
+  opacity: 1; 
+  transform: translateY(0);
+}
+
+.rulesBox ul {
+  padding-left: 20px; 
+  margin: 0; 
+}
+
+.rulesBox li {
+  margin-bottom: 10px; 
+}

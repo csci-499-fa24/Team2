@@ -1,38 +1,46 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import jeopardyLogo from "../icons/Jeopardy-Symbol.png";
 import Image from 'next/image';
 import styles from './waiting-page.module.css';
+import { useSocket } from "../socketClient";
 
 export default function WaitingPage() {
-  const [players, setPlayers] = useState([
-    { name: 'Shelly', ready: false },
-    { name: 'Alan', ready: false },
-    { name: 'Micheal', ready: false },
-    { name: 'Yulin', ready: false },
-    { name: 'Vicki', ready: false },
-    { name: 'Tiffany', ready: false },
-  ]);
+  const [players, setPlayers] = useState({});
   const [showRules, setShowRules] = useState(false);
+  const router = useRouter();
 
-  const handlePlayerReadyToggle = (index) => {
-    setPlayers(players.map((player, i) => 
-      i === index ? { ...player, ready: !player.ready } : player
-    ));
-  };
+  const socket = useSocket((message) => {
+    console.log("Message received from server:", message);
+    if (message.type === 'player_joined') {
+ 
+      setPlayers(prevPlayers => ({
+        ...prevPlayers,
+        [message.playerName]: message.playerStatus,
+      }));
+    } else if (message.type === 'players_list') {
+   
+      setPlayers(message.players);
+    }
+  });
 
-  const toggleAllPlayersReady = () => {
-    const allReady = players.every(player => player.ready);
-    setPlayers(players.map(player => ({ ...player, ready: !allReady })));
-  };
 
+  useEffect(() => {
+    const roomKey = localStorage.getItem("roomKey");
+    const completeRoomInfo = JSON.parse(localStorage.getItem("completeRoomInfo"));
+
+    if (roomKey && completeRoomInfo && completeRoomInfo[roomKey]) {
+      setPlayers(completeRoomInfo[roomKey]);
+    }
+  }, []);
+
+  // Toggle for showing game rules
   const toggleRules = () => {
     setShowRules(!showRules);
   };
 
-  const router = useRouter(); 
-  const roomNumber = ["4680"];
+  const roomNumber = ["4680"]; // Placeholder room number, replace with dynamic data if needed.
 
   return (
     <div className={styles.page}>
@@ -48,7 +56,9 @@ export default function WaitingPage() {
             <div className={styles.withFriends}>With Friends!</div>
           </div>
           <div className={styles.exitButtonContainer}>
-            <button className={styles.exitButton} onClick={() => router.push('/user')}>Exit Room</button>
+            <button className={styles.exitButton} onClick={() => router.push('/user')}>
+              Exit Room
+            </button>
           </div>
         </div>
       </header>
@@ -69,27 +79,26 @@ export default function WaitingPage() {
       </div>
 
       <div className={styles.readyPlayers}>
-        {players.map((player, index) => (
-          <div 
-            key={index} 
-            className={`${styles.playerCircle} ${player.ready ? styles.readyPlayerCircle : ''}`}
-            onClick={() => handlePlayerReadyToggle(index)} 
-          >
-            {player.name} {player.ready ? '✔' : ''}
-          </div>
-        ))}
+        {Object.keys(players).length > 0 ? (
+          Object.keys(players).map((player, index) => (
+            <div key={index} className={styles.playerCircle}>
+              {player}: {players[player]} 
+            </div>
+          ))
+        ) : (
+          <div>No players in the room yet.</div>
+        )}
       </div>
 
       <div>
         <button
-          className={`${styles.readyButton} ${players.every(player => player.ready) ? styles.readyButtonActive : ''}`}
+          className={styles.readyButton}
           onClick={() => router.push('/game-search-page')}
         >
           Ready
         </button>
       </div>
 
-      {/* Toggle Rules */}
       <div className={styles.rulesToggle} onClick={toggleRules}>
         {showRules ? 'Hide Rules' : 'Show Rules'}
       </div>
