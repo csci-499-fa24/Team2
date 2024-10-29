@@ -1,6 +1,6 @@
 .container {
   min-height: 100vh;
-  background-color: #00008b;
+  background-color: #001f3f;
   color: white;
   font-family: sans-serif;
   overflow-y: scroll;
@@ -15,7 +15,7 @@
 .howToPlay {
   width: 50%;
   height: 750px;
-  background-color: #000070;
+  background-color: #002a5c;
   padding: 2rem;
   border-radius: 8px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -30,7 +30,7 @@
 
 .onlinePlayers,
 .availableRooms {
-  background-color: #000070;
+  background-color: #002a5c;
   padding: 1rem;
   border-radius: 8px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -52,12 +52,12 @@
 .availableRooms h2 {
   font-size: 1.8rem;
   margin-bottom: 1rem;
-  color: #ffcc00;
+  color: #ffcc33;
   text-align: center;
 }
 
 .rules h3 {
-  color: #ffcc00;
+  color: #ffcc33;
   margin-top: 1rem;
   margin-bottom: 0.5rem;
 }
@@ -76,7 +76,7 @@
 
 .rules li::before {
   content: "•";
-  color: #ffcc00;
+  color: #ffcc33;
   display: inline-block;
   width: 1em;
   margin-left: -1em;
@@ -87,8 +87,8 @@
 .createRoomButton {
   display: block;
   width: 200px;
-  background-color: #ffcc00;
-  color: #00008b;
+  background-color: #ffcc33;
+  color: #001f3f;
   border: none;
   padding: 0.75rem 1.5rem;
   border-radius: 4px;
@@ -107,7 +107,7 @@
 .tutorialButton:hover,
 .viewAllRoomsButton:hover,
 .createRoomButton:hover {
-  background-color: #ffd700;
+  background-color: #ffdd44;
   transform: scale(1.05);
 }
 
@@ -134,7 +134,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  background-color: #0000aa;
+  background-color: #003366;
   border-radius: 8px;
   padding: 0.5rem;
   transition: transform 0.2s;
@@ -150,8 +150,8 @@
 .playerAvatar {
   width: 40px;
   height: 40px;
-  background-color: #ffcc00;
-  color: #00008b;
+  background-color: #ffcc33;
+  color: #001f3f;
   border-radius: 50%;
   display: flex;
   justify-content: center;
@@ -174,7 +174,7 @@
 
 .roomButton {
   width: 100%;
-  background-color: #0000aa;
+  background-color: #003366;
   color: white;
   border: none;
   padding: 0.75rem;
@@ -187,7 +187,7 @@
 }
 
 .roomButton:hover {
-  background-color: #0000ff;
+  background-color: #004080;
   transform: scale(1.02);
 }
 
@@ -199,7 +199,7 @@
 }
 
 .paginationControls button {
-  background-color: #1e90ff;
+  background-color: #336699;
   color: white;
   border: none;
   padding: 0.5rem 1rem;
@@ -210,7 +210,7 @@
 }
 
 .paginationControls button:hover {
-  background-color: #00bfff;
+  background-color: #5084b1;
   transform: scale(1.05);
 }
 

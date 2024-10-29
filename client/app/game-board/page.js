@@ -8,7 +8,7 @@ import { setSelectedData } from "../redux/data";
 
 export default function GameBoardPage() {
   const selectedData = useSelector((state) => state.selectedData.value);
-  const [round, setRound] = useState('');
+  const [round, setRound] = useState("");
   const [roundInfo, setRoundInfo] = useState([]);
   const [selectedQuestion, setSelectedQuestion] = useState(null);
   const [answerFeedback, setAnswerFeedback] = useState("");
@@ -17,6 +17,8 @@ export default function GameBoardPage() {
   const [completeRoomInfo, setCompleteRoomInfo] = useState(null);
   const [answeredAlready, setAnsweredAlready] = useState(false);
   const [playerScores, setPlayerScores] = useState({});
+  const [incorrectNotification, setIncorrectNotification] = useState(null);
+  const [correctNotification, setCorrectNotification] = useState(null);
   const questionRef = useRef(null);
   const router = useRouter();
 
@@ -31,34 +33,53 @@ export default function GameBoardPage() {
     }
   }, []);
 
+  // Function to show incorrect answer notification
+  const OtherUserIncorrectPopUp = (name) => {
+    setIncorrectNotification(`${name} has answered incorrectly!`);
+    setTimeout(() => {
+      setIncorrectNotification(null); // Clear notification after 3 seconds
+    }, 3000);
+  };
+
+  const OtherUserCorrectPopUp = (name) => {
+    setCorrectNotification(`${name} has answered correctly!`);
+    setTimeout(() => {
+      setCorrectNotification(null);
+    }, 3000); //
+  };
+
   //NEW: Function to update round state
   const updateRound = () => {
-    fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/games/round-info/${selectedData}`)
-    .then((response) => response.json())
-    .then((data) => {
-      setRound(data.round);
-    })
-    .catch((error) => {
-      console.error("Failed to start the game:", error);
-    });
-  }
+    fetch(
+      `${process.env.NEXT_PUBLIC_SERVER_URL}/api/games/round-info/${selectedData}`
+    )
+      .then((response) => response.json())
+      .then((data) => {
+        setRound(data.round);
+      })
+      .catch((error) => {
+        console.error("Failed to start the game:", error);
+      });
+  };
 
   //NEW: Return the current round of that game like jeopardy/double/final with all the categories and values
   useEffect(() => {
-    fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/games/round-info/${selectedData}`)
-    .then((response) => response.json())
-    .then((data) => {
-      setRoundInfo(data.roundInfo);
-    })
-    .catch((error) => {
-      console.error("Failed to fetch game info:", error);
-    });
-  }, [round])
+    fetch(
+      `${process.env.NEXT_PUBLIC_SERVER_URL}/api/games/round-info/${selectedData}`
+    )
+      .then((response) => response.json())
+      .then((data) => {
+        setRoundInfo(data.roundInfo);
+      })
+      .catch((error) => {
+        console.error("Failed to fetch game info:", error);
+      });
+  }, [round]);
 
   //NEW:state the initial state of round in the beginning of the game
   useEffect(() => {
     updateRound();
-  }, [])
+  }, []);
 
   //NEW:debugging uses: log the updated roundinfo
   useEffect(() => {
@@ -73,27 +94,34 @@ export default function GameBoardPage() {
   //NEW: move onto the next round
   const nextRound = () => {
     console.log("current gameID: ", selectedData);
-    if(round == "Final Jeopardy!") {
-      fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/games/end-game/${selectedData}`, {
-        method: "POST"
-      })
-      .then((response) => console.log(response))
-      .then(()=>{
-        console.log("game has ended")
-        router.push("../game-search-page/");
-      })
+    if (round == "Final Jeopardy!") {
+      fetch(
+        `${process.env.NEXT_PUBLIC_SERVER_URL}/api/games/end-game/${selectedData}`,
+        {
+          method: "POST",
+        }
+      )
+        .then((response) => console.log(response))
+        .then(() => {
+          console.log("game has ended");
+          router.push("../game-search-page/");
+        });
     } else {
-      fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/games/next-round/${selectedData}`, {
-        method: "POST"
-      })
-      .then(() => {
-        console.log("moving onto ther round");
-        updateRound();
-      })
-      .catch((err) => console.log("round can't proceed:", err))
+      fetch(
+        `${process.env.NEXT_PUBLIC_SERVER_URL}/api/games/next-round/${selectedData}`,
+        {
+          method: "POST",
+        }
+      )
+        .then(() => {
+          console.log("moving onto ther round");
+          updateRound();
+          calledNextRound();
+        })
+        .catch((err) => console.log("round can't proceed:", err));
     }
-  }
-  
+  };
+
   // Save completeRoomInfo to localStorage whenever it updates
   useEffect(() => {
     if (completeRoomInfo) {
@@ -114,7 +142,7 @@ export default function GameBoardPage() {
       setPlayerScores(currentRoomObject || {});
     }
   }, [completeRoomInfo]);
-  
+
   const clickMe = useCallback(
     (question, value) => {
       console.log(question, value);
@@ -172,6 +200,20 @@ export default function GameBoardPage() {
     }, 500);
   }, []);
 
+  //triggering nextRound message function
+  const calledNextRound = useCallback(() => {
+    console.log("triggered calledNextRound");
+    window.sendMessage({
+      action: "calledNextRound",
+      content: "",
+    });
+  }, []);
+
+  //receiving nextRound message function
+  const socketNextRound = useCallback(() => {
+    updateRound();
+  }, []);
+
   const socketCloseQuestion = useCallback(() => {
     setSelectedQuestion(null);
     setTimeout(() => {
@@ -196,6 +238,13 @@ export default function GameBoardPage() {
       } else if (action === "syncDisabledQuestions") {
         console.log("Syncing disabled questions:", message["content"]);
         setDisabledQuestions(message["content"]);
+      } else if (action === "notifyOthersAboutIncorrect") {
+        OtherUserIncorrectPopUp(message["content"]["name"]);
+      } else if (action === "notifyOthersAboutCorrect") {
+        OtherUserCorrectPopUp(message["content"]["name"]);
+      } else if (action === "calledNextRound") {
+        console.log("nextRound action also triggered");
+        socketNextRound(message["content"]["name"]);
       }
     },
     [socketClickMe, socketCloseQuestion]
@@ -237,10 +286,16 @@ export default function GameBoardPage() {
   }, [roundInfo]);
 
   // Old render rows code moved to the bottom
-  
+
   //NEW: function that returns the desire question according to the category and value and store into selectedQuestion
   const fetchQuestion = (category, value) => {
-    fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/games/question/${selectedData}?category=${encodeURIComponent(category)}&value=${encodeURIComponent(value)}`)
+    fetch(
+      `${
+        process.env.NEXT_PUBLIC_SERVER_URL
+      }/api/games/question/${selectedData}?category=${encodeURIComponent(
+        category
+      )}&value=${encodeURIComponent(value)}`
+    )
       .then((response) => response.json())
       .then((data) => {
         if (data && data.question) {
@@ -261,44 +316,51 @@ export default function GameBoardPage() {
     if (!roundInfo || !Array.isArray(roundInfo) || roundInfo.length === 0) {
       return <div>No data available</div>;
     }
-  
+
     const buttonRows = [];
-  
+
     // Determine the maximum number of values in any category
     let maxValues = 0;
     for (let i = 0; i < roundInfo.length; i++) {
-      if (Array.isArray(roundInfo[i].values) && roundInfo[i].values.length > maxValues) {
+      if (
+        Array.isArray(roundInfo[i].values) &&
+        roundInfo[i].values.length > maxValues
+      ) {
         maxValues = roundInfo[i].values.length;
       }
     }
-  
+
     // Create rows
     for (let rowIndex = 0; rowIndex < maxValues; rowIndex++) {
       const buttonRow = (
         <div className={styles.buttonrow} key={rowIndex}>
           {roundInfo.map((categoryData, categoryIndex) => {
             // Safely access the value at the current row index
-            const valuesArray = Array.isArray(categoryData.values) ? [...categoryData.values] : [];
-            
+            const valuesArray = Array.isArray(categoryData.values)
+              ? [...categoryData.values]
+              : [];
+
             // Remove commas from the values and parse them to integers for sorting
             const sortedValues = valuesArray.sort((a, b) => {
-              const numA = parseInt(a.substring(1).replace(/,/g, '')); // Remove commas
-              const numB = parseInt(b.substring(1).replace(/,/g, '')); // Remove commas
+              const numA = parseInt(a.substring(1).replace(/,/g, "")); // Remove commas
+              const numB = parseInt(b.substring(1).replace(/,/g, "")); // Remove commas
               return numA - numB;
             });
-  
+
             const value = sortedValues[rowIndex] || "";
             const category = categoryData.category;
-  
+
             // Check if the question is disabled
             const isDisabled = disabledQuestions.some(
               (q) => q.category === category && q.value === value
             );
-  
+
             return (
               <button
                 key={categoryIndex}
-                className={`${styles.button} ${isDisabled ? styles.disabled : ""}`} // Apply disabled styling
+                className={`${styles.button} ${
+                  isDisabled ? styles.disabled : ""
+                }`} // Apply disabled styling
                 onClick={() => fetchQuestion(category, value)}
                 disabled={isDisabled} // Disable the button interaction
               >
@@ -310,46 +372,76 @@ export default function GameBoardPage() {
       );
       buttonRows.push(buttonRow);
     }
-  
+
     return <>{buttonRows}</>;
   };
-  
+
   const handleSubmit = useCallback(
     (e) => {
       e.preventDefault();
-  
+
+      function isCorrectAnswer(correctAnswer, playerResponse) {
+        // Clean up both correct answer and player response by keeping only a-z and A-Z
+        const cleanCorrectAnswer = correctAnswer
+          .replace(/[^a-zA-Z]/g, "")
+          .toLowerCase();
+        const cleanPlayerResponse = playerResponse
+          .replace(/[^a-zA-Z]/g, "")
+          .toLowerCase();
+        // has to match up to 60%
+        const matchThreshold = Math.ceil(cleanCorrectAnswer.length * 0.6);
+        // Count the number of matching characters
+        let matchCount = 0;
+        for (let i = 0; i < cleanPlayerResponse.length; i++) {
+          if (cleanCorrectAnswer[i] === cleanPlayerResponse[i]) {
+            matchCount++;
+          }
+        }
+        return matchCount >= matchThreshold;
+      }
       if (answeredAlready) {
         setAnswerFeedback("Sorry, you can't answer again!");
         return;
       }
-      
+
       const userAnswer = e.target.elements.answer.value.trim().toLowerCase();
       const correctAnswer = selectedQuestion?.answer?.toLowerCase();
       const currentDisplayName = localStorage.getItem("displayName");
-  
+
       // Safely parse the stored money value and initialize to 0 if it's null or invalid
       const currentMoney = Number(localStorage.getItem("money")) || 0;
-      if (userAnswer + "\r" === correctAnswer) {
+      if (isCorrectAnswer(correctAnswer, userAnswer)) {
         // Correct answer, so increase the money
-        const newMoney = currentMoney + Number(selectedQuestion.value.substring(1));
+        const newMoney =
+          currentMoney + Number(selectedQuestion.value.substring(1));
         // Update the localStorage with the new money amount
         localStorage.setItem("money", Number(newMoney));
-  
+
         window.setMoneyAmount(newMoney);
         setAnswerFeedback("Correct!");
         setPlayerScores((prevScores) => ({
           ...prevScores,
           [currentDisplayName]: `$${newMoney}`,
         }));
+        window.sendMessage({
+          action: "notifyOthersAboutCorrect",
+          content: { name: localStorage.getItem("displayName") },
+        });
         setTimeout(() => {
           closeQuestion();
         }, 1000);
       } else {
+        // let other players know something is incorrect
+        window.sendMessage({
+          action: "notifyOthersAboutIncorrect",
+          content: { name: localStorage.getItem("displayName") },
+        });
         // Incorrect answer, so decrease the money
-        const newMoney = currentMoney - Number(selectedQuestion.value.substring(1));
+        const newMoney =
+          currentMoney - Number(selectedQuestion.value.substring(1));
         // Update the localStorage with the new money amount
         localStorage.setItem("money", Number(newMoney));
-  
+
         window.setMoneyAmount(newMoney);
         setAnswerFeedback("Wrong!");
         setPlayerScores((prevScores) => ({
@@ -357,7 +449,7 @@ export default function GameBoardPage() {
           [currentDisplayName]: `$${newMoney}`,
         }));
       }
-  
+
       setAnsweredAlready(true);
     },
     [selectedQuestion, answeredAlready, closeQuestion]
@@ -400,7 +492,9 @@ export default function GameBoardPage() {
         >
           {selectedQuestion ? (
             <div className={styles.questionContent}>
-              <h2>{selectedQuestion.category}</h2>
+              <h2 className={styles.questionHeader}>
+                {selectedQuestion.category}
+              </h2>
               <p className={styles.questionText}>{selectedQuestion.question}</p>
               <form onSubmit={handleSubmit}>
                 <input
@@ -427,49 +521,21 @@ export default function GameBoardPage() {
           )}
         </div>
       )}
+      {incorrectNotification && (
+        <div className={styles.incorrectNotification}>
+          {incorrectNotification}
+        </div>
+      )}
+      {correctNotification && (
+        <div className={styles.correctNotification}>{correctNotification}</div>
+      )}
       <div>
-        <button onClick={nextRound}>NextRound!</button>
+        {!selectedQuestion && (
+          <button onClick={nextRound} className={styles.nextRoundButton}>
+            Next Round!
+          </button>
+        )}
       </div>
     </div>
   );
 }
-
-  // const renderRows = useCallback(() => {
-  //   if (!Array.isArray(selectedData)) {
-  //     return null;
-  //   }
-
-  //   const maxRows = Math.max(
-  //     ...selectedData.map((category) => category.length)
-  //   );
-  //   return Array(maxRows)
-  //     .fill()
-  //     .map((_, rowIndex) => (
-  //       <div className={styles.buttonrow} key={rowIndex}>
-  //         {selectedData.map((category, colIndex) => {
-  //           const question = category[rowIndex];
-  //           const isDisabled = disabledQuestions.some(
-  //             (q) =>
-  //               q.category === question?.category && q.value === question?.value
-  //           );
-  //           return question ? (
-  //             <button
-  //               className={`${styles.button} ${
-  //                 isDisabled ? styles.disabled : ""
-  //               }`}
-  //               onClick={() => clickMe(question, question.value)}
-  //               key={`${rowIndex}-${colIndex}`}
-  //               disabled={isDisabled}
-  //             >
-  //               ${question.value}
-  //             </button>
-  //           ) : (
-  //             <div
-  //               key={`${rowIndex}-${colIndex}`}
-  //               className={styles.emptyCell}
-  //             ></div>
-  //           );
-  //         })}
-  //       </div>
-  //     ));
-  // }, [selectedData, disabledQuestions, clickMe]);

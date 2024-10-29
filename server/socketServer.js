@@ -1,16 +1,19 @@
-module.exports = function (server) {
-    const io = require('socket.io')(server, {
+const { Server } = require('socket.io');
+
+let io;
+const rooms = {
+    "": {}, // Default room for users without a room, stores players and their money
+};
+
+function setupSocketServer(server) {
+    io = new Server(server, {
         cors: {
             origin: "*",
             methods: ["GET", "POST"],
-            credentials: true
+            credentials: true,
         }
     });
-    
-    const rooms = {
-        "": {}, // Default room for users without a room, stores players and their money
-    };
-    
+
     io.on("connection", (socket) => {
         let currentDisplayName = "";
         let currentRoomKey = ""; // Initially, the user is in the default room
@@ -25,9 +28,6 @@ module.exports = function (server) {
             // Add player to the default room with a starting balance of 0
             rooms[""][currentDisplayName] = 0; // Default starting money in the default room
             currentRoomKey = ""; // By default, user is in the default room
-            
-            // there's a bug here, they'll always be in the default room for some reason
-            // will fix later
 
             console.log(`User "${currentDisplayName}" added to the default room with 0 balance.`);
             console.log("Updated rooms object after displayName set:", rooms);
@@ -42,14 +42,11 @@ module.exports = function (server) {
                 socket.emit("promptDisplayName", "Please set your display name before joining a room.");
                 return;
             }
-
-            // Check if the player is in the default room and remove them
-            // there's a bug here, they won't get removed for some reason will fix later
-            if (currentRoomKey === "" && rooms[""][currentDisplayName]) {
-                delete rooms[""][currentDisplayName]; // Remove the player from the default room
-                socket.leave(""); // Leave the default room on the server-side
-                console.log(`User "${currentDisplayName}" removed from the default room.`);
-            }
+            
+            /* 
+            Originally there was a block of code here that removed user from default room
+            It's actually easier to keep a duplicate of everyone in the default room to refer back to
+            */
 
             // Check if the player is in another room and remove them from that room
             if (currentRoomKey && currentRoomKey !== roomKey && rooms[currentRoomKey]) {
@@ -116,4 +113,8 @@ module.exports = function (server) {
             console.log("Updated rooms object after disconnect:", rooms);
         });
     });
-};
+
+    return io;
+}
+
+module.exports = { setupSocketServer, io, rooms };
