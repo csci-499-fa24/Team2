@@ -1,5 +1,5 @@
   import { createSlice } from '@reduxjs/toolkit';
-  import { getAuth, onAuthStateChanged, signOut, updateEmail, setPersistence, browserLocalPersistence } from "firebase/auth";
+  import { getAuth, onAuthStateChanged, signOut, updateEmail } from "firebase/auth";
   import { initializeFirebase } from "../lib/firebaseClient";
   import { getFirebaseFirestore } from '../lib/firebaseClient';
   import { doc, setDoc, getDoc, getDocs, updateDoc, query, where, collection } from "firebase/firestore";
@@ -94,6 +94,18 @@
     } else {
       dispatch(setLoading(false));
       console.log('No such document!');
+    }
+  };
+
+  export const updateLoginTime = (uid) => async (dispatch) => {
+    console.log("From updateLoginTime thunk:");
+    try {
+      const db = getFirebaseFirestore();
+      const userRef = doc(db, "users", uid);
+      const date = new Date();
+      await updateDoc(userRef, {date});
+    } catch (error) {
+      console.error('Error updating login time:', error);
     }
   };
 

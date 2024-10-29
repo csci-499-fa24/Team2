@@ -9,9 +9,9 @@ import Navbar from '@/app/components/navbar';
 import ProtectedRoute from '@/app/components/protectedRoute';
 
 const ProfilePage = () => {
-    const { userid } = useParams();
     const router = useRouter();
     const { user, loading } = useSelector((state) => state.auth);
+    const [userid, setUserid] = useState("");
     const [userEmail, setUserEmail] = useState("");
     const [newEmail, setNewEmail] = useState("");
     const [displayName, setDisplayName] = useState("");
@@ -24,8 +24,9 @@ const ProfilePage = () => {
         } else if (user) {
             setUserEmail(user.email);
             setDisplayName(user.displayName);
+            setUserid(user.uid);
         }
-    }, [userid, user]);
+    }, [user]);
 
     const handleForm = async (e) => {
         e.preventDefault();
@@ -38,6 +39,7 @@ const ProfilePage = () => {
             if (displayNameToUpdate !== displayName) {
                 try {
                     console.log("update in progress");
+                    console.log("userid: ", userid);
                     const isDisplayNameUpdated = await dispatch(updateDisplayName(userid, displayNameToUpdate));
                     console.log("updatedDisplayName:", isDisplayNameUpdated);
                     if (isDisplayNameUpdated) {
