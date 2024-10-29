@@ -7,6 +7,7 @@ const db = require('./models');
 const app = express();
 const initializeSockets = require('./socketServer');
 const routes = require('./controllers');
+const { endGame } = require('./lib/gameUtils'); // Import endGame function
 
 
 app.use(cors({ origin: "*" }));
@@ -20,6 +21,21 @@ const server = http.createServer(app);
 app.use("/api", routes);
 
 global.activeGames = {}; // Define activeGames as a global variable
+
+// Define cleanup interval and threshold for inactivity
+const CLEANUP_INTERVAL = 5 * 60 * 1000; // 5 minutes
+const INACTIVITY_THRESHOLD = 30 * 60 * 1000; // 30 minutes
+
+// Routine check for inactive games
+setInterval(() => {
+  const now = Date.now();
+  for (const [gameId, game] of Object.entries(activeGames)) {
+    if (now - game.lastActivity > INACTIVITY_THRESHOLD) {
+      console.log(`Ending inactive game: ${gameId}`);
+      endGame(gameId);
+    }
+  }
+}, CLEANUP_INTERVAL);
 
 // Database connection and server start
 if (process.env.NODE_ENV !== 'test') {
