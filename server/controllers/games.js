@@ -53,6 +53,9 @@ router.get('/round-info/:gameId', (req, res) => {
         return res.status(404).json({ message: 'Game not found.' });
     }
 
+    // Update the last activity timestamp
+    game.lastActivity = Date.now();
+
     const currentRound = game.round;
     const questions = game.questions.filter(q => q.Round === currentRound);
     const categories = [...new Set(questions.map(q => q.Category))];
@@ -77,6 +80,9 @@ router.get('/question/:gameId', (req, res) => {
         return res.status(404).json({ message: 'Game not found.' });
     }
 
+    // Update the last activity timestamp
+    game.lastActivity = Date.now();
+
     const question = game.questions.find(q => q.Category === category && q.Value == value);
     if (!question) {
         return res.status(404).json({ message: 'Question not found for the specified category and value.' });
@@ -98,6 +104,9 @@ router.post('/next-round/:gameId', (req, res) => {
     if (!game) {
         return res.status(404).json({ message: 'Game not found.' });
     }
+
+    // Update the last activity timestamp
+    game.lastActivity = Date.now();
 
     if (game.round === 'Jeopardy!') {
         game.round = 'Double Jeopardy!';
@@ -147,6 +156,7 @@ router.post('/set-in-progress/:gameId', (req, res) => {
     }
 
     game.inProgress = true;
+    game.lastActivity = Date.now(); // Update last activity timestamp for tracking
 
     res.status(200).json({ message: `Game ${gameId} is now in progress.` });
 });
