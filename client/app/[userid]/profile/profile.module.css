@@ -1,76 +1,76 @@
 .profileContainer {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    gap: 1rem;
-    padding: 1rem;
-    margin: 1rem;
-    background-color: #000070;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    height: 70vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  margin: 1rem;
+  background-color: #002a5c;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  height: 70vh;
 }
 
 .profileGreeting {
-    padding: 1em;
+  padding: 1em;
 }
 
 .formContainer {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    width: 50%;
-    margin: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 50%;
+  margin: 1rem;
 }
 
 .inputField {
-    padding: 10px;
-    margin: 5px 0;
-    border-radius: 8px;
-    border: none;
-    background-color: #004aad;
-    color: #ffffff;
+  padding: 10px;
+  margin: 5px 0;
+  border-radius: 8px;
+  border: none;
+  background-color: #001f3f;
+  color: #ffffff;
 }
 
 .inputLabel {
-    font-size: 1.2rem;
-    font-weight: bold;
-    color: #ffcc00;
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #ffcc00;
 }
 
 .disabledInput {
-    padding: 10px;
-    margin: 5px 0;
-    border-radius: 8px;
-    border: none;
-    background-color: #004aad;
-    color: #ffffff;
-    cursor: not-allowed;
+  padding: 10px;
+  margin: 5px 0;
+  border-radius: 8px;
+  border: none;
+  background-color: #001f3f;
+  color: #ffffff;
+  cursor: not-allowed;
 }
 
 .buttonsContainer {
-    display: flex;
-    justify-content: center;
-    gap: 1rem;
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
 }
 
 .buttons {
-    display: block;
-    width: 200px;
-    background-color: #ffcc00;
-    color: #00008b;
-    border: none;
-    padding: 0.75rem 1.5rem;
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: bold;
-    font-size: 1rem;
-    margin-top: 1rem;
-    transition: background-color 0.3s, transform 0.1s;
+  display: block;
+  width: 200px;
+  background-color: #ffcc00;
+  color: #001f3f;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 1rem;
+  margin-top: 1rem;
+  transition: background-color 0.3s, transform 0.1s;
 }
 
 .buttons:hover {
-    background-color: #ffd700;
-    transform: scale(1.05);
+  background-color: #ffd700;
+  transform: scale(1.05);
 }
