@@ -1,10 +1,10 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import jeopardyLogo from "../icons/Jeopardy-Symbol.png";
+import jeopardyLogo from "../../icons/Jeopardy-Symbol.png";
 import Image from 'next/image';
-import styles from './waiting-page.module.css';
-import { useSocket } from "../socketClient";
+import styles from '../waiting-page.module.css';
+import { useSocket } from "../../socketClient";
 import { useSelector } from 'react-redux';
 
 export default function WaitingPage() {
@@ -28,25 +28,29 @@ export default function WaitingPage() {
 
   useEffect(() => {
     const roomKey = localStorage.getItem("roomKey");
+    console.log(roomKey);
     const completeRoomInfo = JSON.parse(localStorage.getItem("completeRoomInfo"));
+
+    if(roomKey) {
+      setRoomNumber(roomKey);
+      console.log("setting room key as:", roomKey);
+    }
   
     if (roomKey && completeRoomInfo && completeRoomInfo[roomKey]) {
       setPlayers(completeRoomInfo[roomKey]);
-      console.log("setting room key as:", roomKey);
-      setRoomNumber(roomKey);
     }
   
-    if (socket) {
+    if (socket && roomKey) {
       socket.emit('request_players_list', { roomKey });
     }
-  }, [socket]);
+  }, [socket, roomNumber]);
 
   // Toggle for showing game rules
   const toggleRules = () => {
     setShowRules(!showRules);
   };
 
-  console.log("Current players:", players);
+  // console.log("Current players:", players);
 
   return (
     <div className={styles.page}>

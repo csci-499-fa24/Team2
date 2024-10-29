@@ -1,7 +1,7 @@
 import React, {useState} from 'react';
 import { getFirebaseAuth } from '../lib/firebaseClient';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
-import { createUserDocument } from '../redux/authSlice';
+import { createUserDocument, updateLoginTime } from '../redux/authSlice';
 import { useDispatch } from 'react-redux';
 import { useRouter } from 'next/navigation';
 import styles from "../page.module.css";
@@ -90,6 +90,7 @@ export default function AccountEmailPassword({action}) {
             });
             const data = await response.json();
             if (response.ok) {
+                await dispatch(updateLoginTime(uid));
                 alert("Signed in!");
                 router.push(`/${uid}`);
             }else if(response.status === 400) {

@@ -97,6 +97,18 @@
     }
   };
 
+  export const updateLoginTime = (uid) => async (dispatch) => {
+    console.log("From updateLoginTime thunk:");
+    try {
+      const db = getFirebaseFirestore();
+      const userRef = doc(db, "users", uid);
+      const date = new Date();
+      await updateDoc(userRef, {date});
+    } catch (error) {
+      console.error('Error updating login time:', error);
+    }
+  };
+
   export const updateDisplayName = (uid, displayName) => async (dispatch, getState) => {
     try{
       const { user } = getState().auth;
