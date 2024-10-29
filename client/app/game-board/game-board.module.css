@@ -1,6 +1,6 @@
 .page {
   background-color: rgb(0, 0, 1);
-  font-family: 'Impact', sans-serif;
+  font-family: "Impact", sans-serif;
   width: 100vw;
   height: 100vh;
   overflow: hidden;
@@ -24,25 +24,28 @@
 
 .playerScores {
   width: 20%;
-  height: 100%;
+  height: 97.5%;
   background-color: rgb(7, 18, 119);
   color: rgb(238, 196, 78);
   padding: 20px;
-  overflow-y: auto;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  margin-top: 10px;
+  margin-right: 12px;
+  margin-left: 8px;
+  border-radius: 10px;
 }
 
 .playerScores h2 {
-  font-size: 28px;
-  margin-bottom: 20px;
+  font-size: 40px;
   text-align: center;
+  margin-top: 40px;
+  margin-bottom: 40px;
 }
 
 .playerScore {
   font-size: 24px;
-  margin-bottom: 15px;
+  margin: 15px 0;
   padding: 10px;
   background-color: rgba(238, 196, 78, 0.1);
   border-radius: 5px;
@@ -50,13 +53,20 @@
   text-align: center;
 }
 
+.scores-container {
+  flex-grow: 1;
+  overflow-y: auto;
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
 .button {
   width: 300px;
   height: 130px;
   margin: 10px;
-  color: rgb(238, 196, 78); 
-  background-color: rgb(7, 18, 119); 
-  font-size: 55px; 
+  color: rgb(238, 196, 78);
+  background-color: rgb(7, 18, 119);
+  font-size: 55px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -67,7 +77,7 @@
 
 .firstbuttonrow,
 .buttonrow {
-  display: flex; 
+  display: flex;
 }
 
 .firstrow {
@@ -76,19 +86,42 @@
   margin: 10px;
   color: rgb(255, 255, 255);
   background-color: rgb(7, 18, 119);
-  font-size: 50px;
+  font-size: 28px;
   display: flex;
   justify-content: center;
   align-items: center;
   border: none;
+  padding: 15px;
+  text-align: center;
+  word-wrap: break-word;
+  line-height: 1.2;
+  overflow-wrap: break-word;
+  hyphens: auto;
 }
 
 .button:hover {
   background-color: rgb(240, 214, 107);
-  transform: scale(1.1); 
+  transform: scale(1.1);
   color: white;
 }
 
+.next-round-button {
+  padding: 15px 30px;
+  font-size: 20px;
+  background-color: rgb(238, 196, 78);
+  color: rgb(7, 18, 119);
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: auto;
+  margin-bottom: 20px;
+  align-self: center;
+  transition: background-color 0.3s ease;
+}
+
+.next-round-button:hover {
+  background-color: rgb(240, 214, 107);
+}
 
 .modal {
   position: fixed;
@@ -106,7 +139,6 @@
   flex-direction: column;
   gap: 10px;
 }
-
 
 .expandingBox {
   position: fixed;
@@ -128,7 +160,16 @@
   transform: scale(1);
 }
 
+@keyframes popIn {
+  0% {
+    transform: scale(0);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
 .questionContent {
+  animation: popIn 0.5s ease-out forwards;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -136,6 +177,9 @@
   width: 80%;
   height: 80%;
   text-align: center;
+}
+.questionHeader {
+  font-size: 60px;
 }
 
 .questionText {
@@ -170,14 +214,15 @@
 
 .closeButton {
   position: absolute;
-  top: 30px;
-  right: 30px;
+  top: 0;
+  right: 0;
   background-color: rgb(238, 196, 78);
   color: rgb(7, 18, 119);
   font-size: 3vw;
   padding: 5px 15px;
   cursor: pointer;
 }
+
 .button.disabled {
   background-color: grey;
   cursor: not-allowed;
@@ -186,33 +231,61 @@
 .incorrectNotification {
   position: fixed;
   top: 20px;
-  left: 20px; /* Move to top-left corner */
-  padding: 20px 40px; /* Increase size */
-  background-color: #ff4d4f; /* red-ish color */
+  left: 20px;
+  padding: 20px 40px;
+  background-color: #ff4d4f;
   color: white;
   border-radius: 8px;
   font-weight: bold;
   font-size: 1.2rem;
   z-index: 1000;
-  animation: fadeout 9s ease-out; /* Triple display time */
+  animation: fadeout 9s ease-out;
 }
 
 .correctNotification {
   position: fixed;
   top: 20px;
-  left: 20px; /* Move to top-left corner */
-  padding: 20px 40px; /* Increase size */
-  background-color: #4CAF50; /* red-ish color */
+  left: 20px;
+  padding: 20px 40px;
+  background-color: #4caf50;
   color: white;
   border-radius: 8px;
   font-weight: bold;
   font-size: 1.2rem;
   z-index: 1000;
-  animation: fadeout 9s ease-out; /* Triple display time */
+  animation: fadeout 9s ease-out;
 }
 
 @keyframes fadeout {
-  0% { opacity: 1; }
-  85% { opacity: 0.9; }
-  100% { opacity: 0; }
+  0% {
+    opacity: 1;
+  }
+  85% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.nextRoundButton {
+  position: absolute;
+  bottom: 30px;
+  right: 0px;
+  transform: translateX(-50%);
+  padding: 15px 30px;
+  font-size: 24px;
+  background-color: rgb(238, 196, 78);
+  color: rgb(7, 18, 119);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: "Impact", sans-serif;
+  letter-spacing: 1px;
+}
+
+.nextRoundButton:hover {
+  background-color: rgb(240, 214, 107);
+  transform: translateX(-50%) scale(1.05);
 }
