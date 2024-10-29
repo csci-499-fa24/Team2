@@ -27,7 +27,7 @@ if (process.env.NODE_ENV !== 'test') {
     server.listen(port, () => {
       console.log(`Server is running on http://localhost:${port}`);
     });
-    initializeSockets(server);
+    initializeSockets.setupSocketServer(server);
   });
 } else {
   console.log('Test environment: Server will not start.');
