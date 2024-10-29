@@ -6,6 +6,7 @@ const router = express.Router();
 
 // API endpoint to start a new game
 router.post('/start-game', async (req, res) => {
+    const { isPrivate = false, maxPlayers = 4 } = req.body;
     let validGame = false;
     let showNumber = null;
 
@@ -27,11 +28,15 @@ router.post('/start-game', async (req, res) => {
         questions: jeopardyData,
         lastActivity: Date.now(),
         warningSent: false,
-        round: 'Jeopardy!'
+        round: 'Jeopardy!',
+        isPrivate,     // Store the new properties
+        inProgress: false, // Always start with `inProgress` as false
+        maxPlayers     // Store the new properties
     };
 
     res.status(200).json({ message: 'Game started', gameId, totalQuestions: jeopardyData.length });
 });
+
 
 // API endpoint to get all active game UIDs
 router.get('/active-games', (req, res) => {
@@ -131,3 +136,17 @@ router.post('/end-game/:gameId', (req, res) => {
 });
 
 module.exports = router;
+
+// API endpoint to mark a game as in progress
+router.post('/set-in-progress/:gameId', (req, res) => {
+    const { gameId } = req.params;
+    const game = activeGames[gameId];
+
+    if (!game) {
+        return res.status(404).json({ message: 'Game not found.' });
+    }
+
+    game.inProgress = true;
+
+    res.status(200).json({ message: `Game ${gameId} is now in progress.` });
+});
