@@ -38,11 +38,30 @@ router.post('/start-game', async (req, res) => {
 });
 
 
-// API endpoint to get all active game UIDs
+// API endpoint to get all active game UIDs with optional details
 router.get('/active-games', (req, res) => {
-    const activeGameIds = Object.keys(activeGames);
-    res.status(200).json({ activeGames: activeGameIds });
+    // Set default values for query parameters to 'false' to return only gameId by default
+    const { includePrivate = 'false', includeInProgress = 'false', includeMaxPlayers = 'false' } = req.query;
+
+    const activeGamesData = Object.entries(activeGames).map(([gameId, gameData]) => {
+        const gameInfo = { gameId };
+
+        if (includePrivate === 'true') {
+            gameInfo.isPrivate = gameData.isPrivate;
+        }
+        if (includeInProgress === 'true') {
+            gameInfo.inProgress = gameData.inProgress;
+        }
+        if (includeMaxPlayers === 'true') {
+            gameInfo.maxPlayers = gameData.maxPlayers;
+        }
+
+        return gameInfo;
+    });
+
+    res.status(200).json({ activeGames: activeGamesData });
 });
+
 
 // API endpoint to get round info for a game
 router.get('/round-info/:gameId', (req, res) => {
