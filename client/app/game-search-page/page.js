@@ -101,7 +101,6 @@ export default function GameSearchingPage() {
   
   return (
     <div>
-      <h1>Jeopardy Show Numbers</h1>
       <div style={{ display: "flex", flexWrap: "wrap" }}>
       </div>
       
