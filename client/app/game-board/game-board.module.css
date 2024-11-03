@@ -289,3 +289,32 @@
   background-color: rgb(240, 214, 107);
   transform: translateX(-50%) scale(1.05);
 }
+
+
+.dailyDoubleHeader {
+  font-size: 5rem; /* Make the text twice as big */
+  font-weight: bold;
+  animation: flashColors 1.5s infinite alternate; /* Flash colors with a slight delay */
+}
+
+@keyframes flashColors {
+  0% { color: red; }
+  25% { color: orange; }
+  50% { color: yellow; }
+  75% { color: green; }
+  100% { color: blue; }
+}
+
+.wagerInput {
+  margin-top: 10px; /* Ensure space between answer and wager */
+  width: 100%; /* Make it the same width as the answer input */
+  height: 2.5rem; /* Match the height of the answer input */
+  font-size: 1rem; /* Match the text size of the answer input */
+}
+
+/* Ensure that the answer and wager boxes align properly */
+.answerInput {
+  width: 100%;
+  height: 2.5rem; /* Standardize the height */
+  font-size: 1rem; /* Standardize the text size */
+}

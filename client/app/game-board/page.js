@@ -13,6 +13,8 @@ export default function GameBoardPage() {
   const [selectedQuestion, setSelectedQuestion] = useState(null);
   const [answerFeedback, setAnswerFeedback] = useState("");
   const [expandingBox, setExpandingBox] = useState(null);
+  const [dailyDoubleExpandingBox, setDailyDoubleExpandingBox] = useState(null);
+  const [wagerAmount, setWagerAmount] = useState("");
   const [disabledQuestions, setDisabledQuestions] = useState([]);
   const [completeRoomInfo, setCompleteRoomInfo] = useState(null);
   const [answeredAlready, setAnsweredAlready] = useState(false);
@@ -132,6 +134,56 @@ export default function GameBoardPage() {
     }
   }, [completeRoomInfo]);
 
+  useEffect(() => {
+    if (!roundInfo || !Array.isArray(roundInfo) || roundInfo.length === 0) {
+      return;
+    }
+
+    // Convert the first clue's category into a numeric value and apply mod 15, then scale to 10-25
+    const firstCategory = roundInfo[0]?.category || "";
+    const categorySum = firstCategory
+      .split("")
+      .reduce((sum, char) => sum + char.charCodeAt(0), 0);
+    const modValue = (categorySum % 15) + 10; // Ensures a value between 10 and 25
+
+    let counter = 0;
+
+    for (let i = 0; i < roundInfo.length; i++) {
+      const categoryData = roundInfo[i];
+      if (Array.isArray(categoryData.values)) {
+        for (let j = 0; j < categoryData.values.length; j++) {
+          counter++;
+          if (counter === modValue) {
+            const value = categoryData.values[j];
+            const category = categoryData.category;
+
+            // Fetch the question for the "Daily Double"
+            fetch(
+              `${process.env.NEXT_PUBLIC_SERVER_URL}/api/games/question/${selectedData}?category=${encodeURIComponent(
+                category
+              )}&value=${encodeURIComponent(value)}`
+            )
+              .then((response) => response.json())
+              .then((data) => {
+                if (data && data.question) {
+                  localStorage.setItem("dailyDoubleClue", data.question);
+                  console.log("Daily Double Clue set:", data.category, data.value);
+                } else {
+                  console.error(
+                    "No question found for the given category and value."
+                  );
+                }
+              })
+              .catch((error) => {
+                console.error("Failed to fetch question:", error);
+              });
+            return; // Exit loop after finding the "Daily Double"
+          }
+        }
+      }
+    }
+  }, [roundInfo, selectedData]);
+
   // Update playerScores when completeRoomInfo changes
   useEffect(() => {
     const currentRoomKey = localStorage.getItem("roomKey");
@@ -153,7 +205,14 @@ export default function GameBoardPage() {
       )
         return;
 
-      setExpandingBox({ question, value });
+      const dailyDoubleClue = localStorage.getItem("dailyDoubleClue");
+
+      if (question.question === dailyDoubleClue) {
+        // It's the daily double
+        setDailyDoubleExpandingBox({ question, value, isOtherUser: false });
+      } else {
+        setExpandingBox({ question, value });
+      }
 
       const updatedDisabledQuestions = [...disabledQuestions, question];
       setDisabledQuestions(updatedDisabledQuestions);
@@ -165,11 +224,15 @@ export default function GameBoardPage() {
         content: {
           question,
           disabledQuestions: updatedDisabledQuestions,
+          clickedByUser: localStorage.getItem("displayName"),
         },
       });
 
       setTimeout(() => {
-        setSelectedQuestion(question);
+        setSelectedQuestion({
+          ...question,
+          isDailyDouble: question.question === dailyDoubleClue,
+        });
       }, 500);
       setAnswerFeedback("");
     },
@@ -177,11 +240,32 @@ export default function GameBoardPage() {
   );
 
   const socketClickMe = useCallback(
-    (question, value, updatedDisabledQuestions) => {
-      setExpandingBox({ question, value });
+    (question, value, updatedDisabledQuestions, clickedByUser) => {
+      const dailyDoubleClue = localStorage.getItem("dailyDoubleClue");
+      const currentUser = localStorage.getItem("displayName");
+      if (question.question === dailyDoubleClue) {
+        if (clickedByUser === currentUser) {
+          // It's us who clicked the daily double
+          setDailyDoubleExpandingBox({ question, value, isOtherUser: false });
+        } else {
+          // Another user has clicked on the daily double clue
+          setDailyDoubleExpandingBox({
+            question,
+            value,
+            isOtherUser: true,
+            clickedByUser,
+          });
+        }
+      } else {
+        setExpandingBox({ question, value });
+      }
+
       setDisabledQuestions(updatedDisabledQuestions);
       setTimeout(() => {
-        setSelectedQuestion(question);
+        setSelectedQuestion({
+          ...question,
+          isDailyDouble: question.question === dailyDoubleClue,
+        });
       }, 500);
       setAnswerFeedback("");
       setAnsweredAlready(false);
@@ -197,6 +281,7 @@ export default function GameBoardPage() {
     });
     setTimeout(() => {
       setExpandingBox(null);
+      setDailyDoubleExpandingBox(null);
     }, 500);
   }, []);
 
@@ -218,6 +303,7 @@ export default function GameBoardPage() {
     setSelectedQuestion(null);
     setTimeout(() => {
       setExpandingBox(null);
+      setDailyDoubleExpandingBox(null);
     }, 500);
   }, []);
 
@@ -225,14 +311,22 @@ export default function GameBoardPage() {
     (message) => {
       const action = message["action"];
       if (action === "clickQuestion") {
-        const { question, disabledQuestions: updatedDisabledQuestions } =
-          message["content"];
+        const {
+          question,
+          disabledQuestions: updatedDisabledQuestions,
+          clickedByUser,
+        } = message["content"];
         console.log(
           "Received clickQuestion:",
           question,
           updatedDisabledQuestions
         );
-        socketClickMe(question, question.value, updatedDisabledQuestions);
+        socketClickMe(
+          question,
+          question.value,
+          updatedDisabledQuestions,
+          clickedByUser
+        );
       } else if (action === "closeQuestion") {
         socketCloseQuestion();
       } else if (action === "syncDisabledQuestions") {
@@ -284,8 +378,6 @@ export default function GameBoardPage() {
       </button>
     ));
   }, [roundInfo]);
-
-  // Old render rows code moved to the bottom
 
   //NEW: function that returns the desire question according to the category and value and store into selectedQuestion
   const fetchQuestion = (category, value) => {
@@ -408,12 +500,29 @@ export default function GameBoardPage() {
       const correctAnswer = selectedQuestion?.answer?.toLowerCase();
       const currentDisplayName = localStorage.getItem("displayName");
 
-      // Safely parse the stored money value and initialize to 0 if it's null or invalid
       const currentMoney = Number(localStorage.getItem("money")) || 0;
+      let adjustAmount = Number(
+        selectedQuestion.value.substring(1).replace(/,/g, "")
+      );
+
+      if (selectedQuestion.isDailyDouble) {
+        // Use the wager amount
+        adjustAmount = Number(wagerAmount);
+        if (isNaN(adjustAmount) || adjustAmount <= 0) {
+          setAnswerFeedback("Invalid wager amount!");
+          return;
+        }
+        // Ensure the wager is within allowed limits (e.g., up to current score)
+        const maxWager = currentMoney > 0 ? currentMoney : 1000; // For simplicity, assuming 1000 as max if currentMoney is less
+        if (adjustAmount > maxWager) {
+          setAnswerFeedback(`Wager cannot exceed $${maxWager}`);
+          return;
+        }
+      }
+
       if (isCorrectAnswer(correctAnswer, userAnswer)) {
         // Correct answer, so increase the money
-        const newMoney =
-          currentMoney + Number(selectedQuestion.value.substring(1));
+        const newMoney = currentMoney + adjustAmount;
         // Update the localStorage with the new money amount
         localStorage.setItem("money", Number(newMoney));
 
@@ -437,8 +546,7 @@ export default function GameBoardPage() {
           content: { name: localStorage.getItem("displayName") },
         });
         // Incorrect answer, so decrease the money
-        const newMoney =
-          currentMoney - Number(selectedQuestion.value.substring(1));
+        const newMoney = currentMoney - adjustAmount;
         // Update the localStorage with the new money amount
         localStorage.setItem("money", Number(newMoney));
 
@@ -452,7 +560,7 @@ export default function GameBoardPage() {
 
       setAnsweredAlready(true);
     },
-    [selectedQuestion, answeredAlready, closeQuestion]
+    [selectedQuestion, answeredAlready, closeQuestion, wagerAmount]
   );
 
   useEffect(() => {
@@ -517,7 +625,68 @@ export default function GameBoardPage() {
               </button>
             </div>
           ) : (
-            `$${expandingBox.value}`
+            `${expandingBox.value}`
+          )}
+        </div>
+      )}
+      {dailyDoubleExpandingBox && (
+        <div
+          className={`${styles.expandingBox} ${
+            selectedQuestion ? styles.expanded : ""
+          }`}
+        >
+          {selectedQuestion ? (
+            <div className={styles.questionContent}>
+              <h2 className={styles.dailyDoubleHeader}>DAILY DOUBLE!</h2>
+              <h2 className={styles.questionHeader}>
+                {selectedQuestion.category}
+              </h2>
+              <p className={styles.questionText}>{selectedQuestion.question}</p>
+              {!dailyDoubleExpandingBox.isOtherUser ? (
+                <>
+                  <form onSubmit={handleSubmit}>
+                    <input
+                      type="number"
+                      name="wager"
+                      required
+                      className={styles.wagerInput}
+                      placeholder="  Your wager"
+                      min="0"
+                      max={
+                        Number(localStorage.getItem("money")) > 0
+                          ? Number(localStorage.getItem("money"))
+                          : 1000
+                      }
+                      onChange={(e) => setWagerAmount(e.target.value)}
+                    />
+                    <input
+                      type="text"
+                      name="answer"
+                      required
+                      ref={questionRef}
+                      className={styles.answerInput}
+                      placeholder="Your answer"
+                    />
+                    <button type="submit" className={styles.submitButton}>
+                      Submit
+                    </button>
+                  </form>
+                  {answerFeedback && (
+                    <p className={styles.feedback}>{answerFeedback}</p>
+                  )}
+                </>
+              ) : (
+                <p className={styles.infoText}>
+                  {dailyDoubleExpandingBox.clickedByUser} is answering the Daily
+                  Double!
+                </p>
+              )}
+              <button onClick={closeQuestion} className={styles.closeButton}>
+                X
+              </button>
+            </div>
+          ) : (
+            `${dailyDoubleExpandingBox.value}`
           )}
         </div>
       )}
