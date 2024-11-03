@@ -24,6 +24,7 @@ const JeopardyLoggedInPage = () => {
   const router = useRouter(); // Router instance to handle navigation
   const dispatch = useDispatch();
   const onlinePlayers = useSelector((state) => state.auth.activeUsers);
+  // const socketDisplayName = useSelector((state) => state.auth.user.displayName);
   const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL;
 
   // Fetches the list of active game rooms from the server
@@ -59,13 +60,28 @@ const JeopardyLoggedInPage = () => {
     fetchAvailableRooms();
   }, []); 
 
-  const handleInputChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setNewRoom((prevRoom) => ({
-      ...prevRoom,
-      [name]: type === "checkbox" ? checked : value,
-    }));
-  };
+  // useEffect(() => {
+  //   if (socket && socketDisplayName) {
+  //     try{
+  //       console.log("Setting display name in socket:", socketDisplayName);
+  //       socket.emit("displayName", socketDisplayName);
+  //     } catch (error) {
+  //       console.error("Error setting display name in socket:", error);
+  //     }
+  //   }
+
+  //   return () => {
+  //     socket.disconnect(); // If your hook doesn't handle this
+  //   };
+  // }, [socket, socketDisplayName]);
+
+  // const handleInputChange = (e) => {
+  //   const { name, value, type, checked } = e.target;
+  //   setNewRoom((prevRoom) => ({
+  //     ...prevRoom,
+  //     [name]: type === "checkbox" ? checked : value,
+  //   }));
+  // };
 
   // Handle creating a new room
   const handleCreateRoom = async () => {
@@ -101,9 +117,10 @@ const JeopardyLoggedInPage = () => {
   const handleJoinRoom = (roomKey) => {
     // Set the room key using the setRoomKey function
     window.setRoomKey(roomKey);
+    
 
     // Redirect to the waiting page using a relative path
-    router.push("/waiting-page");
+    router.push(`waiting-room/${roomKey}`);
   };
 
   // Open the tutorial video in a new tab
