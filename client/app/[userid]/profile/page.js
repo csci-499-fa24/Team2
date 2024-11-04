@@ -30,7 +30,7 @@ const ProfilePage = () => {
             const fetchGameHistory = async () => {
                 try {
                     
-                    const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/player_history/${user.uid}`);
+                    const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/history/player_history/${user.uid}`);
                     if (response.ok) {
                         const data = await response.json();
                         setGameHistory(data.gameHistory); // Store the game history in the state

@@ -56,3 +56,5 @@ router.get('/player_history/:playerId', async (req, res) => {
 
     res.status(200).json({ playerId, gameHistory: sampleGameHistory });
 });
+
+module.exports = router;
