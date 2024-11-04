@@ -5,6 +5,8 @@ import { useSelector } from "react-redux";
 import { useSocket } from "../socketClient";
 import { useRouter } from "next/navigation";
 import { setSelectedData } from "../redux/data";
+import Fuse from 'fuse.js'; 
+import axios from 'axios';
 
 export default function GameBoardPage() {
   const selectedData = useSelector((state) => state.selectedData.value);
@@ -377,28 +379,74 @@ export default function GameBoardPage() {
   };
 
   const handleSubmit = useCallback(
-    (e) => {
+    async (e) => {
       e.preventDefault();
 
-      function isCorrectAnswer(correctAnswer, playerResponse) {
-        // Clean up both correct answer and player response by keeping only a-z and A-Z
-        const cleanCorrectAnswer = correctAnswer
-          .replace(/[^a-zA-Z]/g, "")
-          .toLowerCase();
-        const cleanPlayerResponse = playerResponse
-          .replace(/[^a-zA-Z]/g, "")
-          .toLowerCase();
-        // has to match up to 60%
-        const matchThreshold = Math.ceil(cleanCorrectAnswer.length * 0.6);
-        // Count the number of matching characters
-        let matchCount = 0;
-        for (let i = 0; i < cleanPlayerResponse.length; i++) {
-          if (cleanCorrectAnswer[i] === cleanPlayerResponse[i]) {
-            matchCount++;
+      function formatQuestion(question) {
+        const cleanedQuestion = question.replace(/[;:&[\]]|q\[\w+\]=/g, "").trim();
+        return cleanedQuestion;
+      }
+      
+      async function getAnswerFromGoogle(question) {
+        try {
+          const formattedQuestion = formatQuestion(question);
+          const apiKey = NEXT_PUBLIC_GOOGLE_API_KEY;
+          const cxId = NEXT_PUBLIC_GOOGLE_ENGINE_ID;
+          const response = await axios.get("https://www.googleapis.com/customsearch/v1", {
+            params: {
+              key: apiKey,
+              cx: cxId,
+              q: formattedQuestion
+            }
+          });
+      
+          if (response.data.items && response.data.items.length > 0) {
+            return response.data.items[0].snippet;
+          }
+          return "";
+        } catch (error) {
+          console.error("Error fetching answer from Google Custom Search:", error);
+          return "";
+        }
+      }      
+      
+      async function isCorrectAnswer(correctAnswer = "", playerResponse = "", question = "") {
+        let usedGoogle = false  // Check to see if Google is used to change flexibility
+        if (!correctAnswer && question) { // Use Google if no answer
+          correctAnswer = await getAnswerFromGoogle(question);
+          usedGoogle = true;
+        }
+        if (!correctAnswer || !playerResponse) {
+          console.log("No correct answer or player response provided.");
+          return false; // Automatically mark as wrong if there's no answer or response
+        }
+        // Clean the answers by removing non-alphabetic characters and converting to lowercase
+        const cleanText = text => 
+          text.replace(/[^a-zA-Z\s]/g, "").toLowerCase().trim();
+        const cleanCorrectAnswer = cleanText(correctAnswer);
+        const cleanPlayerResponse = cleanText(playerResponse);
+        // Ensure neither cleaned answer is empty
+        if (!cleanCorrectAnswer || !cleanPlayerResponse) {
+          console.log("One of the cleaned answers is empty.");
+          return false;
+        }
+        if (usedGoogle) { // If Google is used, just get subset
+          if (cleanCorrectAnswer.includes(cleanPlayerResponse)) {
+            return true;
           }
         }
-        return matchCount >= matchThreshold;
-      }
+        // Fuzzy matching
+        const options = {
+          includeScore: true,
+          threshold: 0.3, // Lower = stricter
+          keys: []
+        };
+        const fuse = new Fuse([cleanCorrectAnswer], options); 
+        const result = fuse.search(cleanPlayerResponse);
+        const isMatch = result.length > 0 && result[0].score < options.threshold;
+        return isMatch;
+      }               
+      
       if (answeredAlready) {
         setAnswerFeedback("Sorry, you can't answer again!");
         return;
@@ -410,7 +458,8 @@ export default function GameBoardPage() {
 
       // Safely parse the stored money value and initialize to 0 if it's null or invalid
       const currentMoney = Number(localStorage.getItem("money")) || 0;
-      if (isCorrectAnswer(correctAnswer, userAnswer)) {
+      const correct = await isCorrectAnswer(correctAnswer, userAnswer, selectedQuestion.question);
+      if (correct) {
         // Correct answer, so increase the money
         const newMoney =
           currentMoney + Number(selectedQuestion.value.substring(1));
