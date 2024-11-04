@@ -16,6 +16,7 @@ const ProfilePage = () => {
     const [newEmail, setNewEmail] = useState("");
     const [displayName, setDisplayName] = useState("");
     const [newDisplayName, setNewDisplayName] = useState("");
+    const [gameHistory, setGameHistory] = useState([]);
     const dispatch = useDispatch();
 
     useEffect(() => {
@@ -25,6 +26,22 @@ const ProfilePage = () => {
             setUserEmail(user.email);
             setDisplayName(user.displayName);
             setUserid(user.uid);
+
+            const fetchGameHistory = async () => {
+                try {
+                    
+                    const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/history/player_history/${user.uid}`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        setGameHistory(data.gameHistory); // Store the game history in the state
+                    } else {
+                        console.error("Failed to fetch game history:", response.statusText);
+                    }
+                } catch (error) {
+                    console.error("Error fetching game history:", error);
+                }
+            };        
+            fetchGameHistory();
         }
     }, [user]);
 
@@ -98,7 +115,23 @@ const ProfilePage = () => {
                     <button className={styles.buttons} onClick={handleForm} >Update Profile</button>
                     <button className={styles.buttons} onClick={() => router.push(`/${userid}`)}>Go back</button>
                 </div>
+                 {/* Game History Section */}
+                 <div className={styles.gameHistoryContainer}>
+                    <h3 className={styles.gameHistoryTitle}>Past Games</h3>
+                 <div className={styles.scrollableHistory}>
+                <ul className={styles.gameHistoryList}>
+                {gameHistory.map((game, index) => (
+                    <li key={index} className={styles.gameHistoryItem}>
+                        <span>Show Number: {game.showNumber}</span>
+                        <span>Points: {game.points}</span>
+                        <span>Result: {game.win ? "Win" : "Loss"}</span>
+                        <span>Date: {game.date}</span>
+                    </li>
+                    ))}
+                </ul>
             </div>
+        </div>
+            </div> 
         </div>
         // </ProtectedRoute> 
     );
