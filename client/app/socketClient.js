@@ -7,7 +7,6 @@ export const useSocket = (onMessageReceivedCallback) => {
   const [roomKey, setRoomKey] = useState("");
   const [socketDisplayName, setSocketDisplayName] = useState("");
   const user = useSelector((state) => state.auth.user);
-  console.log("socketDisplayName: ", socketDisplayName);
   const [socketMessage, setSocketMessage] = useState("");
   const [roomsData, setRoomsData] = useState(null);
   const [playersInRoom, setPlayersInRoom] = useState([]);
@@ -17,9 +16,17 @@ export const useSocket = (onMessageReceivedCallback) => {
 
   // setting socket displayName from logged in user
   useEffect(() => {
-    if (user) {
+    if (user && (window.location.pathname != "/")) {
       setDisplayName(user.displayName);
       socketDisplayNameRef.current = user.displayName;
+    } 
+    else if (window.location.pathname != "/") {
+      const storedDisplayName = localStorage.getItem("displayName");
+      if (storedDisplayName) {
+        setSocketDisplayName(storedDisplayName);
+        socketDisplayNameRef.current = storedDisplayName;
+        console.log(`[Client-side Acknowledgement] Retrieved display name from localStorage: ${storedDisplayName}`);
+      }
     }
   }, [user]);
 
