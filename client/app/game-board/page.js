@@ -214,7 +214,7 @@ export default function GameBoardPage() {
         setExpandingBox({ question, value });
       }
 
-      const updatedDisabledQuestions = [...disabledQuestions, question];
+      // const updatedDisabledQuestions = [...disabledQuestions, question];
       setDisabledQuestions(updatedDisabledQuestions);
 
       setAnsweredAlready(false);
@@ -636,7 +636,7 @@ export default function GameBoardPage() {
           }`}
         >
           {selectedQuestion ? (
-            <div className={styles.questionContent}>
+            <div className={styles.doubleQuestionContent}>
               <h2 className={styles.dailyDoubleHeader}>DAILY DOUBLE!</h2>
               <h2 className={styles.questionHeader}>
                 {selectedQuestion.category}

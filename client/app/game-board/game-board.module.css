@@ -178,6 +178,25 @@
   height: 80%;
   text-align: center;
 }
+
+@keyframes popIn2 {
+  0% {
+    transform: rotateX(0deg) scale(0);
+  }
+  100% {
+    transform: rotateX(360deg) scale(1);
+  }
+}
+.doubleQuestionContent {
+  animation: popIn2 1s ease-out forwards;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 80%;
+  height: 80%;
+  text-align: center;
+}
 .questionHeader {
   font-size: 60px;
 }
