@@ -30,7 +30,16 @@ const JeopardyLoggedInPage = () => {
   // Fetches the list of active game rooms from the server
   const fetchAvailableRooms = async () => {
     try {
-      const response = await fetch(`${serverUrl}/api/games/active-games`);
+      // Set flags to include additional game details if required
+      const includePrivate = false;  // Set to true to include `isPrivate` field in the response
+      const includeInProgress = false; // Set to true to include `inProgress` field in the response
+      const includeMaxPlayers = false; // Set to true to include `maxPlayers` field in the response
+  
+      // Build the query string based on required optional fields
+      const queryString = `?includePrivate=${includePrivate}&includeInProgress=${includeInProgress}&includeMaxPlayers=${includeMaxPlayers}`;
+  
+      // Fetch data from the updated endpoint with the constructed query string
+      const response = await fetch(`${serverUrl}/api/games/active-games${queryString}`);
       if (response.ok) {
         const data = await response.json();
         setAvailableRooms(data.activeGames || []);
@@ -84,13 +93,17 @@ const JeopardyLoggedInPage = () => {
   // };
 
   // Handle creating a new room
-  const handleCreateRoom = async () => {
+  const handleCreateRoom = async (isPrivate = false, maxPlayers = 4) => {
     try {
       const response = await fetch(`${serverUrl}/api/games/start-game`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
+        body: JSON.stringify({
+          isPrivate,
+          maxPlayers,
+        }),
       });
 
       if (response.ok) {
@@ -101,7 +114,7 @@ const JeopardyLoggedInPage = () => {
         window.setRoomKey(data.gameId);
 
         // Redirect to the waiting page using a relative path
-        router.push("/waiting-page");
+        router.push("/waiting-page"); //Seemingly bugged
         dispatch(setSelectedData(localStorage.getItem("roomKey")));
         console.log("Updated RoomID: ", selectedData);
 
@@ -231,45 +244,49 @@ const JeopardyLoggedInPage = () => {
           </section>
         </div>
 
-          <div className={styles.lowerGameInfo}>
-            <section className={styles.availableRooms}>
-              <h2>Available Rooms</h2>
-              {paginatedRooms.length === 0 ? (
-                <div className={styles.noOnlinePlayerMessage}>
-                  No rooms available yet. Please create or join a room!
-                </div>
-              ) : (
-                <ul>
-                  {paginatedRooms.map((room, index) => (
-                    <li key={index}>
-                      <button
-                        className={`${styles.roomButton} ${selectedRoom === room ? styles.selectedRoom : ""}`}
-                        onClick={() => handleJoinRoom(room)}>
-                        {room}
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
-              {availableRooms.length > 0 && (
-                <div className={styles.paginationControls}>
-                  <button onClick={handlePrevPage} disabled={currentPage === 1}>
-                    Previous
-                  </button>
-                  <span style={{ margin: "0 15px" }}>
-                    Page {currentPage} of {totalPages}
-                  </span>
-                  <button onClick={handleNextPage} disabled={currentPage === totalPages}>
-                    Next
-                  </button>
-                </div>
-              )}
-              <div className={styles.buttonRow}>
-                <button className={styles.viewAllRoomsButton} onClick={fetchAvailableRooms}>Refresh Rooms</button>
-                <button className={styles.createRoomButton} onClick={handleCreateRoom}>Create New Room</button>
-              </div>
-            </section>
-          </div>
+
+        <div className={styles.lowerGameInfo}>
+  <section className={styles.availableRooms}>
+    <h2>Available Rooms</h2>
+    {paginatedRooms.filter(room => !room.isPrivate && !room.inProgress).length === 0 ? (
+      <div className={styles.noOnlinePlayerMessage}>
+        No rooms available yet. Please create or join a room!
+      </div>
+    ) : (
+      <ul>
+        {paginatedRooms
+          .filter(room => !room.isPrivate && !room.inProgress) // Filter out private and in-progress rooms
+          .map((room, index) => (
+            <li key={index}>
+              <button
+                className={`${styles.roomButton} ${selectedRoom === room.gameId ? styles.selectedRoom : ""}`}
+                onClick={() => handleJoinRoom(room.gameId)}>
+                <div>{room.gameId}</div>
+                <div className={styles.maxPlayers}>Max Players: {room.maxPlayers}</div>
+              </button>
+            </li>
+          ))}
+      </ul>
+    )}
+    {availableRooms.length > 0 && (
+      <div className={styles.paginationControls}>
+        <button onClick={handlePrevPage} disabled={currentPage === 1}>
+          Previous
+        </button>
+        <span style={{ margin: "0 15px" }}>
+          Page {currentPage} of {totalPages}
+        </span>
+        <button onClick={handleNextPage} disabled={currentPage === totalPages}>
+          Next
+        </button>
+      </div>
+    )}
+    <div className={styles.buttonRow}>
+      <button className={styles.viewAllRoomsButton} onClick={fetchAvailableRooms}>Refresh Rooms</button>
+      <button className={styles.createRoomButton} onClick={() => handleCreateRoom(false, 4)}>Create New Room</button>
+    </div>
+  </section>
+</div>
         </main>
       </div>
   );
