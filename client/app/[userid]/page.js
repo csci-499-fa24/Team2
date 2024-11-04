@@ -113,10 +113,10 @@ const JeopardyLoggedInPage = () => {
         // Set the room key using the setRoomKey function
         window.setRoomKey(data.gameId);
 
-        // Redirect to the waiting page using a relative path
-        router.push("/waiting-page"); //Seemingly bugged
-        dispatch(setSelectedData(localStorage.getItem("roomKey")));
-        console.log("Updated RoomID: ", selectedData);
+        // Redirect to the waiting room page with roomKey in the URL
+        router.push(`/waiting-room/${data.gameId}`);
+        dispatch(setSelectedData(data.gameId));
+        console.log("Updated RoomID:", data.gameId);
 
       } else {
         console.error("Failed to create room");
