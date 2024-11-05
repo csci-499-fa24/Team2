@@ -29,5 +29,11 @@ module.exports = (sequelize, DataTypes) => {
         timestamps: false // Disable automatic timestamps
     });
 
+    PlayerHistory.associate = models => {
+        // Define association with game_history
+        PlayerHistory.belongsTo(models.game_history, { foreignKey: 'GameID', as: 'GameHistory' });
+    };
+
+
     return PlayerHistory;
 };
