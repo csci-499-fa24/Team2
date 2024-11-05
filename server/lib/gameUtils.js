@@ -81,6 +81,34 @@ function resolveGame(gameId) {
     endGame(gameId);
 }
 
+async function recordGameHistory(gameId, showNumber, owner, winner, points, players) {
+    try {
+        // Create a new game record in game_history
+        const gameHistory = await db.game_history.create({
+            ShowNumber: showNumber,
+            Owner: owner,
+            Winner: winner,
+            Points: points,
+            GameDate: new Date() // Use the current date/time
+        });
+
+        // Add each player's details to player_history
+        const playerHistoryRecords = players.map(player => ({
+            GameID: gameHistory.GameID, // Link to the newly created game
+            UserID: player.userId, // User ID of the player
+            Win: player.win, // Boolean indicating if the player won
+            Points: player.points // Points scored by the player
+        }));
+
+        await db.player_history.bulkCreate(playerHistoryRecords);
+
+        // Remove game from activeGames
+        delete activeGames[gameId];
+    } catch (error) {
+        console.error(`Error ending game with ID ${gameId}:`, error);
+    }
+}
+
 module.exports = {
     generateGameId,
     validateGame,
@@ -88,5 +116,6 @@ module.exports = {
     getJeopardyData,
     removeGame,
     resolveGame,
-    endGame
+    endGame,
+    recordGameHistory
 };
