@@ -1,15 +1,27 @@
 import { useEffect, useState, useRef } from "react";
 import { io } from "socket.io-client";
+import { useSelector } from "react-redux";
 
 export const useSocket = (onMessageReceivedCallback) => {
   const socketRef = useRef(null);
   const [roomKey, setRoomKey] = useState("");
   const [socketDisplayName, setSocketDisplayName] = useState("");
+  const user = useSelector((state) => state.auth.user);
+  console.log("socketDisplayName: ", socketDisplayName);
   const [socketMessage, setSocketMessage] = useState("");
   const [roomsData, setRoomsData] = useState(null);
+  const [playersInRoom, setPlayersInRoom] = useState([]);
   const [money, setMoney] = useState(0);
   // Create a ref to store socketDisplayName synchronously, as diplayName then setting roomKey timing matters
   const socketDisplayNameRef = useRef("");
+
+  // setting socket displayName from logged in user
+  useEffect(() => {
+    if (user) {
+      setDisplayName(user.displayName);
+      socketDisplayNameRef.current = user.displayName;
+    }
+  }, [user]);
 
   // Change localStorage based on the current route, this is how we handle persistence
   useEffect(() => {
@@ -32,11 +44,13 @@ export const useSocket = (onMessageReceivedCallback) => {
         const storedRoomKey = localStorage.getItem("roomKey");
         const storedMoney = localStorage.getItem("money");
 
-        if (storedDisplayName) {
+        if (socketDisplayName) {
           setSocketDisplayName(storedDisplayName);
-          socketDisplayNameRef.current = storedDisplayName;
+          socketDisplayNameRef.current = socketDisplayName;
           console.log(
             `[Client-side Acknowledgement] Retrieved display name from localStorage: ${storedDisplayName}`
+            // `[Client-side Acknowledgement] Retrieved display name from user login: ${socketDisplayName}`
+
           );
         }
 
@@ -78,6 +92,11 @@ export const useSocket = (onMessageReceivedCallback) => {
       console.log("[From Server: New player joined] -", message);
     });
 
+    socketInstance.on("playersInRoom", (players) => {
+      setPlayersInRoom(players);
+      console.log("[From Server: Players in room] -", players);
+    });
+
     socketInstance.on("receivedCustomMessage", (message) => {
       console.log(
         "[From Server: Custom message received] -",
@@ -106,12 +125,16 @@ export const useSocket = (onMessageReceivedCallback) => {
   useEffect(() => {
     if (socketRef.current && socketDisplayName) {
       socketRef.current.emit("displayName", socketDisplayName);
+      localStorage.setItem("displayName", socketDisplayName);
+      console.log(`[Client-side Acknowledgement] Display name set automatically to ${socketDisplayName}` );
     }
   }, [socketDisplayName]);
 
   useEffect(() => {
     if (socketRef.current && roomKey) {
       socketRef.current.emit("roomKey", roomKey);
+      localStorage.setItem("roomKey", roomKey);
+      console.log(`[Client-side Acknowledgement] Room key set automatically to ${roomKey}`);
     }
   }, [roomKey]);
 
@@ -179,6 +202,23 @@ export const useSocket = (onMessageReceivedCallback) => {
           `[Client-side Acknowledgement] Display name set to: "${name}"`
         );
       };
+
+      window.addPlayerToRoom = (roomKey, displayName) => {
+        if (socketRef.current) {
+          socketRef.current.emit("setPlayersInRoom", {
+            roomKey: roomKey,
+            displayName: displayName,
+          });
+        }
+
+        setPlayersInRoom((prevPlayers) => {
+          return [...prevPlayers, {name: displayName}];
+        });
+
+        localStorage.setItem("players", JSON.stringify(playersInRoom));
+
+        console.log(`[Client-side Acknowledgement] Player "${displayName}" added to room "${roomKey}"`);
+      }
 
       window.setRoomKey = (key) => {
         if (socketDisplayNameRef.current) {
