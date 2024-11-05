@@ -122,7 +122,7 @@ const ProfilePage = () => {
                 <ul className={styles.gameHistoryList}>
                 {gameHistory.map((game, index) => (
                     <li key={index} className={styles.gameHistoryItem}>
-                        <span>Show Number: {game.showNumber}</span>
+                        <span>Show Number: {game.show_number}</span>
                         <span>Points: {game.points}</span>
                         <span>Result: {game.win ? "Win" : "Loss"}</span>
                         <span>Date: {game.date}</span>
