@@ -473,7 +473,7 @@ export default function GameBoardPage() {
   const handleSubmit = useCallback(
     async (e) => {
       e.preventDefault();
-
+  
       function formatQuestion(question) {
         const cleanedQuestion = question.replace(/[;:&[\]]|q\[\w+\]=/g, "").trim();
         return cleanedQuestion;
@@ -500,80 +500,76 @@ export default function GameBoardPage() {
           console.error("Error fetching answer from Google Custom Search:", error);
           return "";
         }
-      }      
+      }
       
       async function isCorrectAnswer(correctAnswer = "", playerResponse = "", question = "") {
-        let usedGoogle = false  // Check to see if Google is used to change flexibility
-        if (!correctAnswer && question) { // Use Google if no answer
+        let usedGoogle = false;
+        if (!correctAnswer && question) {
           correctAnswer = await getAnswerFromGoogle(question);
           usedGoogle = true;
         }
         if (!correctAnswer || !playerResponse) {
           console.log("No correct answer or player response provided.");
-          return false; // Automatically mark as wrong if there's no answer or response
+          return false;
         }
-        // Clean the answers by removing non-alphabetic characters and converting to lowercase
-        const cleanText = text => 
+  
+        const cleanText = text =>
           text.replace(/[^a-zA-Z\s]/g, "").toLowerCase().trim();
         const cleanCorrectAnswer = cleanText(correctAnswer);
         const cleanPlayerResponse = cleanText(playerResponse);
-        // Ensure neither cleaned answer is empty
+  
         if (!cleanCorrectAnswer || !cleanPlayerResponse) {
           console.log("One of the cleaned answers is empty.");
           return false;
         }
-        if (usedGoogle) { // If Google is used, just get subset
-          if (cleanCorrectAnswer.includes(cleanPlayerResponse)) {
-            return true;
-          }
+        if (usedGoogle && cleanCorrectAnswer.includes(cleanPlayerResponse)) {
+          return true;
         }
-        // Fuzzy matching
+  
         const options = {
           includeScore: true,
-          threshold: 0.3, // Lower = stricter
+          threshold: 0.3,
           keys: []
         };
-        const fuse = new Fuse([cleanCorrectAnswer], options); 
+        const fuse = new Fuse([cleanCorrectAnswer], options);
         const result = fuse.search(cleanPlayerResponse);
         const isMatch = result.length > 0 && result[0].score < options.threshold;
         return isMatch;
-      }               
-      
+      }
+  
       if (answeredAlready) {
         setAnswerFeedback("Sorry, you can't answer again!");
         return;
       }
-
+  
       const userAnswer = e.target.elements.answer.value.trim().toLowerCase();
       const correctAnswer = selectedQuestion?.answer?.toLowerCase();
       const currentDisplayName = localStorage.getItem("displayName");
-
       const currentMoney = Number(localStorage.getItem("money")) || 0;
-      let adjustAmount = Number(
-        selectedQuestion.value.substring(1).replace(/,/g, "")
-      );
-
+  
+      // Determine the amount to adjust based on question type
+      let adjustAmount = Number(selectedQuestion.value.substring(1).replace(/,/g, ""));
+  
       if (selectedQuestion.isDailyDouble) {
-        // Use the wager amount
         adjustAmount = Number(wagerAmount);
+  
+        // Validate the wager amount
         if (isNaN(adjustAmount) || adjustAmount <= 0) {
           setAnswerFeedback("Invalid wager amount!");
           return;
         }
-        // Ensure the wager is within allowed limits (e.g., up to current score)
-        const maxWager = currentMoney > 0 ? currentMoney : 1000; // For simplicity, assuming 1000 as max if currentMoney is less
+  
+        const maxWager = currentMoney > 0 ? currentMoney : 1000;
         if (adjustAmount > maxWager) {
           setAnswerFeedback(`Wager cannot exceed $${maxWager}`);
           return;
         }
       }
-
-      if (isCorrectAnswer(correctAnswer, userAnswer)) {
-        // Correct answer, so increase the money
+  
+      const correct = await isCorrectAnswer(correctAnswer, userAnswer, selectedQuestion.question);
+      if (correct) {
         const newMoney = currentMoney + adjustAmount;
-        // Update the localStorage with the new money amount
         localStorage.setItem("money", Number(newMoney));
-
         window.setMoneyAmount(newMoney);
         setAnswerFeedback("Correct!");
         setPlayerScores((prevScores) => ({
@@ -588,16 +584,12 @@ export default function GameBoardPage() {
           closeQuestion();
         }, 1000);
       } else {
-        // let other players know something is incorrect
         window.sendMessage({
           action: "notifyOthersAboutIncorrect",
           content: { name: localStorage.getItem("displayName") },
         });
-        // Incorrect answer, so decrease the money
         const newMoney = currentMoney - adjustAmount;
-        // Update the localStorage with the new money amount
         localStorage.setItem("money", Number(newMoney));
-
         window.setMoneyAmount(newMoney);
         setAnswerFeedback("Wrong!");
         setPlayerScores((prevScores) => ({
@@ -605,7 +597,7 @@ export default function GameBoardPage() {
           [currentDisplayName]: `$${newMoney}`,
         }));
       }
-
+  
       setAnsweredAlready(true);
     },
     [selectedQuestion, answeredAlready, closeQuestion, wagerAmount]
