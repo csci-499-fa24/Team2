@@ -46,34 +46,32 @@ export const useSocket = (onMessageReceivedCallback) => {
         socketDisplayNameRef.current = "";
         console.log("[Client-side Acknowledgement] localStorage cleared.");
       } else {
-        // On other routes like changing game-board view, get roomKey, displayName, and money from localStorage
-        const storedDisplayName = localStorage.getItem("displayName");
-        const storedRoomKey = localStorage.getItem("roomKey");
-        const storedMoney = localStorage.getItem("money");
-
-        if (socketDisplayName) {
-          setSocketDisplayName(storedDisplayName);
-          socketDisplayNameRef.current = socketDisplayName;
-          console.log(
-            `[Client-side Acknowledgement] Retrieved display name from localStorage: ${storedDisplayName}`
-            // `[Client-side Acknowledgement] Retrieved display name from user login: ${socketDisplayName}`
-
-          );
-        }
-
-        if (storedRoomKey) {
-          setRoomKey(storedRoomKey);
-          console.log(
-            `[Client-side Acknowledgement] Retrieved room key from localStorage: ${storedRoomKey}`
-          );
-        }
-
-        if (storedMoney) {
-          setMoney(Number(storedMoney));
-          console.log(
-            `[Client-side Acknowledgement] Retrieved money from localStorage: ${storedMoney}`
-          );
-        }
+        (async () => {
+          // First, retrieve and set displayName
+          const storedDisplayName = localStorage.getItem("displayName");
+          if (storedDisplayName) {
+            await new Promise((resolve) => {
+              setSocketDisplayName(storedDisplayName);
+              socketDisplayNameRef.current = storedDisplayName;
+              console.log(`[Client-side Acknowledgement] Retrieved display name from localStorage: ${storedDisplayName}`);
+              resolve();
+            });
+          }
+  
+          // After displayName is set, retrieve and set roomKey
+          const storedRoomKey = localStorage.getItem("roomKey");
+          if (storedRoomKey) {
+            setRoomKey(storedRoomKey);
+            console.log(`[Client-side Acknowledgement] Retrieved room key from localStorage: ${storedRoomKey}`);
+          }
+  
+          // Retrieve and set money independently
+          const storedMoney = localStorage.getItem("money");
+          if (storedMoney) {
+            setMoney(Number(storedMoney));
+            console.log(`[Client-side Acknowledgement] Retrieved money from localStorage: ${storedMoney}`);
+          }
+        })();
       }
     }
   }, []);

@@ -72,7 +72,7 @@ export default function WaitingPage() {
 
       <div className={styles.roomNumber}>
         <h1>
-          Room Number: {roomNumber}
+          Room Number: {localStorage.getItem("roomKey")}
           {/* {roomNumber.map((room, index) => (
             <span key={index}> {room} </span>
           ))} */}
