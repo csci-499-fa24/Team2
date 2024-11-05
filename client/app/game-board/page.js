@@ -691,44 +691,41 @@ export default function GameBoardPage() {
               </h2>
               <p className={styles.questionText}>{selectedQuestion.question}</p>
               {!dailyDoubleExpandingBox.isOtherUser ? (
-                <>
-                  <form onSubmit={handleSubmit}>
-                    <input
-                      type="number"
-                      name="wager"
-                      required
-                      className={styles.wagerInput}
-                      placeholder="  Your wager"
-                      min="0"
-                      max={
-                        Number(localStorage.getItem("money")) > 0
-                          ? Number(localStorage.getItem("money"))
-                          : 1000
-                      }
-                      onChange={(e) => setWagerAmount(e.target.value)}
-                    />
-                    <input
-                      type="text"
-                      name="answer"
-                      required
-                      ref={questionRef}
-                      className={styles.answerInput}
-                      placeholder="Your answer"
-                    />
-                    <button type="submit" className={styles.submitButton}>
-                      Submit
-                    </button>
-                  </form>
-                  {answerFeedback && (
-                    <p className={styles.feedback}>{answerFeedback}</p>
-                  )}
-                </>
-              ) : (
-                <p className={styles.infoText}>
-                  {dailyDoubleExpandingBox.clickedByUser} is answering the Daily
-                  Double!
-                </p>
-              )}
+              <>
+                <form onSubmit={handleSubmit}>
+                  <input
+                    type="number"
+                    name="wager"
+                    required
+                    className={`${styles.wagerInput} ${styles.dailyDouble}`}
+                    placeholder=" Your wager"
+                    min="0"
+                    max={Number(localStorage.getItem("money")) > 0
+                      ? Number(localStorage.getItem("money"))
+                      : 1000}
+                    onChange={(e) => setWagerAmount(e.target.value)}
+                  />
+                  <input
+                    type="text"
+                    name="answer"
+                    required
+                    ref={questionRef}
+                    className={`${styles.answerInput} ${styles.dailyDouble}`}
+                    placeholder="Your answer"
+                  />
+                  <button type="submit" className={styles.submitButton}>
+                    Submit
+                  </button>
+                </form>
+                {answerFeedback && (
+                  <p className={styles.feedback}>{answerFeedback}</p>
+                )}
+              </>
+            ) : (
+              <p className={styles.dailyDoubleNotification}>
+                {dailyDoubleExpandingBox.clickedByUser} is answering the Daily Double!
+              </p>
+            )}
               <button onClick={closeQuestion} className={styles.closeButton}>
                 X
               </button>

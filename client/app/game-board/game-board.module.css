@@ -318,3 +318,17 @@
   height: 2.5rem; /* Standardize the height */
   font-size: 1rem; /* Standardize the text size */
 }
+
+.wagerInput.dailyDouble,
+.answerInput.dailyDouble {
+  font-size: 2rem; /* Increase font size specifically for Daily Double */
+  width: 100%; /* Standardize width */
+  height: 3rem; /* Increase height */
+}
+
+.dailyDoubleNotification {
+  font-size: 3rem; /* Adjust font size if needed */
+  color: green; /* Change the color to green */
+  margin-top: 20px; /* Add space below the question text */
+  text-align: center;
+}
