@@ -482,8 +482,8 @@ export default function GameBoardPage() {
       async function getAnswerFromGoogle(question) {
         try {
           const formattedQuestion = formatQuestion(question);
-          const apiKey = NEXT_PUBLIC_GOOGLE_API_KEY;
-          const cxId = NEXT_PUBLIC_GOOGLE_ENGINE_ID;
+          const apiKey = process.env.NEXT_PUBLIC_GOOGLE_API_KEY;
+          const cxId = process.env.NEXT_PUBLIC_GOOGLE_ENGINE_ID;
           const response = await axios.get("https://www.googleapis.com/customsearch/v1", {
             params: {
               key: apiKey,
