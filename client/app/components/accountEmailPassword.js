@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import { getFirebaseAuth } from '../lib/firebaseClient';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
 import { createUserDocument, updateLoginTime } from '../redux/authSlice';
@@ -14,6 +14,22 @@ export default function AccountEmailPassword({action}) {
     const dispatch = useDispatch();
 
     const router = useRouter();
+    useEffect(() => {
+        const checkAuthState = async() => {
+            const auth = await getFirebaseAuth();
+            const unsubscribe = auth.onAuthStateChanged((user) => {
+                if (user) {
+                  router.push(`/${user.uid}`); 
+                }
+            });
+        
+            // Cleanup the listener when the component is unmounted
+            return () => unsubscribe();
+        };
+
+        checkAuthState();
+    }, [router]);      
+
     const checkPasswordRequirements = (password) => {
         const passwordRegex = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$/;
         return passwordRegex.test(password);
