@@ -176,25 +176,28 @@
   export const updateUserStatus = (uid, displayName, status) => async (dispatch, getState) => {
     console.log("From updateUserStatus thunk:");
     console.log("uid:", uid, "displayName:", displayName, "status:", status);
-    try{
-        dispatch(setLoading(true));
-        const userRef = doc(getFirebaseFirestore(), "users", uid);
-        await updateDoc(userRef, {status});
 
-        const {activeUsers} = getState().auth;
-        console.log("activeUsers from updateUserStatus:", activeUsers, "uid:", uid);
-        console.log("current status", status);
-          
-        if(status === 'offline' && activeUsers.includes(displayName)) {
-          console.log("removing active user displayName", displayName);
-          await dispatch(removeActiveUser(displayName));
-        }
-        else if(status === 'online' && !activeUsers.includes(displayName)) {
-          console.log("adding active user displayName", displayName);
-          await dispatch(addActiveUser(displayName));
-        }
-    } catch (error) {
-        console.error('Error getting data:', error);
+    if(displayName) {
+      try{
+          dispatch(setLoading(true));
+          const userRef = doc(getFirebaseFirestore(), "users", uid);
+          await updateDoc(userRef, {status});
+
+          const {activeUsers} = getState().auth;
+          console.log("activeUsers from updateUserStatus:", activeUsers, "uid:", uid);
+          console.log("current status", status);
+            
+          if(status === 'offline' && activeUsers.includes(displayName)) {
+            console.log("removing active user displayName", displayName);
+            await dispatch(removeActiveUser(displayName));
+          }
+          else if(status === 'online' && !activeUsers.includes(displayName)) {
+            console.log("adding active user displayName", displayName);
+            await dispatch(addActiveUser(displayName));
+          }
+      } catch (error) {
+          console.error('Error getting data:', error);
+      }
     }
   }
 

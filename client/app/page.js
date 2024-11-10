@@ -10,7 +10,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useRouter } from "next/navigation";
 import { useSocket } from "./socketClient";
 
-const inactivityTimeout = 1000 * 60 * 60; // 1 hour
+const inactivityTimeout = 1000 * 60 * 1; // 1 hour
 let inactivityTimer;
 
 export default function Home() {
@@ -18,7 +18,7 @@ export default function Home() {
   const [message, setMessage] = useState("Loading");
   const [Jeopardies, setJeopardies] = useState([]);
   const [displayForm, setDisplayForm] = useState("login");
-  const { user } = useSelector((state) => state.auth);
+  const { user, loading } = useSelector((state) => state.auth);
   console.log("User:", user);
   const dispatch = useDispatch();
 
@@ -52,16 +52,10 @@ export default function Home() {
         console.log("Logging out due to inactivity");
         logoutOnInactivity();
         return true;
-      } else {
-        resetInactivityTimer();
-        return false;
       }
-
-    } else {
-      console.log("No last activity found");
-      resetInactivityTimer();
-      return false;
     }
+
+    return false;
   };
 
   useEffect(() => {
@@ -87,13 +81,15 @@ export default function Home() {
 
     // Effect to check user authentication and redirect if necessary
     useEffect(() => {
-      if (user) {
+      if (user && !loading) {
         const isInactive = checkInactivityOnLoad();
         if (!isInactive) {
           router.push(`/${user.uid}`);
         }
+      } else {
+        console.log("User is not logged in")
       }
-    }, [user, router]);
+    }, [user, router, loading]);
 
   useEffect(() => {
     if (Jeopardies) {
