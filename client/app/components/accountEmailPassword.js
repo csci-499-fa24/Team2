@@ -12,23 +12,7 @@ export default function AccountEmailPassword({action}) {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const dispatch = useDispatch();
-
     const router = useRouter();
-    useEffect(() => {
-        const checkAuthState = async() => {
-            const auth = await getFirebaseAuth();
-            const unsubscribe = auth.onAuthStateChanged((user) => {
-                if (user) {
-                  router.push(`/${user.uid}`); 
-                }
-            });
-        
-            // Cleanup the listener when the component is unmounted
-            return () => unsubscribe();
-        };
-
-        checkAuthState();
-    }, [router]);      
 
     const checkPasswordRequirements = (password) => {
         const passwordRegex = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$/;
@@ -65,6 +49,7 @@ export default function AccountEmailPassword({action}) {
                 if (response.ok) {
                     await dispatch(createUserDocument(user.uid, user.email));
                     alert("Account created!");
+                    localStorage.setItem('lastActivity', Date.now().toString());
                     router.push(`/${uid}`);
                 }else if(response.status === 400) {
                     console.error('Error:', data.message);
@@ -108,6 +93,7 @@ export default function AccountEmailPassword({action}) {
             if (response.ok) {
                 await dispatch(updateLoginTime(uid));
                 alert("Signed in!");
+                localStorage.setItem('lastActivity', Date.now().toString());
                 router.push(`/${uid}`);
             }else if(response.status === 400) {
                 console.error('Error:', data.message);

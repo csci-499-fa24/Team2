@@ -226,6 +226,7 @@
           }
         }
       } else {
+        localStorage.removeItem('lastActivity');
         dispatch(clearUser());
       }
 
