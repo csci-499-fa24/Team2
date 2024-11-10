@@ -102,8 +102,8 @@
     try {
       const db = getFirebaseFirestore();
       const userRef = doc(db, "users", uid);
-      const date = new Date();
-      await updateDoc(userRef, {date});
+      const lastLogin = new Date();
+      await updateDoc(userRef, {lastLogin});
     } catch (error) {
       console.error('Error updating login time:', error);
     }
