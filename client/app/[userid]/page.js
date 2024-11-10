@@ -24,7 +24,7 @@ const JeopardyLoggedInPage = () => {
   const router = useRouter(); // Router instance to handle navigation
   const dispatch = useDispatch();
   const onlinePlayers = useSelector((state) => state.auth.activeUsers);
-  const { user } = useSelector((state) => state.auth);
+  const { user, loading } = useSelector((state) => state.auth);
   // const socketDisplayName = useSelector((state) => state.auth.user.displayName);
   const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL;
 
@@ -67,7 +67,7 @@ const JeopardyLoggedInPage = () => {
   }, [dispatch, db]); 
 
   useEffect(() => {
-    if(!user) {
+    if(!user && !loading) {
       alert("You're not logged in. Please log in.");
       router.push("/");
     }

@@ -6,6 +6,7 @@ import ReduxProvider from "./ReduxProvider";
 import { Provider, useDispatch } from "react-redux";
 import { store } from "./redux/store";
 import { monitorAuthState } from "./redux/authSlice";
+import AppLayout from "./components/AppLayout";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -35,9 +36,9 @@ export default function RootLayout({ children }) {
       <DispatchEffect />
       <html lang="en">
         <body className={`${geistSans.variable} ${geistMono.variable}`}>
-            <ReduxProvider>
+            <AppLayout>
               {children}
-            </ReduxProvider>
+            </AppLayout>
         </body>
       </html>
     </Provider>
