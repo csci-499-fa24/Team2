@@ -17,32 +17,135 @@ const JeopardyLoggedInPage = () => {
   const [selectedRoom, setSelectedRoom] = useState(null);
   const [availableRooms, setAvailableRooms] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showJoinModal, setShowJoinModal] = useState(false);
+  const [gameSettings, setGameSettings] = useState({
+    isPrivate: false,
+    maxPlayers: "4",
+  });
+  const [joinRoomKey, setJoinRoomKey] = useState("");
   const roomsPerPage = 7;
-  const socket = useSocket(); // Custom hook for managing socket connections
-  const db = getFirebaseFirestore(); // Firestore instance
-  const { userid } = useParams(); // Get the user ID from URL parameters
-  const router = useRouter(); // Router instance to handle navigation
+  const socket = useSocket();
+  const db = getFirebaseFirestore();
+  const { userid } = useParams();
+  const router = useRouter();
   const dispatch = useDispatch();
   const onlinePlayers = useSelector((state) => state.auth.activeUsers);
-  // const socketDisplayName = useSelector((state) => state.auth.user.displayName);
   const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL;
 
-  // Fetches the list of active game rooms from the server
+  const CreateGameModal = () => {
+    const handleSubmit = (e) => {
+      e.preventDefault();
+      handleCreateRoom(gameSettings.isPrivate, gameSettings.maxPlayers);
+    };
+
+    return (
+      <div className={styles.modalOverlay}>
+        <div className={styles.modal}>
+          <h2>Create New Game</h2>
+          <form onSubmit={handleSubmit}>
+            <div className={styles.formGroup}>
+              <label>
+                Private Room
+                <input
+                  type="checkbox"
+                  checked={gameSettings.isPrivate}
+                  onChange={(e) =>
+                    setGameSettings({
+                      ...gameSettings,
+                      isPrivate: e.target.checked,
+                    })
+                  }
+                />
+              </label>
+            </div>
+            <div className={styles.formGroup}>
+              <label>Maximum Players</label>
+              <select
+                value={gameSettings.maxPlayers}
+                onChange={(e) =>
+                  setGameSettings({
+                    ...gameSettings,
+                    maxPlayers: e.target.value,
+                  })
+                }
+              >
+                {[4, 5, 6, 7, 8].map((num) => (
+                  <option key={num} value={num}>
+                    {num} Players
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className={styles.modalButtons}>
+              <button type="submit" className={styles.createButton}>
+                Create Game
+              </button>
+              <button
+                type="button"
+                className={styles.cancelButton}
+                onClick={() => setShowCreateModal(false)}
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    );
+  };
+
+  const JoinGameModal = () => {
+    const handleSubmit = (e) => {
+      e.preventDefault();
+      handleJoinByKey(e);
+    };
+
+    return (
+      <div className={styles.modalOverlay}>
+        <div className={styles.modal}>
+          <h2>Join Game</h2>
+          <form onSubmit={handleSubmit}>
+            <div className={styles.formGroup}>
+              <label>Room Key</label>
+              <input
+                type="text"
+                value={joinRoomKey}
+                onChange={(e) => setJoinRoomKey(e.target.value)}
+                placeholder="Enter room key"
+                className={styles.input}
+              />
+            </div>
+            <div className={styles.modalButtons}>
+              <button type="submit" className={styles.createButton}>
+                Join Game
+              </button>
+              <button
+                type="button"
+                className={styles.cancelButton}
+                onClick={() => setShowJoinModal(false)}
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    );
+  };
+
   const fetchAvailableRooms = async () => {
     try {
-      // Set flags to include additional game details if required
-      const includePrivate = false;  // Set to true to include `isPrivate` field in the response
-      const includeInProgress = false; // Set to true to include `inProgress` field in the response
-      const includeMaxPlayers = false; // Set to true to include `maxPlayers` field in the response
-  
-      // Build the query string based on required optional fields
-      const queryString = `?includePrivate=${includePrivate}&includeInProgress=${includeInProgress}&includeMaxPlayers=${includeMaxPlayers}`;
-  
-      // Fetch data from the updated endpoint with the constructed query string
-      const response = await fetch(`${serverUrl}/api/games/active-games${queryString}`);
+      const response = await fetch(
+        `${serverUrl}/api/games/active-games?includePrivate=true&includeInProgress=true&includeMaxPlayers=true`
+      );
+
       if (response.ok) {
         const data = await response.json();
-        setAvailableRooms(data.activeGames || []);
+        const filteredRooms = data.activeGames.filter(
+          (room) => !room.isPrivate && !room.inProgress
+        );
+        setAvailableRooms(filteredRooms);
       } else {
         console.error("Failed to fetch available rooms");
       }
@@ -50,50 +153,33 @@ const JeopardyLoggedInPage = () => {
       console.error("Error fetching available rooms:", error);
     }
   };
-    
+
   useEffect(() => {
-    const getActivePlayers = async () => { 
-      const getQuery = query(collection(db, "users"), where("status", "==", "online"));
+    const getActivePlayers = async () => {
+      const getQuery = query(
+        collection(db, "users"),
+        where("status", "==", "online")
+      );
       const unsubscribe = onSnapshot(getQuery, (querySnapshot) => {
-        const activePlayers = querySnapshot.docs.map((doc) => doc.data().displayName);
+        const activePlayers = querySnapshot.docs.map(
+          (doc) => doc.data().displayName
+        );
         console.log("Active Players from page.js: ", activePlayers);
-        const uniquePlayers = [...new Set([...onlinePlayers, ...activePlayers])];
+        const uniquePlayers = [
+          ...new Set([...onlinePlayers, ...activePlayers]),
+        ];
         dispatch(setActiveUsers(uniquePlayers));
       });
       return () => unsubscribe();
     };
     getActivePlayers();
-  }, [dispatch, db]); 
+  }, [dispatch, db]);
 
   useEffect(() => {
     fetchAvailableRooms();
-  }, []); 
+  }, []);
 
-  // useEffect(() => {
-  //   if (socket && socketDisplayName) {
-  //     try{
-  //       console.log("Setting display name in socket:", socketDisplayName);
-  //       socket.emit("displayName", socketDisplayName);
-  //     } catch (error) {
-  //       console.error("Error setting display name in socket:", error);
-  //     }
-  //   }
-
-  //   return () => {
-  //     socket.disconnect(); // If your hook doesn't handle this
-  //   };
-  // }, [socket, socketDisplayName]);
-
-  // const handleInputChange = (e) => {
-  //   const { name, value, type, checked } = e.target;
-  //   setNewRoom((prevRoom) => ({
-  //     ...prevRoom,
-  //     [name]: type === "checkbox" ? checked : value,
-  //   }));
-  // };
-
-  // Handle creating a new room
-  const handleCreateRoom = async (isPrivate = false, maxPlayers = 4) => {
+  const handleCreateRoom = async (isPrivate, maxPlayers) => {
     try {
       const response = await fetch(`${serverUrl}/api/games/start-game`, {
         method: "POST",
@@ -102,58 +188,56 @@ const JeopardyLoggedInPage = () => {
         },
         body: JSON.stringify({
           isPrivate,
-          maxPlayers,
+          maxPlayers: parseInt(maxPlayers),
         }),
       });
 
       if (response.ok) {
         const data = await response.json();
-        console.log("Room created successfully:", data);
-
-        // Set the room key using the setRoomKey function
         window.setRoomKey(data.gameId);
-
-        // Redirect to the waiting room page with roomKey in the URL
         router.push(`/waiting-room/${data.gameId}`);
         dispatch(setSelectedData(data.gameId));
         console.log("Updated RoomID:", data.gameId);
-
       } else {
         console.error("Failed to create room");
       }
     } catch (error) {
       console.error("Error creating room:", error);
     }
+    setShowCreateModal(false);
   };
 
-  // Handle joining an existing room
   const handleJoinRoom = (roomKey) => {
-    // Set the room key using the setRoomKey function
     window.setRoomKey(roomKey);
-    
-
-    // Redirect to the waiting page using a relative path
     router.push(`waiting-room/${roomKey}`);
   };
 
-  // Open the tutorial video in a new tab
+  const handleJoinByKey = (e) => {
+    e.preventDefault();
+    if (joinRoomKey.trim()) {
+      window.setRoomKey(joinRoomKey);
+      router.push(`/waiting-room/${joinRoomKey}`);
+    }
+    setShowJoinModal(false);
+  };
+
   const handleWatchTutorial = () => {
     window.open("https://www.youtube.com/watch?v=Hc0J2jmGnow", "_blank");
   };
 
-  // Pagination calculations
   const totalPages = Math.ceil(availableRooms.length / roomsPerPage);
   const startIndex = (currentPage - 1) * roomsPerPage;
-  const paginatedRooms = availableRooms.slice(startIndex, startIndex + roomsPerPage);
+  const paginatedRooms = availableRooms.slice(
+    startIndex,
+    startIndex + roomsPerPage
+  );
 
-  // Move to the next page of rooms
   const handleNextPage = () => {
     if (currentPage < totalPages) {
       setCurrentPage(currentPage + 1);
     }
   };
 
-  // Move to the previous page of rooms
   const handlePrevPage = () => {
     if (currentPage > 1) {
       setCurrentPage(currentPage - 1);
@@ -225,70 +309,112 @@ const JeopardyLoggedInPage = () => {
               </li>
             </ul>
           </div>
-          <button className={styles.tutorialButton} onClick={handleWatchTutorial}>Watch Tutorial</button>
+          <button
+            className={styles.tutorialButton}
+            onClick={handleWatchTutorial}
+          >
+            Watch Tutorial
+          </button>
         </section>
 
         <div className={styles.gameInfoContainer}>
           <section className={styles.onlinePlayers}>
             <h2>Online Players</h2>
-            {onlinePlayers.size === 0 ? <div className={styles.noOnlinePlayerMessage}>No players online yet. Invite your friends!</div> :
-            <div className={styles.playerGrid}>
-              {Array.from(onlinePlayers).map((player, index) => (
-                <div key={index} className={styles.playerCard}>
-                  {player && player[0] ? <div className={styles.playerAvatar}>{player[0]}</div> : null}
-                  {player ? <div className={styles.playerName}>{player}</div> : null}
-                </div>
-              ))}
-            </div>
-            }
+            {onlinePlayers.size === 0 ? (
+              <div className={styles.noOnlinePlayerMessage}>
+                No players online yet. Invite your friends!
+              </div>
+            ) : (
+              <div className={styles.playerGrid}>
+                {Array.from(onlinePlayers).map((player, index) => (
+                  <div key={index} className={styles.playerCard}>
+                    {player && player[0] ? (
+                      <div className={styles.playerAvatar}>{player[0]}</div>
+                    ) : null}
+                    {player ? (
+                      <div className={styles.playerName}>{player}</div>
+                    ) : null}
+                  </div>
+                ))}
+              </div>
+            )}
           </section>
         </div>
 
-
         <div className={styles.lowerGameInfo}>
-  <section className={styles.availableRooms}>
-    <h2>Available Rooms</h2>
-    {paginatedRooms.filter(room => !room.isPrivate && !room.inProgress).length === 0 ? (
-      <div className={styles.noOnlinePlayerMessage}>
-        No rooms available yet. Please create or join a room!
-      </div>
-    ) : (
-      <ul>
-        {paginatedRooms
-          .filter(room => !room.isPrivate && !room.inProgress) // Filter out private and in-progress rooms
-          .map((room, index) => (
-            <li key={index}>
+          <section className={styles.availableRooms}>
+            <h2>Available Rooms</h2>
+            {paginatedRooms.filter(
+              (room) => !room.isPrivate && !room.inProgress
+            ).length === 0 ? (
+              <div className={styles.noOnlinePlayerMessage}>
+                No rooms available yet. Please create or join a room!
+              </div>
+            ) : (
+              <ul>
+                {paginatedRooms
+                  .filter((room) => !room.isPrivate && !room.inProgress)
+                  .map((room, index) => (
+                    <li key={index}>
+                      <button
+                        className={`${styles.roomButton} ${
+                          selectedRoom === room.gameId
+                            ? styles.selectedRoom
+                            : ""
+                        }`}
+                        onClick={() => handleJoinRoom(room.gameId)}
+                      >
+                        <div>{room.gameId}</div>
+                        <div className={styles.maxPlayers}>
+                          Max Players: {room.maxPlayers}
+                        </div>
+                      </button>
+                    </li>
+                  ))}
+              </ul>
+            )}
+            {availableRooms.length > 0 && (
+              <div className={styles.paginationControls}>
+                <button onClick={handlePrevPage} disabled={currentPage === 1}>
+                  Previous
+                </button>
+                <span style={{ margin: "0 15px" }}>
+                  Page {currentPage} of {totalPages}
+                </span>
+                <button
+                  onClick={handleNextPage}
+                  disabled={currentPage === totalPages}
+                >
+                  Next
+                </button>
+              </div>
+            )}
+            <div className={styles.buttonRow}>
               <button
-                className={`${styles.roomButton} ${selectedRoom === room.gameId ? styles.selectedRoom : ""}`}
-                onClick={() => handleJoinRoom(room.gameId)}>
-                <div>{room.gameId}</div>
-                <div className={styles.maxPlayers}>Max Players: {room.maxPlayers}</div>
+                className={styles.viewAllRoomsButton}
+                onClick={fetchAvailableRooms}
+              >
+                Refresh Rooms
               </button>
-            </li>
-          ))}
-      </ul>
-    )}
-    {availableRooms.length > 0 && (
-      <div className={styles.paginationControls}>
-        <button onClick={handlePrevPage} disabled={currentPage === 1}>
-          Previous
-        </button>
-        <span style={{ margin: "0 15px" }}>
-          Page {currentPage} of {totalPages}
-        </span>
-        <button onClick={handleNextPage} disabled={currentPage === totalPages}>
-          Next
-        </button>
-      </div>
-    )}
-    <div className={styles.buttonRow}>
-      <button className={styles.viewAllRoomsButton} onClick={fetchAvailableRooms}>Refresh Rooms</button>
-      <button className={styles.createRoomButton} onClick={() => handleCreateRoom(false, 4)}>Create New Room</button>
+              <button
+                className={styles.createRoomButton}
+                onClick={() => setShowCreateModal(true)}
+              >
+                Create New Room
+              </button>
+              <button
+                className={styles.joinRoomButton}
+                onClick={() => setShowJoinModal(true)}
+              >
+                Join Game
+              </button>
+            </div>
+          </section>
+        </div>
+      </main>
+      {showCreateModal && <CreateGameModal />}
+      {showJoinModal && <JoinGameModal />}
     </div>
-  </section>
-</div>
-        </main>
-      </div>
   );
 };
 
