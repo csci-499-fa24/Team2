@@ -26,15 +26,6 @@ const WaitingPage = () => {
   });
 
   useEffect(() => {
-    if (socket && roomNumber) {
-      socket.on("players_list", (data) => {
-        console.log("Received players list:", data.players);
-        setPlayers(data.players);
-      });
-    }
-  }, [socket, roomNumber]);
-
-  useEffect(() => {
     const storedRoomKey = localStorage.getItem("roomKey");
     const completeRoomInfo = JSON.parse(localStorage.getItem("completeRoomInfo"));
 
@@ -52,8 +43,14 @@ const WaitingPage = () => {
 
     // Emit the player join event when user enters the room
     if (socket && storedRoomKey && displayName) {
+      console.log("PLAYER JOINING ROOM:", storedRoomKey, displayName);
       socket.emit('player_joined', { roomKey: storedRoomKey, playerName: displayName, playerStatus: "joined" });
-      socket.emit('request_players_list', { roomKey: storedRoomKey });
+      socket.on("players_list", (message) => {
+        console.log("Players list received from server:", message);
+        setPlayers(message.players);
+      });
+    
+      socket.emit('getPlayersInRoom', { roomKey: storedRoomKey });
     }
 
     return () => {
