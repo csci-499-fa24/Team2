@@ -98,7 +98,7 @@ const JeopardyLoggedInPage = () => {
   const JoinGameModal = () => {
     const handleSubmit = (e) => {
       e.preventDefault();
-      handleJoinByKey(e);
+      handleJoinByKey(joinRoomKey);
     };
 
     return (
@@ -111,9 +111,13 @@ const JeopardyLoggedInPage = () => {
               <input
                 type="text"
                 value={joinRoomKey}
-                onChange={(e) => setJoinRoomKey(e.target.value)}
+                onChange={(e) => {
+                  e.preventDefault();
+                  setJoinRoomKey(e.target.value);
+                }}
                 placeholder="Enter room key"
                 className={styles.input}
+                autoFocus
               />
             </div>
             <div className={styles.modalButtons}>
@@ -212,11 +216,10 @@ const JeopardyLoggedInPage = () => {
     router.push(`waiting-room/${roomKey}`);
   };
 
-  const handleJoinByKey = (e) => {
-    e.preventDefault();
-    if (joinRoomKey.trim()) {
-      window.setRoomKey(joinRoomKey);
-      router.push(`/waiting-room/${joinRoomKey}`);
+  const handleJoinByKey = (roomKey) => {
+    if (roomKey.trim()) {
+      window.setRoomKey(roomKey);
+      router.push(`/waiting-room/${roomKey}`);
     }
     setShowJoinModal(false);
   };
