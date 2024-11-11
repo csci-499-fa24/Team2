@@ -22,7 +22,6 @@ const WaitingPage = () => {
       updatePlayerList(message);
     } else if (message.type === 'players_list') {
       setPlayers(message.players);
-      updatePlayersInLocalStorage(message.roomKey, message.players);
     }
   });
 
@@ -34,34 +33,27 @@ const WaitingPage = () => {
       setRoomNumber(storedRoomKey);
     }
 
-    if (storedRoomKey && completeRoomInfo && completeRoomInfo[storedRoomKey]) {
-      setPlayers(completeRoomInfo[storedRoomKey]);
-    }
+    const currentDisplayName = localStorage.getItem("displayName");
 
-    if (user && user.displayName) {
-      setDisplayName(user.displayName);
+    if (currentDisplayName) {
+      setDisplayName(currentDisplayName);
     } else {
       setDisplayName(user?.email || 'Anonymous');
     }
 
-    if (socket && storedRoomKey) {
+    // Emit the player join event when user enters the room
+    if (socket && storedRoomKey && displayName) {
       socket.emit('player_joined', { roomKey: storedRoomKey, playerName: displayName, playerStatus: "joined" });
       socket.emit('request_players_list', { roomKey: storedRoomKey });
     }
 
-    const handleStorageChange = (event) => {
-      if (event.key === "completeRoomInfo") {
-        const updatedRoomInfo = JSON.parse(localStorage.getItem("completeRoomInfo"));
-        if (updatedRoomInfo && updatedRoomInfo[storedRoomKey]) {
-          setPlayers(updatedRoomInfo[storedRoomKey]);
-        }
-      }
-    };
-
-    window.addEventListener("storage", handleStorageChange);
-
     return () => {
-      window.removeEventListener("storage", handleStorageChange);
+      // Clean up socket listeners on unmount
+      if (socket) {
+        socket.off('player_joined');
+        socket.off('player_ready');
+        socket.off('players_list');
+      }
     };
   }, [socket, user, displayName]);
 
@@ -69,17 +61,10 @@ const WaitingPage = () => {
     setPlayers((prevPlayers) => {
       const updatedPlayers = {
         ...prevPlayers,
-        [message.playerName]: message.playerStatus,
+        [message.playerName]: { roomKey: message.roomKey, status: message.playerStatus }
       };
-      updatePlayersInLocalStorage(message.roomKey, updatedPlayers);
       return updatedPlayers;
     });
-  };
-
-  const updatePlayersInLocalStorage = (roomKey, updatedPlayers) => {
-    const completeRoomInfo = JSON.parse(localStorage.getItem("completeRoomInfo")) || {};
-    completeRoomInfo[roomKey] = updatedPlayers;
-    localStorage.setItem("completeRoomInfo", JSON.stringify(completeRoomInfo));
   };
 
   const handleReady = () => {
@@ -120,11 +105,14 @@ const WaitingPage = () => {
 
       <div className={styles.readyPlayers}>
         {Object.keys(players).length > 0 ? (
-          Object.keys(players).map((player, index) => (
-            <div key={index} className={styles.playerCircle}>
-              {player} {players[player] === 'ready' && '(Ready)'}
-            </div>
-          ))
+          Object.keys(players)
+            .filter(player => players[player].roomKey === roomNumber) // Filter players by the current room number
+            .map((player, index) => (
+              <div key={index} className={styles.playerCircle}>
+                {player} {players[player].status === 'ready' && '(Ready)'}
+                {player === displayName && ' (You)'} {/* Mark the current player with '(You)' */}
+              </div>
+            ))
         ) : (
           <div>No players in this room.</div>
         )}
