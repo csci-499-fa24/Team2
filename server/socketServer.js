@@ -69,9 +69,7 @@ function setupSocketServer(server) {
             console.log("Updated rooms object after roomKey set:", rooms);
 
             // Confirm the user has joined the room
-            console.log("[SERVER] - Room data sent to client:", rooms[roomKey]);
             socket.emit("playersInRoom", Object.keys(rooms[roomKey])); // Send the list of players in the room
-            console.log("Sent players in room to client:", Object.keys(rooms[roomKey]));
             socket.emit("confirmReceivedRoom", `You joined room: ${roomKey}`);
         });
 
@@ -99,9 +97,7 @@ function setupSocketServer(server) {
         // Event listener for fetching players in a room
         socket.on("getPlayersInRoom", ({ roomKey }) => {
             console.log("Request to server for players list in room:", roomKey);
-            console.log("Rooms object:", rooms);
             if (rooms[roomKey]) {
-                console.log(`Sending players list for room ${roomKey}:`, rooms[roomKey]);
                 socket.emit("players_list", { players: rooms[roomKey] });
             } else {
                 console.log(`Room ${roomKey} does not exist.`);

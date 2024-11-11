@@ -13,6 +13,7 @@ const WaitingPage = () => {
   const [showRules, setShowRules] = useState(false);
   const [roomNumber, setRoomNumber] = useState("");
   const [displayName, setDisplayName] = useState(null);
+  const [maxPlayers, setMaxPlayers] = useState(4);
   const router = useRouter();
 
   const socket = useSocket((message) => {
@@ -41,12 +42,13 @@ const WaitingPage = () => {
       setDisplayName(user?.email || 'Anonymous');
     }
 
+
+
     // Emit the player join event when user enters the room
     if (socket && storedRoomKey && displayName) {
-      console.log("PLAYER JOINING ROOM:", storedRoomKey, displayName);
       socket.emit('player_joined', { roomKey: storedRoomKey, playerName: displayName, playerStatus: "joined" });
       socket.on("players_list", (message) => {
-        console.log("Players list received from server:", message);
+        console.log("Players list received from server:", message.players);
         setPlayers(message.players);
       });
     
@@ -80,7 +82,9 @@ const WaitingPage = () => {
       socket.emit('player_ready', { roomKey, playerName: displayName });
     }
 
-    router.push('/game-search-page');
+    if(Object.keys(players).length === maxPlayers) {
+      router.push('/game-search-page');
+    }
   };
 
   const toggleRules = () => setShowRules(prevState => !prevState);
@@ -99,8 +103,9 @@ const WaitingPage = () => {
         </div>
       </header>
 
-      <div className={styles.roomNumber}>
+      <div className={styles.roomInfo}>
         <h1>Room Number: {roomNumber}</h1>
+        <h2>Players: {Object.keys(players).length}/{maxPlayers}</h2>
       </div>
 
       <div className={styles.waitingContent}>
@@ -112,9 +117,9 @@ const WaitingPage = () => {
       <div className={styles.readyPlayers}>
         {Object.keys(players).length > 0 ? (
           Object.keys(players)
-            .filter(player => players[player].roomKey === roomNumber) // Filter players by the current room number
+            // .filter(player => players[player].roomKey === roomNumber) // Filter players by the current room number
             .map((player, index) => (
-              <div key={index} className={styles.playerCircle}>
+              <div key={index} className={styles.playerBox}>
                 {player} {players[player].status === 'ready' && '(Ready)'}
                 {player === displayName && ' (You)'} {/* Mark the current player with '(You)' */}
               </div>

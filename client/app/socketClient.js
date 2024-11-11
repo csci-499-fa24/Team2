@@ -126,6 +126,7 @@
 
       // Receive rooms object from server and we opt to store it
       socketInstance.on("receiveRooms", (rooms) => {
+        console.log("[From Server] - Rooms data received from server:", rooms);
         setRoomsData(rooms);
         // console.log("[From Server: Rooms data received from server] -", rooms);
       });
