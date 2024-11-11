@@ -26,6 +26,15 @@ const WaitingPage = () => {
   });
 
   useEffect(() => {
+    if (socket && roomNumber) {
+      socket.on("players_list", (data) => {
+        console.log("Received players list:", data.players);
+        setPlayers(data.players);
+      });
+    }
+  }, [socket, roomNumber]);
+
+  useEffect(() => {
     const storedRoomKey = localStorage.getItem("roomKey");
     const completeRoomInfo = JSON.parse(localStorage.getItem("completeRoomInfo"));
 
@@ -88,7 +97,7 @@ const WaitingPage = () => {
             <div className={styles.withFriends}>With Friends!</div>
           </div>
           <div className={styles.exitButtonContainer}>
-            <button className={styles.exitButton} onClick={() => router.push(`/profile/${user.uid}`)}>Exit Room</button>
+            <button className={styles.exitButton} onClick={() => router.push(`/${user.uid}`)}>Exit Room</button>
           </div>
         </div>
       </header>

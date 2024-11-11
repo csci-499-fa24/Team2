@@ -83,6 +83,16 @@ function setupSocketServer(server) {
             socket.emit("receiveRooms", rooms);  // Send rooms object back to the client
         });
 
+        // Event listener for player joining room
+        socket.on("player_joined", ({ roomKey, playerName, playerStatus }) => {
+            if(!rooms[roomKey]) {
+                rooms[roomKey] = {};
+            }
+            
+            rooms[roomKey][playerName] = 0; // Default money or other initial data
+            io.to(roomKey).emit("players_list", { players: rooms[roomKey] });
+        });
+
         // Event listener for setting money amounts
         socket.on("setMoneyAmount", ({ displayName, roomKey, money }) => {
             console.log(`Money update received: ${displayName} in room ${roomKey} now has ${money}`);
