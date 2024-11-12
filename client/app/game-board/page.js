@@ -109,14 +109,14 @@ export default function GameBoardPage() {
           owner: winner,
           winner,
           points,
-          players: Object.keys(playerScores),
+          players: Object.keys(playerScores), //Needs to be made the correct array with userIDs
         };
 
         console.log("Sending game data:", gameData);
 
         // Step 1: Record the game history
-        await axios.post(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/history/record_game`, gameData);
-        console.log("Game history recorded successfully.");
+        // await axios.post(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/history/record_game`, gameData);
+        console.log("Game history temporarily not recorded.");
 
         // Step 2: End the game
           const endGameResponse = await axios.post(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/games/end-game/${selectedData}`);
