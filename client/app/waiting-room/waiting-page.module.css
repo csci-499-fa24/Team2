@@ -63,7 +63,7 @@
   transform: scale(1.05);  
 }
 
-.roomNumber {
+.roomInfo {
   color: #ffcc00;
   font-size: 15px;
   font-family: 'Impact', sans-serif;
@@ -71,8 +71,8 @@
   align-self: flex-start; 
   width: 100%; 
   display: flex;
-  margin-left: auto;
-  margin-right: -15px;
+  justify-content: space-between;
+  padding: 0 20px;
 }
 
 .playerStatus {
@@ -135,7 +135,7 @@
 
 .playerBox {
   width: 100%;
-  background-color: #002366; 
+  /* background-color: #002366;  */
   color: #ffd700; 
   border: 2px solid #ffd700;
   border-radius: 8px; 

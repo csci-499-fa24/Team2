@@ -69,6 +69,7 @@ function setupSocketServer(server) {
             console.log("Updated rooms object after roomKey set:", rooms);
 
             // Confirm the user has joined the room
+            socket.emit("playersInRoom", Object.keys(rooms[roomKey])); // Send the list of players in the room
             socket.emit("confirmReceivedRoom", `You joined room: ${roomKey}`);
         });
 
@@ -81,6 +82,38 @@ function setupSocketServer(server) {
         // Event listener for requesting room data
         socket.on("getRooms", () => {
             socket.emit("receiveRooms", rooms);  // Send rooms object back to the client
+        });
+
+        // Event listener for player joining room
+        socket.on("player_joined", ({ roomKey, playerName, playerStatus }) => {
+            if(!rooms[roomKey]) {
+                rooms[roomKey] = {};
+            }
+            
+            rooms[roomKey][playerName] = 0; // Default money or other initial data
+            io.to(roomKey).emit("players_list", { players: rooms[roomKey] });
+        });
+
+        // Server-side custom leaveRoom event
+        socket.on("player_left", ({ roomKey, displayName }) => {
+            if (rooms[roomKey] && rooms[roomKey][displayName]) {
+                delete rooms[roomKey][displayName];
+                socket.leave(roomKey);
+                console.log(`User ${displayName} left room "${roomKey}" via manual leave event.`);
+                
+                // Notify other users in the room   
+                socket.to(roomKey).emit("userLeft", displayName);
+            }
+        });
+
+        // Event listener for fetching players in a room
+        socket.on("getPlayersInRoom", ({ roomKey }) => {
+            console.log("Request to server for players list in room:", roomKey);
+            if (rooms[roomKey]) {
+                socket.emit("players_list", { players: rooms[roomKey] });
+            } else {
+                console.log(`Room ${roomKey} does not exist.`);
+            }
         });
 
         // Event listener for setting money amounts
