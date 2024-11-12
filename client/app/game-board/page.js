@@ -95,37 +95,82 @@ export default function GameBoardPage() {
     console.log("Updated round state:", round);
   }, [round]);
 
-  //NEW: move onto the next round
-  const nextRound = () => {
-    console.log("current gameID: ", selectedData);
-    if (round == "Final Jeopardy!") {
-      fetch(
-        `${process.env.NEXT_PUBLIC_SERVER_URL}/api/games/end-game/${selectedData}`,
-        {
-          method: "POST",
-        }
-      )
-        .then((response) => console.log(response))
-        .then(() => {
-          console.log("game has ended");
-          router.push("../game-search-page/");
-        });
-    } else {
-      fetch(
-        `${process.env.NEXT_PUBLIC_SERVER_URL}/api/games/next-round/${selectedData}`,
-        {
-          method: "POST",
-        }
-      )
-        .then(() => {
-          console.log("moving onto ther round");
-          updateRound();
-          calledNextRound();
-        })
-        .catch((err) => console.log("round can't proceed:", err));
+  const endGame = async () => {
+    try {
+      const winner = determineWinner(playerScores);
+      if (winner) {
+        // Convert `showNumber` to a number if necessary
+        const showNumber = isNaN(Number(round)) ? 1 : Number(round); // Default to 1 if not a number
+        const points = playerScores[winner]; // Get the points for the winner 
+
+        const gameData = {
+          gameId: selectedData,
+          showNumber,
+          owner: winner,
+          winner,
+          points,
+          players: Object.keys(playerScores),
+        };
+
+        console.log("Sending game data:", gameData);
+
+        // Step 1: Record the game history
+        await axios.post(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/history/record_game`, gameData);
+        console.log("Game history recorded successfully.");
+
+        // Step 2: End the game
+          const endGameResponse = await axios.post(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/games/end-game/${selectedData}`);
+          console.log(endGameResponse.data.message); // Outputs: "Game {gameId} has been ended."
+      }
+    } catch (error) {
+      console.error("Failed to record or end game:", error);
+    } finally {
+      router.push("../home/");
     }
   };
 
+  // Helper function to determine the winner based on playerScores
+  const determineWinner = (scores) => {
+    const players = Object.keys(scores);
+    if (players.length === 0) return null;
+
+    let winner = players[0];
+    for (let i = 1; i < players.length; i++) {
+      if (scores[players[i]] > scores[winner]) {
+        winner = players[i];
+      }
+    }
+    return winner;
+  };
+
+  // Optional: Display a winner popup
+  const showWinnerPopup = () => {
+    const winner = determineWinner(playerScores);
+    if (winner) {
+      setTimeout(() => {
+        alert(`${winner} is the winner!`);
+      }, 1000); // Delay to ensure it triggers only after round end
+    }
+  };
+
+  // Next round function that handles final round and winner popup
+  const nextRound = () => {
+    if (round === "Final Jeopardy!") {
+      showWinnerPopup();
+      endGame(); // Ensure history call and redirection
+    } else {
+      fetch(
+        `${process.env.NEXT_PUBLIC_SERVER_URL}/api/games/next-round/${selectedData}`,
+        { method: "POST" }
+      )
+        .then(() => {
+          console.log("Moving to the next round");
+          updateRound();
+          calledNextRound();
+        })
+        .catch((err) => console.log("Round can't proceed:", err));
+    }
+  };
   // Save completeRoomInfo to localStorage whenever it updates
   useEffect(() => {
     if (completeRoomInfo) {
