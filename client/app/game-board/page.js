@@ -125,7 +125,7 @@ export default function GameBoardPage() {
     } catch (error) {
       console.error("Failed to record or end game:", error);
     } finally {
-      router.push("../home/");
+      router.push("../");
     }
   };
 
