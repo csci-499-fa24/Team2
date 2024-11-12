@@ -94,6 +94,18 @@ function setupSocketServer(server) {
             io.to(roomKey).emit("players_list", { players: rooms[roomKey] });
         });
 
+        // Server-side custom leaveRoom event
+        socket.on("player_left", ({ roomKey, displayName }) => {
+            if (rooms[roomKey] && rooms[roomKey][displayName]) {
+                delete rooms[roomKey][displayName];
+                socket.leave(roomKey);
+                console.log(`User ${displayName} left room "${roomKey}" via manual leave event.`);
+                
+                // Notify other users in the room   
+                socket.to(roomKey).emit("userLeft", displayName);
+            }
+        });
+
         // Event listener for fetching players in a room
         socket.on("getPlayersInRoom", ({ roomKey }) => {
             console.log("Request to server for players list in room:", roomKey);

@@ -224,6 +224,11 @@
     useEffect(() => {
       if (typeof window !== "undefined") {
         window.setDisplayName = (name) => {
+          if(name === "" || name === null || name === "null") {
+            console.log("[Client-side Acknowledgement] Display name cannot be empty.");
+            return;
+          }
+
           setSocketDisplayName(name);
           socketDisplayNameRef.current = name; // Update ref
           localStorage.setItem("displayName", name);

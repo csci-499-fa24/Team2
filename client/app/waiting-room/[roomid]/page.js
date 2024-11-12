@@ -42,17 +42,17 @@ const WaitingPage = () => {
       setDisplayName(user?.email || 'Anonymous');
     }
 
-
-
     // Emit the player join event when user enters the room
     if (socket && storedRoomKey && displayName) {
-      socket.emit('player_joined', { roomKey: storedRoomKey, playerName: displayName, playerStatus: "joined" });
+      socket.emit("getPLayersInRoom", { roomKey: storedRoomKey });
       socket.on("players_list", (message) => {
         console.log("Players list received from server:", message.players);
         setPlayers(message.players);
       });
-    
-      socket.emit('getPlayersInRoom', { roomKey: storedRoomKey });
+
+      if(!Object.keys(players).includes(displayName)) {
+        socket.emit('player_joined', { roomKey: storedRoomKey, playerName: displayName, playerStatus: "joined" });
+      }
     }
 
     return () => {
@@ -87,6 +87,13 @@ const WaitingPage = () => {
     }
   };
 
+  const handleExit = () => {
+    const roomKey = localStorage.getItem("roomKey");
+    socket.emit("player_left", { roomKey, playerName: displayName });
+    socket.disconnect();
+    router.push(`/${user.uid}`);
+  };
+
   const toggleRules = () => setShowRules(prevState => !prevState);
 
   return (
@@ -98,7 +105,7 @@ const WaitingPage = () => {
             <div className={styles.withFriends}>With Friends!</div>
           </div>
           <div className={styles.exitButtonContainer}>
-            <button className={styles.exitButton} onClick={() => router.push(`/${user.uid}`)}>Exit Room</button>
+            <button className={styles.exitButton} onClick={handleExit}>Exit Room</button>
           </div>
         </div>
       </header>
