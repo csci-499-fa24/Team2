@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import { getFirebaseAuth } from '../lib/firebaseClient';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
 import { createUserDocument, updateLoginTime } from '../redux/authSlice';
@@ -12,8 +12,8 @@ export default function AccountEmailPassword({action}) {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const dispatch = useDispatch();
-
     const router = useRouter();
+
     const checkPasswordRequirements = (password) => {
         const passwordRegex = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$/;
         return passwordRegex.test(password);
@@ -49,6 +49,7 @@ export default function AccountEmailPassword({action}) {
                 if (response.ok) {
                     await dispatch(createUserDocument(user.uid, user.email));
                     alert("Account created!");
+                    localStorage.setItem('lastActivity', Date.now().toString());
                     router.push(`/${uid}`);
                 }else if(response.status === 400) {
                     console.error('Error:', data.message);
@@ -92,6 +93,7 @@ export default function AccountEmailPassword({action}) {
             if (response.ok) {
                 await dispatch(updateLoginTime(uid));
                 alert("Signed in!");
+                localStorage.setItem('lastActivity', Date.now().toString());
                 router.push(`/${uid}`);
             }else if(response.status === 400) {
                 console.error('Error:', data.message);
