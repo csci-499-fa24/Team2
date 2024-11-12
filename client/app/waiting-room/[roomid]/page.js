@@ -82,9 +82,9 @@ const WaitingPage = () => {
       socket.emit('player_ready', { roomKey, playerName: displayName });
     }
 
-    if(Object.keys(players).length === maxPlayers) {
+    // if(Object.keys(players).length === maxPlayers) {
       router.push('/game-search-page');
-    }
+    // }
   };
 
   const handleExit = () => {
