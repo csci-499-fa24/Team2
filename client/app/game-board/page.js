@@ -99,33 +99,39 @@ export default function GameBoardPage() {
     try {
       const winner = determineWinner(playerScores);
       if (winner) {
+        // Display winner alert before any further processing
+        alert(`${winner} is the winner!`);
+  
         // Convert `showNumber` to a number if necessary
         const showNumber = isNaN(Number(round)) ? 1 : Number(round); // Default to 1 if not a number
         const points = playerScores[winner]; // Get the points for the winner 
-
+  
         const gameData = {
           gameId: selectedData,
           showNumber,
           owner: winner,
           winner,
           points,
-          players: Object.keys(playerScores), //Needs to be made the correct array with userIDs
+          players: Object.keys(playerScores), // Needs to be made the correct array with userIDs
         };
-
+  
         console.log("Sending game data:", gameData);
-
+  
         // Step 1: Record the game history
         // await axios.post(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/history/record_game`, gameData);
         console.log("Game history temporarily not recorded.");
-
+  
         // Step 2: End the game
-          const endGameResponse = await axios.post(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/games/end-game/${selectedData}`);
-          console.log(endGameResponse.data.message); // Outputs: "Game {gameId} has been ended."
+        const endGameResponse = await axios.post(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/games/end-game/${selectedData}`);
+        console.log(endGameResponse.data.message); // Outputs: "Game {gameId} has been ended."
       }
     } catch (error) {
       console.error("Failed to record or end game:", error);
     } finally {
-      router.push("../");
+      // Delay the redirect slightly to ensure the alert has time to display
+      setTimeout(() => {
+        router.push("../");
+      }, 1000);
     }
   };
 
@@ -143,15 +149,13 @@ export default function GameBoardPage() {
     return winner;
   };
 
-  // Optional: Display a winner popup
-  const showWinnerPopup = () => {
-    const winner = determineWinner(playerScores);
-    if (winner) {
-      setTimeout(() => {
-        alert(`${winner} is the winner!`);
-      }, 1000); // Delay to ensure it triggers only after round end
-    }
-  };
+// Optional: Display a winner popup
+const showWinnerPopup = () => {
+  const winner = determineWinner(playerScores);
+  if (winner) {
+    console.log(`${winner} is the winner!`); // Keep the console log for debugging purposes
+  }
+};
 
   // Next round function that handles final round and winner popup
   const nextRound = () => {
@@ -171,6 +175,7 @@ export default function GameBoardPage() {
         .catch((err) => console.log("Round can't proceed:", err));
     }
   };
+
   // Save completeRoomInfo to localStorage whenever it updates
   useEffect(() => {
     if (completeRoomInfo) {
@@ -783,7 +788,7 @@ export default function GameBoardPage() {
       <div>
         {!selectedQuestion && (
           <button onClick={nextRound} className={styles.nextRoundButton}>
-            Next Round!
+            {round === "Final Jeopardy!" ? "End Game" : "Next Round!"}
           </button>
         )}
       </div>
