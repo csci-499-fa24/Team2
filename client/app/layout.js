@@ -2,7 +2,6 @@
 import React, {useEffect} from "react";
 import localFont from "next/font/local";
 import "./globals.css";
-import ReduxProvider from "./ReduxProvider";
 import { Provider, useDispatch } from "react-redux";
 import { store } from "./redux/store";
 import { monitorAuthState } from "./redux/authSlice";

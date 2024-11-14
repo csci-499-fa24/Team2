@@ -6,7 +6,6 @@ import { useDispatch, useSelector } from "react-redux";
 import { updateDisplayName, updateUserEmail } from "../../redux/authSlice";
 import styles from './profile.module.css';
 import Navbar from '@/app/components/navbar';
-import ProtectedRoute from '@/app/components/protectedRoute';
 
 const ProfilePage = () => {
     const router = useRouter();
@@ -97,7 +96,6 @@ const ProfilePage = () => {
     }
 
     return (
-        // <ProtectedRoute>
         <div>
             <Navbar />
             <div className={styles.profileContainer}>
@@ -133,7 +131,6 @@ const ProfilePage = () => {
         </div>
             </div> 
         </div>
-        // </ProtectedRoute> 
     );
 };
 
