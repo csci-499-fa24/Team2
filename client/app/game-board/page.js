@@ -95,34 +95,84 @@ export default function GameBoardPage() {
     console.log("Updated round state:", round);
   }, [round]);
 
-  //NEW: move onto the next round
+  const endGame = async () => {
+    try {
+      const winner = determineWinner(playerScores);
+      if (winner) {
+        // Display winner alert before any further processing
+        alert(`${winner} is the winner!`);
+  
+        // Convert `showNumber` to a number if necessary
+        const showNumber = isNaN(Number(round)) ? 1 : Number(round); // Default to 1 if not a number
+        const points = playerScores[winner]; // Get the points for the winner 
+  
+        const gameData = {
+          gameId: selectedData,
+          showNumber,
+          owner: winner,
+          winner,
+          points,
+          players: Object.keys(playerScores), // Needs to be made the correct array with userIDs
+        };
+  
+        console.log("Sending game data:", gameData);
+  
+        // Step 1: Record the game history
+        // await axios.post(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/history/record_game`, gameData);
+        console.log("Game history temporarily not recorded.");
+  
+        // Step 2: End the game
+        const endGameResponse = await axios.post(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/games/end-game/${selectedData}`);
+        console.log(endGameResponse.data.message); // Outputs: "Game {gameId} has been ended."
+      }
+    } catch (error) {
+      console.error("Failed to record or end game:", error);
+    } finally {
+      // Delay the redirect slightly to ensure the alert has time to display
+      setTimeout(() => {
+        router.push("../");
+      }, 1000);
+    }
+  };
+
+  // Helper function to determine the winner based on playerScores
+  const determineWinner = (scores) => {
+    const players = Object.keys(scores);
+    if (players.length === 0) return null;
+
+    let winner = players[0];
+    for (let i = 1; i < players.length; i++) {
+      if (scores[players[i]] > scores[winner]) {
+        winner = players[i];
+      }
+    }
+    return winner;
+  };
+
+// Optional: Display a winner popup
+const showWinnerPopup = () => {
+  const winner = determineWinner(playerScores);
+  if (winner) {
+    console.log(`${winner} is the winner!`); // Keep the console log for debugging purposes
+  }
+};
+
+  // Next round function that handles final round and winner popup
   const nextRound = () => {
-    console.log("current gameID: ", selectedData);
-    if (round == "Final Jeopardy!") {
-      fetch(
-        `${process.env.NEXT_PUBLIC_SERVER_URL}/api/games/end-game/${selectedData}`,
-        {
-          method: "POST",
-        }
-      )
-        .then((response) => console.log(response))
-        .then(() => {
-          console.log("game has ended");
-          router.push("../game-search-page/");
-        });
+    if (round === "Final Jeopardy!") {
+      showWinnerPopup();
+      endGame(); // Ensure history call and redirection
     } else {
       fetch(
         `${process.env.NEXT_PUBLIC_SERVER_URL}/api/games/next-round/${selectedData}`,
-        {
-          method: "POST",
-        }
+        { method: "POST" }
       )
         .then(() => {
-          console.log("moving onto ther round");
+          console.log("Moving to the next round");
           updateRound();
           calledNextRound();
         })
-        .catch((err) => console.log("round can't proceed:", err));
+        .catch((err) => console.log("Round can't proceed:", err));
     }
   };
 
@@ -738,7 +788,7 @@ export default function GameBoardPage() {
       <div>
         {!selectedQuestion && (
           <button onClick={nextRound} className={styles.nextRoundButton}>
-            Next Round!
+            {round === "Final Jeopardy!" ? "End Game" : "Next Round!"}
           </button>
         )}
       </div>

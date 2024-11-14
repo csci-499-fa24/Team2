@@ -35,6 +35,7 @@ const Navbar = () => {
         try{
             await dispatch(logoutUser());
             alert("Successfully logged out!");
+            localStorage.removeItem('lastActivity');
             router.push("/");
         }catch(error){
             console.error('Error:', error);

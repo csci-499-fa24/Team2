@@ -7,103 +7,137 @@ import styles from '../waiting-page.module.css';
 import { useSocket } from "../../socketClient";
 import { useSelector } from 'react-redux';
 
-export default function WaitingPage() {
+const WaitingPage = () => {
   const user = useSelector((state) => state.auth.user);
   const [players, setPlayers] = useState({});
   const [showRules, setShowRules] = useState(false);
   const [roomNumber, setRoomNumber] = useState("");
+  const [displayName, setDisplayName] = useState(null);
+  const [maxPlayers, setMaxPlayers] = useState(4);
   const router = useRouter();
 
   const socket = useSocket((message) => {
     console.log("Message received from server:", message);
-    if (message.type === 'player_joined') {
-      setPlayers(prevPlayers => ({
-        ...prevPlayers,
-        [message.playerName]: message.playerStatus,
-      }));
+
+    if (message.type === 'player_joined' || message.type === 'player_ready') {
+      updatePlayerList(message);
     } else if (message.type === 'players_list') {
       setPlayers(message.players);
     }
   });
 
   useEffect(() => {
-    const roomKey = localStorage.getItem("roomKey");
-    console.log(roomKey);
+    const storedRoomKey = localStorage.getItem("roomKey");
     const completeRoomInfo = JSON.parse(localStorage.getItem("completeRoomInfo"));
-  
-    if (roomKey && completeRoomInfo && completeRoomInfo[roomKey]) {
-      setPlayers(completeRoomInfo[roomKey]);
-      console.log("setting room key as:", roomKey);
-      setRoomNumber(roomKey);
-    }
-  
-    if (socket) {
-      socket.emit('request_players_list', { roomKey });
-    }
-  }, [socket]);
 
-  // Toggle for showing game rules
-  const toggleRules = () => {
-    setShowRules(!showRules);
+    if (storedRoomKey) {
+      setRoomNumber(storedRoomKey);
+    }
+
+    const currentDisplayName = localStorage.getItem("displayName");
+
+    if (currentDisplayName) {
+      setDisplayName(currentDisplayName);
+    } else {
+      setDisplayName(user?.email || 'Anonymous');
+    }
+
+    // Emit the player join event when user enters the room
+    if (socket && storedRoomKey && displayName) {
+      socket.emit("getPLayersInRoom", { roomKey: storedRoomKey });
+      socket.on("players_list", (message) => {
+        console.log("Players list received from server:", message.players);
+        setPlayers(message.players);
+      });
+
+      if(!Object.keys(players).includes(displayName)) {
+        socket.emit('player_joined', { roomKey: storedRoomKey, playerName: displayName, playerStatus: "joined" });
+      }
+    }
+
+    return () => {
+      // Clean up socket listeners on unmount
+      if (socket) {
+        socket.off('player_joined');
+        socket.off('player_ready');
+        socket.off('players_list');
+      }
+    };
+  }, [socket, user, displayName]);
+
+  const updatePlayerList = (message) => {
+    setPlayers((prevPlayers) => {
+      const updatedPlayers = {
+        ...prevPlayers,
+        [message.playerName]: { roomKey: message.roomKey, status: message.playerStatus }
+      };
+      return updatedPlayers;
+    });
   };
 
-  console.log("Current players:", players);
+  const handleReady = () => {
+    const roomKey = localStorage.getItem("roomKey");
+
+    if (socket && roomKey) {
+      socket.emit('player_ready', { roomKey, playerName: displayName });
+    }
+
+    // if(Object.keys(players).length === maxPlayers) {
+      router.push('/game-search-page');
+    // }
+  };
+
+  const handleExit = () => {
+    const roomKey = localStorage.getItem("roomKey");
+    socket.emit("player_left", { roomKey, playerName: displayName });
+    socket.disconnect();
+    router.push(`/${user.uid}`);
+  };
+
+  const toggleRules = () => setShowRules(prevState => !prevState);
 
   return (
     <div className={styles.page}>
       <header className={styles.header}>
         <div className={styles.headerContainer}>
           <div className={styles.logoContainer}>
-            <Image
-              src={jeopardyLogo}
-              alt="Jeopardy Logo"
-              width={200}
-              height={100}
-            />
+            <Image src={jeopardyLogo} alt="Jeopardy Logo" width={200} height={100} />
             <div className={styles.withFriends}>With Friends!</div>
           </div>
           <div className={styles.exitButtonContainer}>
-            <button className={styles.exitButton} onClick={() => router.push(`/${user.uid}`)}>
-              Exit Room
-            </button>
+            <button className={styles.exitButton} onClick={handleExit}>Exit Room</button>
           </div>
         </div>
       </header>
 
-      <div className={styles.roomNumber}>
-        <h1>
-          Room Number: {localStorage.getItem("roomKey")}
-          {/* {roomNumber.map((room, index) => (
-            <span key={index}> {room} </span>
-          ))} */}
-        </h1>
+      <div className={styles.roomInfo}>
+        <h1>Room Number: {roomNumber}</h1>
+        <h2>Players: {Object.keys(players).length}/{maxPlayers}</h2>
       </div>
 
       <div className={styles.waitingContent}>
         <h1 className={styles.playerStatus}>
-          Waiting for players...
+          {Object.keys(players).length === 0 ? 'Waiting for players...' : 'Current players in the room:'}
         </h1>
       </div>
 
       <div className={styles.readyPlayers}>
         {Object.keys(players).length > 0 ? (
-          Object.keys(players).map((player, index) => (
-            <div key={index} className={styles.playerCircle}>
-              {player}
-            </div>
-          ))
+          Object.keys(players)
+            // .filter(player => players[player].roomKey === roomNumber) // Filter players by the current room number
+            .map((player, index) => (
+              <div key={index} className={styles.playerBox}>
+                {player} {players[player].status === 'ready' && '(Ready)'}
+                {player === displayName && ' (You)'} {/* Mark the current player with '(You)' */}
+              </div>
+            ))
         ) : (
-          <div>No players in the room.</div>
+          <div>No players in this room.</div>
         )}
       </div>
 
       <div>
-        <button
-          className={styles.readyButton}
-          onClick={() => router.push('/game-search-page')}
-        >
-          Ready
-        </button>
+        <button className={styles.readyButton} onClick={handleReady}>Ready</button>
       </div>
 
       <div className={styles.rulesToggle} onClick={toggleRules}>
@@ -128,4 +162,6 @@ export default function WaitingPage() {
       </div>
     </div>
   );
-}
+};
+
+export default WaitingPage;

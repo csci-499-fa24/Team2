@@ -76,16 +76,17 @@
   // fetches from fireStore 
   export const fetchUserData = (userId) => async (dispatch) => {
     if (!userId) return console.error('No user ID provided!');
+    console.log("FETCHING USER DATA")
 
-    dispatch(setLoading(true));
+    await dispatch(setLoading(true));
     const db = getFirebaseFirestore();
     const userRef = doc(db, 'users', userId);
     const userSnapshot = await getDoc(userRef);
 
     if (userSnapshot.exists()) {
-      console.log('User data:', userSnapshot.data());
+      console.log('User data from fetchUserData:', userSnapshot.data());
       const userData = userSnapshot.data();
-      dispatch(setUser({
+      await dispatch(setUser({
         uid: userData.uid,
         email: userData.email,
         displayName: userData.displayName,
@@ -102,8 +103,8 @@
     try {
       const db = getFirebaseFirestore();
       const userRef = doc(db, "users", uid);
-      const date = new Date();
-      await updateDoc(userRef, {date});
+      const lastLogin = new Date();
+      await updateDoc(userRef, {lastLogin});
     } catch (error) {
       console.error('Error updating login time:', error);
     }
@@ -176,8 +177,11 @@
   export const updateUserStatus = (uid, displayName, status) => async (dispatch, getState) => {
     console.log("From updateUserStatus thunk:");
     console.log("uid:", uid, "displayName:", displayName, "status:", status);
+
     try{
-        dispatch(setLoading(true));
+      dispatch(setLoading(true));
+      
+      if(displayName) {
         const userRef = doc(getFirebaseFirestore(), "users", uid);
         await updateDoc(userRef, {status});
 
@@ -193,6 +197,7 @@
           console.log("adding active user displayName", displayName);
           await dispatch(addActiveUser(displayName));
         }
+      }
     } catch (error) {
         console.error('Error getting data:', error);
     }
@@ -200,32 +205,36 @@
 
   let unsubscribeAuth = null;
 
-  export const monitorAuthState = () => (dispatch, getState) => {
+  export const monitorAuthState = () => async(dispatch, getState) => {
     if(unsubscribeAuth) {
       unsubscribeAuth(); // calls existing function
       unsubscribeAuth = null; // resetting to prevent it from being called again
     }
 
     initializeFirebase();
-    const auth = getAuth();
+    const auth = await getAuth();
 
     dispatch(setLoading(true));
 
     unsubscribeAuth = onAuthStateChanged(auth, async(user) => {
       if(user) {
-        console.log("current user: ", user);
+        console.log("current user from onAuthStateChanged: ", user);
         const { uid, email, displayName } = user;
-        await dispatch(setUser({ uid, email, displayName }));
+        console.log("From onAuthStateChanged:");
+        console.log("uid:", uid, "email:", email, "displayName:", displayName);
         
         const userData = await dispatch(fetchUserData(uid));
+
         if (userData) {
-          console.log("userData:", userData);
+          console.log("user data returned:", userData);
+
           if (userData.status === 'offline') {
             console.log("updating user status to online from unsubscribeAuth");
-            await dispatch(updateUserStatus(uid, displayName, 'online'));
+            await dispatch(updateUserStatus(userData.uid, userData.displayName, 'online'));
           }
         }
       } else {
+        localStorage.removeItem('lastActivity');
         dispatch(clearUser());
       }
 

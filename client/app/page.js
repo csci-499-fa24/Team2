@@ -5,13 +5,34 @@ import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import jeopardyLogo from "./icons/Jeopardy-Symbol.png";
 import AccountEmailPassword from "./components/accountEmailPassword";
+import { useDispatch, useSelector } from 'react-redux';
+import { useRouter } from "next/navigation";
 import { useSocket } from "./socketClient";
 
 export default function Home() {
+  const router = useRouter();
   const [message, setMessage] = useState("Loading");
   const [displayForm, setDisplayForm] = useState("login");
-
+  const { user, loading } = useSelector((state) => state.auth);
+  const dispatch = useDispatch();
   const socket = useSocket();
+
+    // Effect to check user authentication and redirect if necessary
+    useEffect(() => {
+      if (user && !loading) {
+        router.push(`/${user.uid}`);
+      } else if(loading) {
+        console.log("Loading user data...");
+      }else {
+        console.log("User is not logged in")
+      }
+    }, [user, router, loading]);
+
+  useEffect(() => {
+    if (Jeopardies) {
+      console.log("Jeopardies state:", Jeopardies);
+    }
+  }, [Jeopardies]);
 
   function CreateAccount() {
     setDisplayForm("signup");
@@ -34,6 +55,8 @@ export default function Home() {
       </div>
 
       <AccountEmailPassword action={displayForm}/>
+
+      {loading ? <p className={styles.loading}>Loading...</p> : null}
 
       {displayForm === "login" ? 
       <p className={styles.notAUser}>
