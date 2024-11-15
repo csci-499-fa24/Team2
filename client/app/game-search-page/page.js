@@ -17,20 +17,8 @@ export default function GameSearchingPage() {
   const socket = useSocket(handleServerMessage);
 
   const startGame = () => {
-    fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/games/start-game/`, {
-      method: "POST"
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        dispatch(setSelectedData(localStorage.getItem("roomKey")));
-        console.log(selectedData);
-      })
-      .then(() => {
-        router.push("../game-board/");
-      })
-      .catch((error) => {
-        console.error("Failed to start the game:", error);
-      });
+    dispatch(setSelectedData(localStorage.getItem("roomKey")));
+    router.push("../game-board/");
   };
 
   const organizeJeopardyData = (data) => {
