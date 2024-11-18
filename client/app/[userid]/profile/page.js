@@ -22,7 +22,7 @@ const MOCK_GAME_HISTORY = [
   {
     id: 1,
     show_number: "8765",
-    points: 2600,
+    points: 600,
     date: "2024-03-15",
     win: true,
   },
@@ -104,6 +104,7 @@ const ProfilePage = () => {
       setUserEmail(user.email);
       setDisplayName(user.displayName);
       setUserid(user.uid);
+      setNewDisplayName(user.displayName);
     }
   }, [user, loading, router]);
 
@@ -256,6 +257,7 @@ const ProfilePage = () => {
     return (
       <div className={styles.chartsContainer}>
         <div className={styles.chartsGrid}>
+          {/* Win/Loss Distribution */}
           <div className={styles.chartCard}>
             <div className={styles.chartHeader}>
               <h3>Win/Loss Distribution</h3>
@@ -282,6 +284,7 @@ const ProfilePage = () => {
             </div>
           </div>
 
+          {/* Points History */}
           <div className={styles.chartCard}>
             <div className={styles.chartHeader}>
               <h3>Points History</h3>
@@ -311,6 +314,7 @@ const ProfilePage = () => {
           </div>
         </div>
 
+        {/* Summary Statistics */}
         <div className={styles.statsGrid}>
           <div className={styles.statCard}>
             <div className={styles.statContent}>
