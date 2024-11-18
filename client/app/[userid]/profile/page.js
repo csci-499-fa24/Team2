@@ -104,7 +104,6 @@ const ProfilePage = () => {
       setUserEmail(user.email);
       setDisplayName(user.displayName);
       setUserid(user.uid);
-      setNewDisplayName(user.displayName);
     }
   }, [user, loading, router]);
 
