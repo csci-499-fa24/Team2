@@ -17,22 +17,16 @@ export default function Home() {
   const dispatch = useDispatch();
   const socket = useSocket();
 
-    // Effect to check user authentication and redirect if necessary
-    useEffect(() => {
-      if (user && !loading) {
-        router.push(`/${user.uid}`);
-      } else if(loading) {
-        console.log("Loading user data...");
-      }else {
-        console.log("User is not logged in")
-      }
-    }, [user, router, loading]);
-
+  // Effect to check user authentication and redirect if necessary
   useEffect(() => {
-    if (Jeopardies) {
-      console.log("Jeopardies state:", Jeopardies);
+    if (user && !loading) {
+      router.push(`/${user.uid}`);
+    } else if(loading) {
+      console.log("Loading user data...");
+    }else {
+      console.log("User is not logged in")
     }
-  }, [Jeopardies]);
+  }, [user, router, loading]);
 
   function CreateAccount() {
     setDisplayForm("signup");
