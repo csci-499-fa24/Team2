@@ -7,7 +7,6 @@ import { collection, query, where, onSnapshot } from "firebase/firestore";
 import { useDispatch, useSelector } from "react-redux";
 import { setActiveUsers } from "../redux/authSlice";
 import Navbar from "../components/navbar";
-import ProtectedRoute from "../components/protectedRoute";
 import styles from "./[userid].module.css";
 import { useSocket } from "../socketClient";
 import { setSelectedData } from "../redux/data";
