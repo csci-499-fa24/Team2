@@ -109,8 +109,12 @@
       });
 
       socketInstance.on("playersInRoom", (players) => {
-        setPlayersInRoom(players);
-        console.log("[From Server: Players in room] -", players);
+        const playerList = Object.entries(players).map(([name, attributes]) => ({
+          name,
+          ...attributes,
+      }));
+        setPlayersInRoom(playerList);
+        console.log("[From Server: Players in room] -", playerList);
       });
 
       socketInstance.on("receivedCustomMessage", (message) => {
@@ -266,6 +270,17 @@
             );
           }
         };
+
+        window.togglePlayerStatus = (roomKey, displayName) => {
+          console.log(`[Client-side Acknowledgement] Toggling player status for ${displayName} in ${roomKey}`);
+          if (socketRef.current && roomKey && displayName) {
+            console.log(`[Client-side Acknowledgement] Toggling player status for ${displayName} in ${roomKey}`);
+            socketRef.current.emit("player_ready", {
+              roomKey: roomKey,
+              displayName: displayName,
+            });
+          }
+        }
 
         window.setMoneyAmount = (amount) => {
           if (typeof amount === "number") {

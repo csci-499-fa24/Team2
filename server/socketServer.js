@@ -85,12 +85,12 @@ function setupSocketServer(server) {
         });
 
         // Event listener for player joining room
-        socket.on("player_joined", ({ roomKey, playerName, playerStatus }) => {
+        socket.on("player_joined", ({ roomKey, playerName }) => {
             if(!rooms[roomKey]) {
                 rooms[roomKey] = {};
             }
             
-            rooms[roomKey][playerName] = 0; // Default money or other initial data
+            rooms[roomKey][playerName] = {money: 0, ready: false}; // Default money/ready status
             io.to(roomKey).emit("players_list", { players: rooms[roomKey] });
         });
 
@@ -103,6 +103,20 @@ function setupSocketServer(server) {
                 
                 // Notify other users in the room   
                 socket.to(roomKey).emit("userLeft", displayName);
+            }
+        });
+
+        // Event listener for toggling player ready status in room
+        socket.on("player_ready", ({ roomKey, displayName }) => {
+            console.log(`Player ${displayName} ready status toggled in room ${roomKey}`);
+            if(rooms[roomKey] && rooms[roomKey][displayName]) {
+                const player = rooms[roomKey][displayName];
+                player.ready = !player.ready;
+                console.log(`Player ${displayName} ready status toggled to ${player.ready}`);
+
+                io.to(roomKey).emit("players_list", { players: rooms[roomKey] });
+            } else {
+                console.log(`Player ${displayName} or room ${roomKey} not found`);
             }
         });
 

@@ -14,6 +14,7 @@ const WaitingPage = () => {
   const [roomNumber, setRoomNumber] = useState("");
   const [displayName, setDisplayName] = useState(null);
   const [maxPlayers, setMaxPlayers] = useState(4);
+  const [readyStatus, setReadyStatus] = useState(false);
   const router = useRouter();
 
   const socket = useSocket((message) => {
@@ -44,7 +45,7 @@ const WaitingPage = () => {
 
     // Emit the player join event when user enters the room
     if (socket && storedRoomKey && displayName) {
-      socket.emit("getPLayersInRoom", { roomKey: storedRoomKey });
+      socket.emit("getPlayersInRoom", { roomKey: storedRoomKey });
       socket.on("players_list", (message) => {
         console.log("Players list received from server:", message.players);
         setPlayers(message.players);
@@ -77,14 +78,24 @@ const WaitingPage = () => {
 
   const handleReady = () => {
     const roomKey = localStorage.getItem("roomKey");
-
-    if (socket && roomKey) {
-      socket.emit('player_ready', { roomKey, playerName: displayName });
+    
+    if(!displayName) {
+      const userDisplayName = localStorage.getItem("displayName");
+      setDisplayName(userDisplayName);
     }
 
-    // if(Object.keys(players).length === maxPlayers) {
+    try {
+      console.log(`${roomKey} - ${displayName} ready status toggled from ${readyStatus}`);
+      window.togglePlayerStatus(roomKey, displayName);  
+      readyStatus ? setReadyStatus(false) : setReadyStatus(true);
+    } catch (error) {
+      console.error("Error toggling player status:", error);
+    }
+
+    if(Object.keys(players).length > 1 && Object.keys(players).every(player => players[player].ready)) {
+      console.log("Players ready:", players);
       router.push('/game-search-page');
-    // }
+    } 
   };
 
   const handleExit = () => {
@@ -129,6 +140,7 @@ const WaitingPage = () => {
               <div key={index} className={styles.playerBox}>
                 {player} {players[player].status === 'ready' && '(Ready)'}
                 {player === displayName && ' (You)'} {/* Mark the current player with '(You)' */}
+                {players[player].ready ? <div className={styles.readyStatus}>Ready</div> : <div className={""}>Not Ready</div>}
               </div>
             ))
         ) : (
@@ -136,8 +148,9 @@ const WaitingPage = () => {
         )}
       </div>
 
-      <div>
-        <button className={styles.readyButton} onClick={handleReady}>Ready</button>
+      <div className={styles.readyStatusContainer}>
+        <button className={`${styles.readyButton} ${readyStatus ? '' : styles.readyButtonMarginBottom}`} onClick={handleReady}>Ready</button>
+        {readyStatus ? <p className={styles.waitingMessage}>Waiting for other players...</p> : null}
       </div>
 
       <div className={styles.rulesToggle} onClick={toggleRules}>

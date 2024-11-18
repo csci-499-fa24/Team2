@@ -81,6 +81,12 @@
   margin-top: 50px;
 }
 
+.readyStatusContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
 .animatedLetter {
   display: inline-block; 
   transform: translateX(-50px);
@@ -176,6 +182,10 @@
   margin-top: 70px;
 }
 
+.readyButtonMarginBottom {
+  margin-bottom: 48px;
+}
+
 .readyButton::before {
   content: 'Ready';
   color: #fafafa;
@@ -227,6 +237,10 @@
 .rulesToggle:hover {
   color: #f3f4f5;
   text-decoration: underline; 
+}
+
+.waitingMessage {
+  margin-top: 30px;
 }
 
 .gameRules {
