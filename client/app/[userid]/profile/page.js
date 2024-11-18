@@ -61,20 +61,6 @@ const MOCK_GAME_HISTORY = [
     date: "2024-03-07",
     win: true,
   },
-  {
-    id: 7,
-    show_number: "8756",
-    points: 700,
-    date: "2024-03-06",
-    win: false,
-  },
-  {
-    id: 8,
-    show_number: "8755",
-    points: 500,
-    date: "2024-03-05",
-    win: true,
-  },
 ];
 
 const ProfilePage = () => {
@@ -86,7 +72,7 @@ const ProfilePage = () => {
   const [displayName, setDisplayName] = useState("");
   const [newDisplayName, setNewDisplayName] = useState("");
   const [gameHistory, setGameHistory] = useState(MOCK_GAME_HISTORY);
-  const [activeTab, setActiveTab] = useState("history");
+  const [activeTab, setActiveTab] = useState("profile");
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -105,7 +91,7 @@ const ProfilePage = () => {
       setDisplayName(user.displayName);
       setUserid(user.uid);
     }
-  }, [user, loading, router]);
+  }, [user]);
 
   const handleForm = async (e) => {
     e.preventDefault();
@@ -118,11 +104,17 @@ const ProfilePage = () => {
     if (displayNameToUpdate !== displayName || emailToUpdate !== userEmail) {
       if (displayNameToUpdate !== displayName) {
         try {
+          console.log("update in progress");
+          console.log("userid: ", userid);
           const isDisplayNameUpdated = await dispatch(
             updateDisplayName(userid, displayNameToUpdate)
           );
+          console.log("updatedDisplayName:", isDisplayNameUpdated);
           if (isDisplayNameUpdated) {
+            window.setDisplayName(newDisplayName);
             updatedName = true;
+          } else {
+            updatedName = false;
           }
         } catch (error) {
           alert("Error updating profile. Please try again.");
@@ -136,6 +128,8 @@ const ProfilePage = () => {
           );
           if (isEmailUpdated) {
             updatedEmail = true;
+          } else {
+            updatedEmail = false;
           }
         } catch (error) {
           alert("Error updating profile. Please try again.");
@@ -153,7 +147,6 @@ const ProfilePage = () => {
       alert("No changes made.");
     }
   };
-
   const ProfileTab = () => (
     <div className={styles.contentWrapper}>
       <h2 className={styles.profileGreeting}>Hello, {displayName}!</h2>
