@@ -332,3 +332,28 @@
   margin-top: 20px; /* Add space below the question text */
   text-align: center;
 }
+
+.turnNotification {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  padding: 20px 40px;
+  background-color: #ff4d4f; /* Same red color as incorrect notification */
+  color: white;
+  border-radius: 8px;
+  font-weight: bold;
+  font-size: 1.2rem;
+  z-index: 1000;
+  animation: fadeout 9s ease-out; /* Same fadeout animation */
+}
+
+.playerSelectingNext p {
+  font-size: 2rem; /* Three times as big as typical player scores */
+  margin: 15px 0;
+  padding: 10px;
+  background-color: rgba(238, 196, 78, 0.1); /* Same background as player scores */
+  border-radius: 5px;
+  width: 100%;
+  text-align: center;
+  color: rgb(238, 196, 78); /* Match the color of player scores */
+}
