@@ -12,23 +12,10 @@ import { useSocket } from "./socketClient";
 export default function Home() {
   const router = useRouter();
   const [message, setMessage] = useState("Loading");
-  const [Jeopardies, setJeopardies] = useState([]);
   const [displayForm, setDisplayForm] = useState("login");
   const { user, loading } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
   const socket = useSocket();
-
-  useEffect(() => {
-    fetch(process.env.NEXT_PUBLIC_SERVER_URL + "/api/jeopardy")
-      .then((response) => response.json())
-      .then((data) => {
-        setJeopardies(data);
-        console.log("Fetched Data:", data);
-      })
-      .catch((error) => {
-        console.error("Error fetching data:", error);
-      });
-  }, []); 
 
     // Effect to check user authentication and redirect if necessary
     useEffect(() => {
