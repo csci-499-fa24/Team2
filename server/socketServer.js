@@ -2,7 +2,7 @@ const { Server } = require('socket.io');
 
 let io;
 const rooms = {
-    "": {}, // Default room for users without a room, stores players and their money
+    "": {money: 0, ready: false}, // Default room for users without a room, stores players and their money
 };
 
 function setupSocketServer(server) {
@@ -26,7 +26,7 @@ function setupSocketServer(server) {
             console.log(`Display name received: ${currentDisplayName}`);
 
             // Add player to the default room with a starting balance of 0
-            rooms[""][currentDisplayName] = 0; // Default starting money in the default room
+            rooms[""][currentDisplayName] = {money: 0, ready: false}; // Default starting money in the default room
             currentRoomKey = ""; // By default, user is in the default room
 
             console.log(`User "${currentDisplayName}" added to the default room with 0 balance.`);
@@ -60,7 +60,7 @@ function setupSocketServer(server) {
 
             // Add the player to the new room
             if (!rooms[roomKey]) {
-                rooms[roomKey] = {}; // Create the room if it doesn't exist
+                rooms[roomKey] = {money: 0, ready: false}; // Create the room if it doesn't exist
             }
             rooms[roomKey][currentDisplayName] = {money: 0, ready: false}; // Default money/ready status
             socket.join(roomKey); // Join the new room
@@ -88,7 +88,7 @@ function setupSocketServer(server) {
         socket.on("player_joined", ({ roomKey, playerName }) => {
             console.log("Player joined room called in server:", roomKey, playerName);
             if(!rooms[roomKey]) {
-                rooms[roomKey] = {};
+                rooms[roomKey] = {money: 0, ready: false};
             }
             
             rooms[roomKey][playerName] = {money: 0, ready: false}; // Default money/ready status
@@ -138,7 +138,7 @@ function setupSocketServer(server) {
             // Ensure the displayName and roomKey are valid
             if (displayName && roomKey) {
                 if (!rooms[roomKey]) {
-                    rooms[roomKey] = {}; // Create the room if it doesn't exist
+                    rooms[roomKey] = {money: 0, ready: false}; // Create the room if it doesn't exist
                 }
         
                 if (rooms[roomKey][displayName] !== undefined) {
