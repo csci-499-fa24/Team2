@@ -206,6 +206,7 @@ const JeopardyLoggedInPage = () => {
       if (response.ok) {
         const data = await response.json();
         localStorage.setItem("maxPlayers",data.maxPlayers);
+        // console.log(data.maxPlayers);
         window.setRoomKey(data.gameId);
         router.push(`/waiting-room/${data.gameId}`);
         dispatch(setSelectedData(data.gameId));

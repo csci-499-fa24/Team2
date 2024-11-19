@@ -6,6 +6,38 @@ import Image from 'next/image';
 import styles from '../waiting-page.module.css';
 import { useSocket } from "../../socketClient";
 import { useSelector } from 'react-redux';
+const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL;
+
+
+function getMaxPlayersByGameId(gameId, games) {
+  if (!Array.isArray(games)) {
+    console.error("The 'games' parameter is not an array:", games);
+    return null; // Return null if games is not an array
+  }
+
+  const game = games.find((game) => game.gameId === gameId);
+  return game ? game.maxPlayers : null; // Return null if gameId is not found
+}
+
+const fetchAvailableRooms = async () => {
+  try {
+    const response = await fetch(
+      `${serverUrl}/api/games/active-games?includePrivate=true&includeInProgress=true&includeMaxPlayers=true`
+    );
+
+    if (response.ok) {
+      const data = await response.json();
+      console.log("Fetched data: ", data);
+      return data.activeGames; 
+    } else {
+      console.error("Failed to fetch available rooms");
+      return []; // Return an empty array in case of an error
+    }
+  } catch (error) {
+    console.error("Error fetching available rooms:", error);
+    return []; // Return an empty array in case of an exception
+  }
+};
 
 const WaitingPage = () => {
   const user = useSelector((state) => state.auth.user);
@@ -13,7 +45,7 @@ const WaitingPage = () => {
   const [showRules, setShowRules] = useState(false);
   const [roomNumber, setRoomNumber] = useState("");
   const [displayName, setDisplayName] = useState(null);
-  const [maxPlayers, setMaxPlayers] = useState(4); 
+  const [maxPlayers, setMaxPlayers] = useState(4);
   const router = useRouter();
 
   const socket = useSocket((message) => {
@@ -27,20 +59,26 @@ const WaitingPage = () => {
   });
 
   useEffect(() => {
-    const storedRoomKey = localStorage.getItem("roomKey"); 
-    // const completeRoomInfo = JSON.parse(localStorage.getItem("completeRoomInfo"));
-    const storedMaxPlayer = localStorage.getItem("maxPlayers"); 
-    
+    const storedRoomKey = localStorage.getItem("roomKey");
+    const completeRoomInfo = JSON.parse(localStorage.getItem("completeRoomInfo"));
+    console.log("WHATEVER THIS IS",completeRoomInfo)
 
     if (storedRoomKey) {
       setRoomNumber(storedRoomKey);
-    }
-
-    // console.log(storedMaxPlayer);
-
-    if (storedMaxPlayer) {
-      setMaxPlayers(storedMaxPlayer);
-    }
+      fetchAvailableRooms()
+      .then((availableRooms) => {
+        console.log("Availabel ROoms",availableRooms)
+        const maxPlayersForRoom = getMaxPlayersByGameId(storedRoomKey, availableRooms);
+        if (maxPlayersForRoom !== null) {
+          setMaxPlayers(maxPlayersForRoom);
+        } else {
+          console.error("Room key not found in available rooms");
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching available rooms:", error);
+      });
+  }
 
     const currentDisplayName = localStorage.getItem("displayName");
 
@@ -50,7 +88,6 @@ const WaitingPage = () => {
       setDisplayName(user?.email || 'Anonymous');
     }
 
-    // Emit the player join event when user enters the room
     if (socket && storedRoomKey && displayName) {
       socket.emit("getPLayersInRoom", { roomKey: storedRoomKey });
       socket.on("players_list", (message) => {
@@ -64,7 +101,6 @@ const WaitingPage = () => {
     }
 
     return () => {
-      // Clean up socket listeners on unmount
       if (socket) {
         socket.off('player_joined');
         socket.off('player_ready');
@@ -90,9 +126,7 @@ const WaitingPage = () => {
       socket.emit('player_ready', { roomKey, playerName: displayName });
     }
 
-    // if(Object.keys(players).length === maxPlayers) {
       router.push('/game-search-page');
-    // }
   };
 
   const handleExit = () => {
@@ -132,11 +166,10 @@ const WaitingPage = () => {
       <div className={styles.readyPlayers}>
         {Object.keys(players).length > 0 ? (
           Object.keys(players)
-            // .filter(player => players[player].roomKey === roomNumber) // Filter players by the current room number
             .map((player, index) => (
               <div key={index} className={styles.playerBox}>
                 {player} {players[player].status === 'ready' && '(Ready)'}
-                {player === displayName && ' (You)'} {/* Mark the current player with '(You)' */}
+                {player === displayName && ' (You)'}
               </div>
             ))
         ) : (
