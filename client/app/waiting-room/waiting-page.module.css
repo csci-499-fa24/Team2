@@ -84,15 +84,23 @@
 .readyStatusContainer {
   display: flex;
   flex-direction: column;
+  justify-content: center;
   align-items: center;
+}
+
+.readyStatus {
+  font-size: 20px;
+  color: #ffcc00;
+  text-align: center;
 }
 
 .animatedLetter {
   display: inline-block; 
   transform: translateX(-50px);
   opacity: 0; 
-  animation: fadeIn 5s forwards; 
+  animation: fadeIn 2.5s forwards; 
   animation-iteration-count: infinite; 
+  animation-fill-mode: both;
 }
 
 @keyframes fadeIn {
@@ -130,13 +138,51 @@
 .readyPlayers {
   margin-top: 30px;
   display: flex;
-  flex-direction: column;
+  /* flex-direction: column; */
+  justify-content: center;
   gap: 20px;
   width: 50%; /* Adjust as needed */
   font-family: 'Impact', sans-serif;
   font-size: 25px;
   color: #ffcc00;
   align-items: center;
+}
+
+.playersContainer {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 10px;
+}
+
+.playerCircle {
+  width: 80px;
+  height: 80px;
+  background-color: #002366;
+  color: #ffd700;
+  border: 2px solid #ffd700;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 16px;
+  font-weight: bold;
+  margin: 0 10px;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+  padding: 20px;
+  /* margin-top: 50px; */
+}
+
+.playerCircle:hover {
+  background-color: #ffd700;
+  color: #002366;
+  transform: scale(1.1);
+}
+
+.readyPlayerCircle {
+  background-color: #28a745;
+  color: white;
+  border: 2px solid #28a745;
 }
 
 .playerBox {
@@ -180,6 +226,7 @@
   font-family: 'Impact', sans-serif;
   font-size: 20px;
   margin-top: 70px;
+  z-index: 11;
 }
 
 .readyButtonMarginBottom {

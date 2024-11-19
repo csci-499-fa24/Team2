@@ -150,10 +150,12 @@ const WaitingPage = () => {
           Object.keys(players)
             // .filter(player => players[player].roomKey === roomNumber) // Filter players by the current room number
             .map((player, index) => (
-              <div key={index} className={styles.playerBox}>
+              <div className={styles.playersContainer}>
+              <div key={index} className={styles.playerCircle}>
                 {player} {players[player].status === 'ready' && '(Ready)'}
                 {player === displayName && ' (You)'} {/* Mark the current player with '(You)' */}
-                {players[player].ready ? <div className={styles.readyStatus}>Ready</div> : <div className={""}>Not Ready</div>}
+              </div>
+              {players[player].ready ? <div className={styles.readyStatus}>Ready</div> : <div className={styles.readyStatus}>Not Ready</div>}
               </div>
             ))
         ) : (
@@ -166,7 +168,7 @@ const WaitingPage = () => {
         {readyStatus ? <p className={styles.waitingMessage}>Waiting for other players...</p> : null}
       </div>
 
-      {/* <div className={styles.rulesToggle} onClick={toggleRules}>
+      <div className={styles.rulesToggle} onClick={toggleRules}>
         {showRules ? 'Hide Rules' : 'Show Rules'}
       </div>
 
@@ -185,7 +187,7 @@ const WaitingPage = () => {
           <li className={styles.gameRules}>Final Jeopardy!: All players can wager any amount up to their total score on the final clue.</li>
           <li className={styles.gameRules}>Timing: You have a limited time to buzz in after the clue is read, and then to provide your answer.</li>
         </ul>
-      </div> */}
+      </div>
     </div>
   );
 };
