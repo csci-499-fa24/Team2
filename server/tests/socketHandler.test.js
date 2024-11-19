@@ -31,7 +31,7 @@ describe("Socket.IO server tests", () => {
 
         serverSocket.on("displayName", (displayName) => {
             expect(displayName).toBe("TestUser");
-            expect(rooms[""]["TestUser"]).toBe(0);
+            expect(rooms[""]["TestUser"]).toStrictEqual(0);
             done();
         });
     });
@@ -42,7 +42,7 @@ describe("Socket.IO server tests", () => {
 
         serverSocket.on("roomKey", (roomKey) => {
             expect(roomKey).toBe("Room1");
-            expect(rooms["Room1"]["TestUser"]).toBe(0);
+            expect(rooms["Room1"]["TestUser"]).toStrictEqual({});
             done();
         });
     });
@@ -79,7 +79,7 @@ describe("Socket.IO server tests", () => {
             expect(displayName).toBe("TestUser");
             expect(roomKey).toBe("Room1");
             expect(money).toBe(100);
-            expect(rooms["Room1"]["TestUser"]).toBe(100);
+            expect(rooms["Room1"]["TestUser"].money).toBe(100);
             done();
         });
     });

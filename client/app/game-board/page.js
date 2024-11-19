@@ -729,7 +729,7 @@ export default function GameBoardPage() {
         <h2>Player Scores</h2>
         {Object.entries(playerScores).map(([player, score]) => (
           <div key={player} className={styles.playerScore}>
-            {player}: {score}
+            {player}: {score.money}
           </div>
         ))}
         <div className={styles.playerSelectingNext}>
