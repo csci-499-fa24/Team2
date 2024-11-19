@@ -13,7 +13,7 @@ const WaitingPage = () => {
   const [showRules, setShowRules] = useState(false);
   const [roomNumber, setRoomNumber] = useState("");
   const [displayName, setDisplayName] = useState(null);
-  const [maxPlayers, setMaxPlayers] = useState(4);
+  const [maxPlayers, setMaxPlayers] = useState(4); 
   const router = useRouter();
 
   const socket = useSocket((message) => {
@@ -27,11 +27,19 @@ const WaitingPage = () => {
   });
 
   useEffect(() => {
-    const storedRoomKey = localStorage.getItem("roomKey");
-    const completeRoomInfo = JSON.parse(localStorage.getItem("completeRoomInfo"));
+    const storedRoomKey = localStorage.getItem("roomKey"); 
+    // const completeRoomInfo = JSON.parse(localStorage.getItem("completeRoomInfo"));
+    const storedMaxPlayer = localStorage.getItem("maxPlayers"); 
+    
 
     if (storedRoomKey) {
       setRoomNumber(storedRoomKey);
+    }
+
+    // console.log(storedMaxPlayer);
+
+    if (storedMaxPlayer) {
+      setMaxPlayers(storedMaxPlayer);
     }
 
     const currentDisplayName = localStorage.getItem("displayName");

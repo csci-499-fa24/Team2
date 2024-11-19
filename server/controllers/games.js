@@ -14,7 +14,7 @@ const router = express.Router();
 
 // API endpoint to start a new game
 router.post("/start-game", async (req, res) => {
-  const { isPrivate = false, maxPlayers = 4 } = req.body;
+  const { isPrivate = false, maxPlayers } = req.body; // Don't hardcode 4
   let validGame = false;
   let showNumber = null;
 
@@ -41,7 +41,7 @@ router.post("/start-game", async (req, res) => {
     round: "Jeopardy!",
     isPrivate, // Store the new properties
     inProgress: false, // Always start with `inProgress` as false
-    maxPlayers, // Store the new properties
+    maxPlayers, // Store the dynamic value from the client
   };
 
   res.status(200).json({
@@ -50,7 +50,6 @@ router.post("/start-game", async (req, res) => {
     totalQuestions: jeopardyData.length,
   });
 });
-
 // API endpoint to get all active game UIDs with optional details
 router.get("/active-games", (req, res) => {
   // Set default values for query parameters to 'false' to return only gameId by default
