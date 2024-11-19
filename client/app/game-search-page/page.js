@@ -17,8 +17,20 @@ export default function GameSearchingPage() {
   const socket = useSocket(handleServerMessage);
 
   const startGame = () => {
-    dispatch(setSelectedData(localStorage.getItem("roomKey")));
-    router.push("../game-board/");
+    fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/games/start-game/`, {
+      method: "POST",
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        dispatch(setSelectedData(localStorage.getItem("roomKey")));
+        console.log(selectedData);
+      })
+      .then(() => {
+        router.push("../game-board/");
+      })
+      .catch((error) => {
+        console.error("Failed to start the game:", error);
+      });
   };
 
   const organizeJeopardyData = (data) => {
@@ -86,12 +98,10 @@ export default function GameSearchingPage() {
   }, [selectedData]);
 
   startGame();
-  
+
   return (
     <div>
-      <div style={{ display: "flex", flexWrap: "wrap" }}>
-      </div>
-      
+      <div style={{ display: "flex", flexWrap: "wrap" }}></div>
     </div>
   );
 }
