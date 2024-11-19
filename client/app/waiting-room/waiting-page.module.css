@@ -226,7 +226,7 @@
   font-family: 'Impact', sans-serif;
   font-size: 20px;
   margin-top: 70px;
-  z-index: 11;
+  z-index: 10;
 }
 
 .readyButtonMarginBottom {
@@ -280,6 +280,7 @@
   font-family: 'Impact', sans-serif;
   cursor: pointer; 
   color: #ffcc00;
+  z-index: 1;
 }
 
 .rulesToggle:hover {
@@ -309,12 +310,15 @@
   opacity: 0; 
   transition: opacity 0.3s ease, transform 0.3s ease; 
   transform: translateY(20px); 
-  z-index: 10;
+  display: none;
+  z-index: 11;
 }
 
-.rulesBox.active {
+.rulesBox.active {  
+  display: block;
   opacity: 1; 
   transform: translateY(0);
+  z-index: 12;
 }
 
 .rulesBox ul {
@@ -324,4 +328,17 @@
 
 .rulesBox li {
   margin-bottom: 10px; 
+}
+
+.rulesBoxHeader {
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center; 
+}
+
+.closeRules {
+  cursor: pointer;
+  color: #002366;
+  margin-bottom: 1rem;
+  font-size: 25px;
 }
