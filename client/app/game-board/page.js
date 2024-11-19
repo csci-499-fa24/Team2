@@ -23,6 +23,8 @@ export default function GameBoardPage() {
   const [playerScores, setPlayerScores] = useState({});
   const [incorrectNotification, setIncorrectNotification] = useState(null);
   const [correctNotification, setCorrectNotification] = useState(null);
+  const [turnNotification, setTurnNotification] = useState(null);
+  const [lastPlayerCorrect, setLastPlayerCorrect] = useState("");
   const questionRef = useRef(null);
   const router = useRouter();
 
@@ -52,7 +54,7 @@ export default function GameBoardPage() {
     }, 3000); //
   };
 
-  //NEW: Function to update round state
+  // Function to update round state
   const updateRound = () => {
     fetch(
       `${process.env.NEXT_PUBLIC_SERVER_URL}/api/games/round-info/${selectedData}`
@@ -66,7 +68,7 @@ export default function GameBoardPage() {
       });
   };
 
-  //NEW: Return the current round of that game like jeopardy/double/final with all the categories and values
+  // Return the current round of that game with all the categories and values
   useEffect(() => {
     fetch(
       `${process.env.NEXT_PUBLIC_SERVER_URL}/api/games/round-info/${selectedData}`
@@ -80,20 +82,10 @@ export default function GameBoardPage() {
       });
   }, [round]);
 
-  //NEW:state the initial state of round in the beginning of the game
+  // Set the initial state of round at the beginning of the game
   useEffect(() => {
     updateRound();
   }, []);
-
-  //NEW:debugging uses: log the updated roundinfo
-  useEffect(() => {
-    console.log("Updated roundInfo state:", roundInfo);
-  }, [roundInfo]);
-
-  //NEW:debugging uses: log the updated round
-  useEffect(() => {
-    console.log("Updated round state:", round);
-  }, [round]);
 
   const endGame = async () => {
     try {
@@ -149,13 +141,13 @@ export default function GameBoardPage() {
     return winner;
   };
 
-// Optional: Display a winner popup
-const showWinnerPopup = () => {
-  const winner = determineWinner(playerScores);
-  if (winner) {
-    console.log(`${winner} is the winner!`); // Keep the console log for debugging purposes
-  }
-};
+  // Optional: Display a winner popup
+  const showWinnerPopup = () => {
+    const winner = determineWinner(playerScores);
+    if (winner) {
+      console.log(`${winner} is the winner!`); // Keep the console log for debugging purposes
+    }
+  };
 
   // Next round function that handles final round and winner popup
   const nextRound = () => {
@@ -247,15 +239,51 @@ const showWinnerPopup = () => {
     }
   }, [completeRoomInfo]);
 
+  // Initialize lastPlayerCorrect
+  useEffect(() => {
+    if (
+      lastPlayerCorrect === "" &&
+      roundInfo &&
+      roundInfo.length > 0 &&
+      playerScores &&
+      Object.keys(playerScores).length > 0
+    ) {
+      const firstCategory = roundInfo[0]?.category || "";
+      const categorySum = firstCategory
+        .split("")
+        .reduce((sum, char) => sum + char.charCodeAt(0), 0);
+      const players = Object.keys(playerScores);
+      const modValue = categorySum % players.length;
+      const firstPlayer = players[modValue];
+      setLastPlayerCorrect(firstPlayer);
+      console.log("Initial lastPlayerCorrect set to:", firstPlayer);
+      // Send to other users
+      window.sendMessage({
+        action: "updateLastPlayerCorrect",
+        content: { lastPlayerCorrect: firstPlayer },
+      });
+    }
+  }, [roundInfo, playerScores, lastPlayerCorrect]);
+
   const clickMe = useCallback(
     (question, value) => {
+      const isCurrentPlayerTurn = localStorage.getItem("displayName") === lastPlayerCorrect;
+
       console.log(question, value);
+
       if (
         disabledQuestions.some(
           (q) => q.category === question.category && q.value === question.value
         )
-      )
+      ) return;
+
+      if (!isCurrentPlayerTurn) {
+        setTurnNotification("Not your turn!");
+        setTimeout(() => {
+          setTurnNotification(null);
+        }, 3000);
         return;
+      }
 
       const dailyDoubleClue = localStorage.getItem("dailyDoubleClue");
 
@@ -288,7 +316,7 @@ const showWinnerPopup = () => {
       }, 500);
       setAnswerFeedback("");
     },
-    [disabledQuestions]
+    [disabledQuestions, lastPlayerCorrect]
   );
 
   const socketClickMe = useCallback(
@@ -337,7 +365,7 @@ const showWinnerPopup = () => {
     }, 500);
   }, []);
 
-  //triggering nextRound message function
+  // Triggering nextRound message function
   const calledNextRound = useCallback(() => {
     console.log("triggered calledNextRound");
     window.sendMessage({
@@ -346,7 +374,7 @@ const showWinnerPopup = () => {
     });
   }, []);
 
-  //receiving nextRound message function
+  // Receiving nextRound message function
   const socketNextRound = useCallback(() => {
     updateRound();
   }, []);
@@ -391,6 +419,8 @@ const showWinnerPopup = () => {
       } else if (action === "calledNextRound") {
         console.log("nextRound action also triggered");
         socketNextRound(message["content"]["name"]);
+      } else if (action === "updateLastPlayerCorrect") {
+        setLastPlayerCorrect(message["content"]["lastPlayerCorrect"]);
       }
     },
     [socketClickMe, socketCloseQuestion]
@@ -431,8 +461,9 @@ const showWinnerPopup = () => {
     ));
   }, [roundInfo]);
 
-  //NEW: function that returns the desire question according to the category and value and store into selectedQuestion
+  // Function that returns the desired question according to the category and value
   const fetchQuestion = (category, value) => {
+    // Fetch the question data
     fetch(
       `${
         process.env.NEXT_PUBLIC_SERVER_URL
@@ -443,8 +474,7 @@ const showWinnerPopup = () => {
       .then((response) => response.json())
       .then((data) => {
         if (data && data.question) {
-          setSelectedQuestion(data);
-          console.log("Question fetched:", selectedQuestion);
+          console.log("Question fetched:", data);
           clickMe(data, value);
         } else {
           console.error("No question found for the given category and value.");
@@ -455,7 +485,7 @@ const showWinnerPopup = () => {
       });
   };
 
-  //NEW: a new renderRows function that display the columns for testing purpose (CAN BE REMOVED!)
+  // Reintroduce greyed-out styling for used clues and detect clicks even when it's not the player's turn
   const renderRows = () => {
     if (!roundInfo || !Array.isArray(roundInfo) || roundInfo.length === 0) {
       return <div>No data available</div>;
@@ -499,14 +529,30 @@ const showWinnerPopup = () => {
               (q) => q.category === category && q.value === value
             );
 
+            const isCurrentPlayerTurn = localStorage.getItem("displayName") === lastPlayerCorrect;
+
             return (
               <button
                 key={categoryIndex}
                 className={`${styles.button} ${
                   isDisabled ? styles.disabled : ""
-                }`} // Apply disabled styling
-                onClick={() => fetchQuestion(category, value)}
-                disabled={isDisabled} // Disable the button interaction
+                }`}
+                onClick={() => {
+                  if (isDisabled) {
+                    // Do nothing if the clue is already used
+                    return;
+                  }
+                  const isCurrentPlayerTurn = localStorage.getItem("displayName") === lastPlayerCorrect;
+                  if (!isCurrentPlayerTurn) {
+                    console.log("Not your turn!");
+                    setTurnNotification("Not your turn!");
+                    setTimeout(() => {
+                      setTurnNotification(null);
+                    }, 3000);
+                    return;
+                  }
+                  fetchQuestion(category, value);
+                }}
               >
                 {value || ""}
               </button>
@@ -630,6 +676,11 @@ const showWinnerPopup = () => {
           action: "notifyOthersAboutCorrect",
           content: { name: localStorage.getItem("displayName") },
         });
+        setLastPlayerCorrect(currentDisplayName);
+        window.sendMessage({
+          action: "updateLastPlayerCorrect",
+          content: { lastPlayerCorrect: currentDisplayName },
+        });
         setTimeout(() => {
           closeQuestion();
         }, 1000);
@@ -678,9 +729,13 @@ const showWinnerPopup = () => {
         <h2>Player Scores</h2>
         {Object.entries(playerScores).map(([player, score]) => (
           <div key={player} className={styles.playerScore}>
-            {player}: {score}
+            {player}: {score.money}
           </div>
         ))}
+        <div className={styles.playerSelectingNext}>
+          <h2>Player Selecting Next:</h2>
+          <p>{lastPlayerCorrect}</p>
+        </div>
       </div>
       {expandingBox && (
         <div
@@ -784,6 +839,9 @@ const showWinnerPopup = () => {
       )}
       {correctNotification && (
         <div className={styles.correctNotification}>{correctNotification}</div>
+      )}
+      {turnNotification && (
+        <div className={styles.turnNotification}>{turnNotification}</div>
       )}
       <div>
         {!selectedQuestion && (

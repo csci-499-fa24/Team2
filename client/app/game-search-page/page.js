@@ -18,7 +18,7 @@ export default function GameSearchingPage() {
 
   const startGame = () => {
     fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/games/start-game/`, {
-      method: "POST"
+      method: "POST",
     })
       .then((response) => response.json())
       .then((data) => {
@@ -98,12 +98,10 @@ export default function GameSearchingPage() {
   }, [selectedData]);
 
   startGame();
-  
+
   return (
     <div>
-      <div style={{ display: "flex", flexWrap: "wrap" }}>
-      </div>
-      
+      <div style={{ display: "flex", flexWrap: "wrap" }}></div>
     </div>
   );
 }

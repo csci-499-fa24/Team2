@@ -1,7 +1,7 @@
 .profileContainer {
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
   gap: 1rem;
   padding: 1rem;
@@ -15,14 +15,24 @@
 
 .profileGreeting {
   padding: 1em;
+  text-align: center;
+}
+
+.formWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
 }
 
 .formContainer {
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  width: 50%;
-  margin: 1rem;
+  width: 100%;
+  max-width: 400px;
+  margin: 1rem auto;
+  position: relative;
 }
 
 .inputField {
@@ -32,12 +42,14 @@
   border: none;
   background-color: #001f3f;
   color: #ffffff;
+  width: 100%;
 }
 
 .inputLabel {
   font-size: 1.2rem;
   font-weight: bold;
   color: #ffcc00;
+  text-align: center;
 }
 
 .disabledInput {
@@ -54,6 +66,7 @@
   display: flex;
   justify-content: center;
   gap: 1rem;
+  width: 100%;
 }
 
 .buttons {
@@ -77,8 +90,9 @@
 }
 
 .gameHistoryContainer {
-  width: 80%;
-  margin-top: 2rem;
+  width: 90%;
+  max-width: 1000px;
+  margin: 0 auto;
   padding: 1rem;
   background-color: #001f3f;
   border-radius: 8px;
@@ -92,31 +106,251 @@
   margin-bottom: 1rem;
 }
 
-.scrollableHistory {
-  max-height: 200px; 
-  overflow-y: auto; 
-  padding-right: 1rem; 
+.tabsContainer {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 2rem;
+  padding: 0 1rem;
 }
 
-.gameHistoryList {
-  list-style-type: none;
-  padding: 0;
+.tabsWrapper {
+  background: #001f3f;
+  border-radius: 12px;
+  padding: 0.5rem;
+  display: inline-flex;
+  position: relative;
+  gap: 0.5rem;
+}
+
+.tabButton {
+  padding: 0.75rem 2rem;
+  background: transparent;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.3s ease;
+  position: relative;
+  z-index: 1;
+}
+
+.activeTab {
+  background: #ffcc00;
+  color: #001f3f;
+}
+
+.tabContent {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.contentWrapper {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.statsContainer {
+  display: flex;
+  justify-content: space-around;
+  width: 100%;
+  max-width: 800px;
+  margin-bottom: 2rem;
+}
+
+.statCard {
+  background-color: #001f3f;
+  padding: 1.5rem;
+  border-radius: 8px;
+  text-align: center;
+  min-width: 150px;
+}
+
+.statCard h4 {
+  color: #ffcc00;
+  margin: 0 0 0.5rem 0;
+}
+
+.statCard p {
+  color: #ffffff;
+  font-size: 1.5rem;
   margin: 0;
 }
 
-.gameHistoryItem {
-  display: flex;
-  justify-content: space-between;
-  padding: 1rem;
-  background-color: #002a5c;
-  color: white;
-  border-radius: 4px;
-  margin-bottom: 1rem;
-  transition: transform 0.2s;
-  font-size: 0.9rem;
+.chartContainer,
+.chart {
+  display: none;
 }
 
-.gameHistoryItem:hover {
+.gameHistoryGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  width: 100%;
+}
+
+.gameHistoryCard {
+  background-color: #002a5c;
+  border: 1px solid #003366;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  transition: transform 0.2s;
+}
+
+.gameHistoryCard:hover {
   transform: scale(1.02);
-  background-color: #003366;
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.showNumber {
+  color: #ffcc00;
+  font-size: 1.125rem;
+  font-weight: bold;
+}
+
+.cardContent {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.statItem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.statLabel {
+  color: #9ca3af;
+  font-size: 0.875rem;
+}
+
+.statValue {
+  color: #ffffff;
+  font-size: 1.125rem;
+  font-weight: bold;
+}
+
+.resultSection {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #003366;
+}
+
+.resultLabel {
+  font-size: 0.875rem;
+  color: #ffffff;
+}
+
+.win {
+  color: #4caf50;
+  font-weight: 600;
+}
+
+.loss {
+  color: #f44336;
+  font-weight: 600;
+}
+
+.scrollableHistory {
+  max-height: 500px;
+  overflow-y: auto;
+  padding-right: 1rem;
+  width: 100%;
+}
+.chartsContainer {
+  width: 100%;
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+}
+
+.chartsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.chartCard {
+  background-color: #001f3f;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+  padding: 1.5rem;
+}
+
+.chartHeader {
+  margin-bottom: 1rem;
+}
+
+.chartTitle {
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.chartContent {
+  display: flex;
+  justify-content: center;
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.statValue {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.statValue.wins {
+  color: #4ade80;
+}
+
+.statValue.losses {
+  color: #f87171;
+}
+
+.statValue.rate {
+  color: #3b82f6;
+}
+
+.chartHeader h3 {
+  color: #ffcc00;
+}
+
+.statCard {
+  background-color: #001f3f;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+  padding: 1.5rem;
+}
+
+.statContent {
+  text-align: center;
+}
+
+.statNumber {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0;
+}
+
+.statLabel {
+  font-size: 0.875rem;
+  color: #ffcc00;
+  margin: 0.5rem 0 0 0;
 }

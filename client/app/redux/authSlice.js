@@ -56,7 +56,6 @@
   };  
 
   export const createUserDocument = (uid, email) => async (dispatch) => {
-    console.log("From createUserDocument thunk:");
     console.log(uid, email)
     try{
         const db = getFirebaseFirestore();
@@ -76,7 +75,6 @@
   // fetches from fireStore 
   export const fetchUserData = (userId) => async (dispatch) => {
     if (!userId) return console.error('No user ID provided!');
-    console.log("FETCHING USER DATA")
 
     await dispatch(setLoading(true));
     const db = getFirebaseFirestore();
@@ -84,7 +82,6 @@
     const userSnapshot = await getDoc(userRef);
 
     if (userSnapshot.exists()) {
-      console.log('User data from fetchUserData:', userSnapshot.data());
       const userData = userSnapshot.data();
       await dispatch(setUser({
         uid: userData.uid,
@@ -99,7 +96,6 @@
   };
 
   export const updateLoginTime = (uid) => async (dispatch) => {
-    console.log("From updateLoginTime thunk:");
     try {
       const db = getFirebaseFirestore();
       const userRef = doc(db, "users", uid);
@@ -220,16 +216,10 @@
       if(user) {
         console.log("current user from onAuthStateChanged: ", user);
         const { uid, email, displayName } = user;
-        console.log("From onAuthStateChanged:");
-        console.log("uid:", uid, "email:", email, "displayName:", displayName);
-        
         const userData = await dispatch(fetchUserData(uid));
 
         if (userData) {
-          console.log("user data returned:", userData);
-
           if (userData.status === 'offline') {
-            console.log("updating user status to online from unsubscribeAuth");
             await dispatch(updateUserStatus(userData.uid, userData.displayName, 'online'));
           }
         }

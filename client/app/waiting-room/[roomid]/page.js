@@ -6,6 +6,9 @@ import Image from 'next/image';
 import styles from '../waiting-page.module.css';
 import { useSocket } from "../../socketClient";
 import { useSelector } from 'react-redux';
+import { IoMdCloseCircleOutline } from "react-icons/io";
+
+
 const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL;
 
 
@@ -39,6 +42,7 @@ const fetchAvailableRooms = async () => {
   }
 };
 
+
 const WaitingPage = () => {
   const user = useSelector((state) => state.auth.user);
   const [players, setPlayers] = useState({});
@@ -46,6 +50,7 @@ const WaitingPage = () => {
   const [roomNumber, setRoomNumber] = useState("");
   const [displayName, setDisplayName] = useState(null);
   const [maxPlayers, setMaxPlayers] = useState(4);
+  const [readyStatus, setReadyStatus] = useState(false);
   const router = useRouter();
 
   const socket = useSocket((message) => {
@@ -53,12 +58,14 @@ const WaitingPage = () => {
 
     if (message.type === 'player_joined' || message.type === 'player_ready') {
       updatePlayerList(message);
-    } else if (message.type === 'players_list') {
+    } else if (message.type === 'update_players_list') {
       setPlayers(message.players);
     }
   });
 
   useEffect(() => {
+    console.log("WaitingPage useEffect");
+    console.log("player:", players, "displayName:", displayName, "readyStatus:", readyStatus);
     const storedRoomKey = localStorage.getItem("roomKey");
     const completeRoomInfo = JSON.parse(localStorage.getItem("completeRoomInfo"));
     console.log("WHATEVER THIS IS",completeRoomInfo)
@@ -89,27 +96,29 @@ const WaitingPage = () => {
     }
 
     if (socket && storedRoomKey && displayName) {
-      socket.emit("getPLayersInRoom", { roomKey: storedRoomKey });
-      socket.on("players_list", (message) => {
+      socket.emit("getPlayersInRoom", { roomKey: storedRoomKey });
+      socket.on("update_players_list", (message) => {
         console.log("Players list received from server:", message.players);
         setPlayers(message.players);
       });
 
       if(!Object.keys(players).includes(displayName)) {
-        socket.emit('player_joined', { roomKey: storedRoomKey, playerName: displayName, playerStatus: "joined" });
+        socket.emit('player_joined', { roomKey: storedRoomKey, playerName: displayName});
       }
     }
 
     return () => {
       if (socket) {
+        console.log("Cleaning up socket listeners in WaitingPage...");
         socket.off('player_joined');
         socket.off('player_ready');
-        socket.off('players_list');
+        socket.off('update_players_list');
       }
     };
   }, [socket, user, displayName]);
 
   const updatePlayerList = (message) => {
+    console.log("updatingPlayerList", message);
     setPlayers((prevPlayers) => {
       const updatedPlayers = {
         ...prevPlayers,
@@ -120,16 +129,39 @@ const WaitingPage = () => {
   };
 
   const handleReady = () => {
+    console.log("READY BUTTON CLICKED");
     const roomKey = localStorage.getItem("roomKey");
 
-    if (socket && roomKey) {
-      socket.emit('player_ready', { roomKey, playerName: displayName });
+    if (!displayName) {
+      const userDisplayName = localStorage.getItem("displayName");
+      setDisplayName(userDisplayName);
     }
 
+    if (socket && roomKey) {
+      try {
+        console.log(`${roomKey} - ${displayName} ready status toggled from ${readyStatus}`);
+        socket.emit("player_ready", { roomKey, playerName: displayName });
+        window.togglePlayerStatus(roomKey, displayName);
+        setReadyStatus((prevStatus) => !prevStatus);
+      } catch (error) {
+        console.error("Error toggling player status:", error);
+      }
+    }
+
+  router.push("/game-search-page");
+};
+
+  useEffect(() => {
+    const allReady = Object.keys(players).every(player => players[player].ready);
+    console.log("All players ready: ", allReady);
+    if (Object.keys(players).length > 1 && allReady) {
+      console.log("Players ready:", players);
       router.push('/game-search-page');
-  };
+    }
+  }, [players, router]);
 
   const handleExit = () => {
+    console.log("EXIT BUTTON CLICKED");
     const roomKey = localStorage.getItem("roomKey");
     socket.emit("player_left", { roomKey, playerName: displayName });
     socket.disconnect();
@@ -167,9 +199,12 @@ const WaitingPage = () => {
         {Object.keys(players).length > 0 ? (
           Object.keys(players)
             .map((player, index) => (
-              <div key={index} className={styles.playerBox}>
+              <div className={styles.playersContainer}>
+              <div key={index} className={styles.playerCircle}>
                 {player} {players[player].status === 'ready' && '(Ready)'}
                 {player === displayName && ' (You)'}
+              </div>
+              {players[player].ready ? <div className={styles.readyStatus}>Ready</div> : <div className={styles.readyStatus}>Not Ready</div>}
               </div>
             ))
         ) : (
@@ -177,8 +212,9 @@ const WaitingPage = () => {
         )}
       </div>
 
-      <div>
-        <button className={styles.readyButton} onClick={handleReady}>Ready</button>
+      <div className={styles.readyStatusContainer}>
+        <button className={`${styles.readyButton} ${readyStatus ? '' : styles.readyButtonMarginBottom}`} onClick={handleReady}>Ready</button>
+        {readyStatus ? <p className={styles.waitingMessage}>Waiting for other players...</p> : null}
       </div>
 
       <div className={styles.rulesToggle} onClick={toggleRules}>
@@ -186,7 +222,10 @@ const WaitingPage = () => {
       </div>
 
       <div className={`${styles.rulesBox} ${showRules ? styles.active : ''}`}>
-        <h2 className={styles.gameRules}>Jeopardy Game Rules</h2>
+        <div className={styles.rulesBoxHeader}>
+          <h2 className={styles.gameRules}>Jeopardy Game Rules</h2>
+          <IoMdCloseCircleOutline className={styles.closeRules} onClick={toggleRules} />
+        </div>
         <ul>
           <li className={styles.gameRules}>Select a category and dollar amount from the game board.</li>
           <li className={styles.gameRules}>Read the clue carefully and formulate your response.</li>
