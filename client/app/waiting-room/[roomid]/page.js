@@ -6,6 +6,7 @@ import Image from 'next/image';
 import styles from '../waiting-page.module.css';
 import { useSocket } from "../../socketClient";
 import { useSelector } from 'react-redux';
+import { IoMdCloseCircleOutline } from "react-icons/io";
 
 const WaitingPage = () => {
   const user = useSelector((state) => state.auth.user);
@@ -173,7 +174,10 @@ const WaitingPage = () => {
       </div>
 
       <div className={`${styles.rulesBox} ${showRules ? styles.active : ''}`}>
-        <h2 className={styles.gameRules}>Jeopardy Game Rules</h2>
+        <div className={styles.rulesBoxHeader}>
+          <h2 className={styles.gameRules}>Jeopardy Game Rules</h2>
+          <IoMdCloseCircleOutline className={styles.closeRules} onClick={toggleRules} />
+        </div>
         <ul>
           <li className={styles.gameRules}>Select a category and dollar amount from the game board.</li>
           <li className={styles.gameRules}>Read the clue carefully and formulate your response.</li>
