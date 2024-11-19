@@ -62,7 +62,7 @@ function setupSocketServer(server) {
             if (!rooms[roomKey]) {
                 rooms[roomKey] = {}; // Create the room if it doesn't exist
             }
-            rooms[roomKey][currentDisplayName] = 0; // Default starting money in the new room
+            rooms[roomKey][currentDisplayName] = {money: 0, ready: false}; // Default money/ready status
             socket.join(roomKey); // Join the new room
 
             console.log(`User "${currentDisplayName}" joined room "${roomKey}"`);
@@ -86,12 +86,13 @@ function setupSocketServer(server) {
 
         // Event listener for player joining room
         socket.on("player_joined", ({ roomKey, playerName }) => {
+            console.log("Player joined room called in server:", roomKey, playerName);
             if(!rooms[roomKey]) {
                 rooms[roomKey] = {};
             }
             
             rooms[roomKey][playerName] = {money: 0, ready: false}; // Default money/ready status
-            io.to(roomKey).emit("players_list", { players: rooms[roomKey] });
+            io.to(roomKey).emit("update_players_list", { players: rooms[roomKey] });
         });
 
         // Server-side custom leaveRoom event
@@ -114,7 +115,7 @@ function setupSocketServer(server) {
                 player.ready = !player.ready;
                 console.log(`Player ${displayName} ready status toggled to ${player.ready}`);
 
-                io.to(roomKey).emit("players_list", { players: rooms[roomKey] });
+                io.to(roomKey).emit("update_players_list", { players: rooms[roomKey] });
             } else {
                 console.log(`Player ${displayName} or room ${roomKey} not found`);
             }
@@ -124,7 +125,7 @@ function setupSocketServer(server) {
         socket.on("getPlayersInRoom", ({ roomKey }) => {
             console.log("Request to server for players list in room:", roomKey);
             if (rooms[roomKey]) {
-                socket.emit("players_list", { players: rooms[roomKey] });
+                socket.emit("update_players_list", { players: rooms[roomKey] });
             } else {
                 console.log(`Room ${roomKey} does not exist.`);
             }
@@ -141,7 +142,7 @@ function setupSocketServer(server) {
                 }
         
                 if (rooms[roomKey][displayName] !== undefined) {
-                    rooms[roomKey][displayName] = money; // Update the player's money
+                    rooms[roomKey][displayName].money = money; // Update the player's money
                     console.log(`Updated money for ${displayName} in room ${roomKey}: ${money}`);
                 } else {
                     console.log(`Player ${displayName} is not in room ${roomKey}`);

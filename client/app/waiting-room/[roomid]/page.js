@@ -22,12 +22,14 @@ const WaitingPage = () => {
 
     if (message.type === 'player_joined' || message.type === 'player_ready') {
       updatePlayerList(message);
-    } else if (message.type === 'players_list') {
+    } else if (message.type === 'update_players_list') {
       setPlayers(message.players);
     }
   });
 
   useEffect(() => {
+    console.log("WaitingPage useEffect");
+    console.log("player:", players, "displayName:", displayName, "readyStatus:", readyStatus);
     const storedRoomKey = localStorage.getItem("roomKey");
     const completeRoomInfo = JSON.parse(localStorage.getItem("completeRoomInfo"));
 
@@ -46,27 +48,29 @@ const WaitingPage = () => {
     // Emit the player join event when user enters the room
     if (socket && storedRoomKey && displayName) {
       socket.emit("getPlayersInRoom", { roomKey: storedRoomKey });
-      socket.on("players_list", (message) => {
+      socket.on("update_players_list", (message) => {
         console.log("Players list received from server:", message.players);
         setPlayers(message.players);
       });
 
       if(!Object.keys(players).includes(displayName)) {
-        socket.emit('player_joined', { roomKey: storedRoomKey, playerName: displayName, playerStatus: "joined" });
+        socket.emit('player_joined', { roomKey: storedRoomKey, playerName: displayName});
       }
     }
 
     return () => {
       // Clean up socket listeners on unmount
       if (socket) {
+        console.log("Cleaning up socket listeners in WaitingPage...");
         socket.off('player_joined');
         socket.off('player_ready');
-        socket.off('players_list');
+        socket.off('update_players_list');
       }
     };
   }, [socket, user, displayName]);
 
   const updatePlayerList = (message) => {
+    console.log("updatingPlayerList", message);
     setPlayers((prevPlayers) => {
       const updatedPlayers = {
         ...prevPlayers,
@@ -77,7 +81,11 @@ const WaitingPage = () => {
   };
 
   const handleReady = () => {
+    console.log("READY BUTTON CLICKEDDDD")
     const roomKey = localStorage.getItem("roomKey");
+
+    console.log("player:", players, "displayName:", displayName, "readyStatus:", readyStatus);
+
     
     if(!displayName) {
       const userDisplayName = localStorage.getItem("displayName");
@@ -87,18 +95,23 @@ const WaitingPage = () => {
     try {
       console.log(`${roomKey} - ${displayName} ready status toggled from ${readyStatus}`);
       window.togglePlayerStatus(roomKey, displayName);  
-      readyStatus ? setReadyStatus(false) : setReadyStatus(true);
+      setReadyStatus((prevStatus) => !prevStatus);
     } catch (error) {
       console.error("Error toggling player status:", error);
     }
-
-    if(Object.keys(players).length > 1 && Object.keys(players).every(player => players[player].ready)) {
-      console.log("Players ready:", players);
-      router.push('/game-search-page');
-    } 
   };
 
+  useEffect(() => {
+    const allReady = Object.keys(players).every(player => players[player].ready);
+    console.log("All players ready: ", allReady);
+    if (Object.keys(players).length > 1 && allReady) {
+      console.log("Players ready:", players);
+      router.push('/game-search-page');
+    }
+  }, [players, router]);
+
   const handleExit = () => {
+    console.log("EXIT BUTTON CLICKED");
     const roomKey = localStorage.getItem("roomKey");
     socket.emit("player_left", { roomKey, playerName: displayName });
     socket.disconnect();
@@ -153,7 +166,7 @@ const WaitingPage = () => {
         {readyStatus ? <p className={styles.waitingMessage}>Waiting for other players...</p> : null}
       </div>
 
-      <div className={styles.rulesToggle} onClick={toggleRules}>
+      {/* <div className={styles.rulesToggle} onClick={toggleRules}>
         {showRules ? 'Hide Rules' : 'Show Rules'}
       </div>
 
@@ -172,7 +185,7 @@ const WaitingPage = () => {
           <li className={styles.gameRules}>Final Jeopardy!: All players can wager any amount up to their total score on the final clue.</li>
           <li className={styles.gameRules}>Timing: You have a limited time to buzz in after the clue is read, and then to provide your answer.</li>
         </ul>
-      </div>
+      </div> */}
     </div>
   );
 };

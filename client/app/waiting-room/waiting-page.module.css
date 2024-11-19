@@ -195,6 +195,7 @@
   transform: translate(-50%, -50%);
   opacity: 0;
   transition: opacity 0.3s ease;
+  pointer-events: none;
 }
 
 .readyButton:hover::before {
@@ -203,7 +204,7 @@
 
 .readyButton:hover {
   color: transparent;
-  background-color: #28a745;
+  background-color: #24943e;
 }
 
 .readyButtonActive {
