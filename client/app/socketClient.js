@@ -18,9 +18,9 @@ export const useSocket = (onMessageReceivedCallback) => {
   useEffect(() => {
     if (user && (window.location.pathname != "/")) {
       setDisplayName(user.displayName);
+      setSocketDisplayName(user.displayName);
       socketDisplayNameRef.current = user.displayName;
-    } 
-    else if (window.location.pathname != "/") {
+    } else if (window.location.pathname != "/") {
       const storedDisplayName = localStorage.getItem("displayName");
       if (storedDisplayName) {
         setSocketDisplayName(storedDisplayName);
