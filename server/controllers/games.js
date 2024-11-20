@@ -173,16 +173,21 @@ router.post("/next-round/:gameId", (req, res) => {
   res.status(200).json({ round: game.round, roundInfo });
 });
 
-// API endpoint to manually end a game
+// Update the existing end-game endpoint
 router.post("/end-game/:gameId", (req, res) => {
   const { gameId } = req.params;
+  const { participantData } = req.body; // Expect participantData in request body
 
   if (!activeGames[gameId]) {
     return res.status(404).json({ message: "Game not found." });
   }
 
-  endGame(gameId);
-  res.status(200).json({ message: `Game ${gameId} has been ended.` });
+  if (!participantData || typeof participantData !== 'object') {
+    return res.status(400).json({ message: "Invalid participant data." });
+  }
+
+  endGame(gameId, participantData);
+  res.status(200).json({ message: `Game ${gameId} has been ended and cleaned up.` });
 });
 
 module.exports = router;
@@ -200,4 +205,34 @@ router.post("/set-in-progress/:gameId", (req, res) => {
   game.lastActivity = Date.now(); // Update last activity timestamp for tracking
 
   res.status(200).json({ message: `Game ${gameId} is now in progress.` });
+});
+
+// Add a participant to a game
+router.post("/add-participant/:gameId", (req, res) => {
+  const { gameId } = req.params;
+  const { userId, displayName } = req.body;
+
+  if (!userId || !activeGames[gameId]) {
+    return res.status(400).json({ message: "Invalid game or user ID." });
+  }
+
+  if (!gameParticipants[gameId]) {
+    gameParticipants[gameId] = {}; // Store participants as an object with userId keys
+  }
+
+  gameParticipants[gameId][userId] = { displayName }; // Store displayName with userId
+  res.status(200).json({ message: `User ${userId} (${displayName}) added to game ${gameId}.` });
+});
+
+// Remove a participant from a game
+router.post("/remove-participant/:gameId", (req, res) => {
+  const { gameId } = req.params;
+  const { userId } = req.body;
+
+  if (!userId || !gameParticipants[gameId]) {
+    return res.status(400).json({ message: "Invalid game or user ID." });
+  }
+
+  gameParticipants[gameId].delete(userId);
+  res.status(200).json({ message: `User ${userId} removed from game ${gameId}.` });
 });

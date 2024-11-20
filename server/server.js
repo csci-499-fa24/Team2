@@ -21,6 +21,20 @@ const server = http.createServer(app);
 app.use("/api", routes);
 
 global.activeGames = {}; // Define activeGames as a global variable
+global.gameParticipants = {}; // New global variable to store participants by gameID
+
+//gameParticipants looks like this:
+// global.gameParticipants = {
+//   "GAME123": {
+//     "user001": { displayName: "Henry Danger" },
+//     "user002": { displayName: "Jane Doe" }
+//   },
+//   "GAME456": {
+//     "user003": { displayName: "Player One" },
+//     "user004": { displayName: "Player Two" },
+//     "user005": { displayName: "Player Three" }
+//   }
+// };
 
 // Define cleanup interval and threshold for inactivity
 const CLEANUP_INTERVAL = 5 * 60 * 1000; // 5 minutes
