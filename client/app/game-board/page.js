@@ -267,6 +267,41 @@ export default function GameBoardPage() {
     }
   }, [roundInfo, playerScores, lastPlayerCorrect]);
 
+  function parseQuestionContent(questionText) {
+    let imageLink = null;
+    let mediaLink = null;
+    let processedText = questionText;
+
+    // Use a regular expression to find the <a href="..."> tag
+    const linkRegex = /<a href="(.*?)"[^>]*>(.*?)<\/a>/i;
+    const match = linkRegex.exec(questionText);
+
+    if (match) {
+      const href = match[1]; // The href link
+      const linkText = match[2]; // The text inside the <a> tag (e.g., "here")
+      // Determine if the link is an image or media
+      const extension = href.split('.').pop().toLowerCase();
+      if (['jpg', 'jpeg', 'png', 'gif'].includes(extension)) {
+        imageLink = href;
+        // Replace the <a> tag with "above" or "above " if needed
+        processedText = questionText.replace(match[0], "above");
+      } else if (['mp3', 'mp4'].includes(extension)) {
+        mediaLink = href;
+        // Replace the <a> tag with "Link to Media"
+        processedText = questionText.replace(match[0], "[Content Linked Above]");
+      } else {
+        // Other types of links, treat as media link
+        mediaLink = href;
+        processedText = questionText.replace(match[0], "[Content Linked Above]");
+      }
+    }
+
+    // Remove any other HTML tags except <a>
+    processedText = processedText.replace(/<\/?(?!a)([^>]+)>/gi, '');
+
+    return { processedText, imageLink, mediaLink };
+  }
+
   const clickMe = useCallback(
     (question, value) => {
       const isCurrentPlayerTurn = localStorage.getItem("displayName") === lastPlayerCorrect;
@@ -311,9 +346,14 @@ export default function GameBoardPage() {
       });
 
       setTimeout(() => {
+        // Process the question content to extract image link
+        const { processedText, imageLink, mediaLink } = parseQuestionContent(question.question);
         setSelectedQuestion({
           ...question,
           isDailyDouble: question.question === dailyDoubleClue,
+          processedText,
+          imageLink,
+          mediaLink,
         });
         setCurrentClueAnswer(question.answer); // Set the current clue answer
       }, 500);
@@ -345,9 +385,14 @@ export default function GameBoardPage() {
 
       setDisabledQuestions(updatedDisabledQuestions);
       setTimeout(() => {
+        // Process the question content to extract image link
+        const { processedText, imageLink, mediaLink } = parseQuestionContent(question.question);
         setSelectedQuestion({
           ...question,
           isDailyDouble: question.question === dailyDoubleClue,
+          processedText,
+          imageLink,
+          mediaLink,
         });
         setCurrentClueAnswer(question.answer); // Set the current clue answer
       }, 500);
@@ -762,10 +807,24 @@ export default function GameBoardPage() {
         >
           {selectedQuestion ? (
             <div className={styles.questionContent}>
+              {selectedQuestion.imageLink && (
+                <img
+                  src={selectedQuestion.imageLink}
+                  alt="Clue image"
+                  className={styles.clueImage}
+                />
+              )}
+              {selectedQuestion.mediaLink && (
+                <div className={styles.mediaLinkContainer}>
+                  <a href={selectedQuestion.mediaLink} target="_blank" rel="noopener noreferrer">
+                    Link to Media
+                  </a>
+                </div>
+              )}
               <h2 className={styles.questionHeader}>
                 {selectedQuestion.category}
               </h2>
-              <p className={styles.questionText}>{selectedQuestion.question}</p>
+              <p className={styles.questionText}>{selectedQuestion.processedText}</p>
               <form onSubmit={handleSubmit}>
                 <input
                   type="text"
@@ -799,11 +858,25 @@ export default function GameBoardPage() {
         >
           {selectedQuestion ? (
             <div className={styles.questionContent}>
+              {selectedQuestion.imageLink && (
+                <img
+                  src={selectedQuestion.imageLink}
+                  alt="Clue image"
+                  className={styles.clueImage}
+                />
+              )}
+              {selectedQuestion.mediaLink && (
+                <div className={styles.mediaLinkContainer}>
+                  <a href={selectedQuestion.mediaLink} target="_blank" rel="noopener noreferrer">
+                    Link to Media
+                  </a>
+                </div>
+              )}
               <h2 className={styles.dailyDoubleHeader}>DAILY DOUBLE!</h2>
               <h2 className={styles.questionHeader}>
                 {selectedQuestion.category}
               </h2>
-              <p className={styles.questionText}>{selectedQuestion.question}</p>
+              <p className={styles.questionText}>{selectedQuestion.processedText}</p>
               {!dailyDoubleExpandingBox.isOtherUser ? (
               <>
                 <form onSubmit={handleSubmit}>
