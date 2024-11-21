@@ -25,6 +25,8 @@ export default function GameBoardPage() {
   const [correctNotification, setCorrectNotification] = useState(null);
   const [turnNotification, setTurnNotification] = useState(null);
   const [lastPlayerCorrect, setLastPlayerCorrect] = useState("");
+  const [currentClueAnswer, setCurrentClueAnswer] = useState(null);
+  const [clueAnswerNotification, setClueAnswerNotification] = useState(null);
   const questionRef = useRef(null);
   const router = useRouter();
 
@@ -313,6 +315,7 @@ export default function GameBoardPage() {
           ...question,
           isDailyDouble: question.question === dailyDoubleClue,
         });
+        setCurrentClueAnswer(question.answer); // Set the current clue answer
       }, 500);
       setAnswerFeedback("");
     },
@@ -346,6 +349,7 @@ export default function GameBoardPage() {
           ...question,
           isDailyDouble: question.question === dailyDoubleClue,
         });
+        setCurrentClueAnswer(question.answer); // Set the current clue answer
       }, 500);
       setAnswerFeedback("");
       setAnsweredAlready(false);
@@ -357,13 +361,19 @@ export default function GameBoardPage() {
     setSelectedQuestion(null);
     window.sendMessage({
       action: "closeQuestion",
-      content: "",
+      content: { clueAnswer: currentClueAnswer },
     });
+    // Display the notification locally
+    setClueAnswerNotification(`The correct answer was: ${currentClueAnswer}`);
+    setTimeout(() => {
+      setClueAnswerNotification(null);
+    }, 3000);
     setTimeout(() => {
       setExpandingBox(null);
       setDailyDoubleExpandingBox(null);
     }, 500);
-  }, []);
+    setCurrentClueAnswer(null); // Clear the current clue answer
+  }, [currentClueAnswer]);
 
   // Triggering nextRound message function
   const calledNextRound = useCallback(() => {
@@ -379,12 +389,18 @@ export default function GameBoardPage() {
     updateRound();
   }, []);
 
-  const socketCloseQuestion = useCallback(() => {
+  const socketCloseQuestion = useCallback((clueAnswer) => {
     setSelectedQuestion(null);
+    // Display the notification
+    setClueAnswerNotification(`The correct answer was: ${clueAnswer}`);
+    setTimeout(() => {
+      setClueAnswerNotification(null);
+    }, 3000);
     setTimeout(() => {
       setExpandingBox(null);
       setDailyDoubleExpandingBox(null);
     }, 500);
+    setCurrentClueAnswer(null); // Clear the current clue answer
   }, []);
 
   const handleServerMessage = useCallback(
@@ -408,7 +424,8 @@ export default function GameBoardPage() {
           clickedByUser
         );
       } else if (action === "closeQuestion") {
-        socketCloseQuestion();
+        const { clueAnswer } = message["content"];
+        socketCloseQuestion(clueAnswer);
       } else if (action === "syncDisabledQuestions") {
         console.log("Syncing disabled questions:", message["content"]);
         setDisabledQuestions(message["content"]);
@@ -423,7 +440,7 @@ export default function GameBoardPage() {
         setLastPlayerCorrect(message["content"]["lastPlayerCorrect"]);
       }
     },
-    [socketClickMe, socketCloseQuestion]
+    [socketClickMe, socketCloseQuestion, socketNextRound]
   );
 
   const handleRoomData = useCallback((rooms) => {
@@ -842,6 +859,11 @@ export default function GameBoardPage() {
       )}
       {turnNotification && (
         <div className={styles.turnNotification}>{turnNotification}</div>
+      )}
+      {clueAnswerNotification && (
+        <div className={styles.clueAnswerNotification}>
+          {clueAnswerNotification}
+        </div>
       )}
       <div>
         {!selectedQuestion && (

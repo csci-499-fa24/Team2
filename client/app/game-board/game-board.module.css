@@ -357,3 +357,17 @@
   text-align: center;
   color: rgb(238, 196, 78); /* Match the color of player scores */
 }
+
+.clueAnswerNotification {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  padding: 20px 40px;
+  background-color: #2196F3; /* Blue color */
+  color: white;
+  border-radius: 8px;
+  font-weight: bold;
+  font-size: 1.2rem;
+  z-index: 1000;
+  animation: fadeout 9s ease-out;
+}
