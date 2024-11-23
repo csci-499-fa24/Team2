@@ -736,6 +736,13 @@ export default function GameBoardPage() {
           <h2>Player Selecting Next:</h2>
           <p>{lastPlayerCorrect}</p>
         </div>
+        <div className={styles.nextRoundButtonContainer}>
+          {!selectedQuestion && (
+            <button onClick={nextRound} className={styles.nextRoundButton}>
+              {round === "Final Jeopardy!" ? "End Game" : "Next Round!"}
+            </button>
+          )}
+        </div>
       </div>
       {expandingBox && (
         <div
@@ -843,13 +850,6 @@ export default function GameBoardPage() {
       {turnNotification && (
         <div className={styles.turnNotification}>{turnNotification}</div>
       )}
-      <div>
-        {!selectedQuestion && (
-          <button onClick={nextRound} className={styles.nextRoundButton}>
-            {round === "Final Jeopardy!" ? "End Game" : "Next Round!"}
-          </button>
-        )}
-      </div>
     </div>
   );
 }
