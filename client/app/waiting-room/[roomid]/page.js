@@ -1,25 +1,23 @@
 "use client";
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import jeopardyLogo from "../../icons/Jeopardy-Symbol.png";
-import Image from 'next/image';
-import styles from '../waiting-page.module.css';
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { useSocket } from "../../socketClient";
-import { useSelector } from 'react-redux';
+import { useSelector } from "react-redux";
 import { IoMdCloseCircleOutline } from "react-icons/io";
-
+import jeopardyLogo from "../../icons/Jeopardy-Symbol.png";
+import styles from "../waiting-page.module.css";
 
 const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL;
-
 
 function getMaxPlayersByGameId(gameId, games) {
   if (!Array.isArray(games)) {
     console.error("The 'games' parameter is not an array:", games);
-    return null; // Return null if games is not an array
+    return null;
   }
 
   const game = games.find((game) => game.gameId === gameId);
-  return game ? game.maxPlayers : null; // Return null if gameId is not found
+  return game ? game.maxPlayers : null;
 }
 
 const fetchAvailableRooms = async () => {
@@ -27,21 +25,19 @@ const fetchAvailableRooms = async () => {
     const response = await fetch(
       `${serverUrl}/api/games/active-games?includePrivate=true&includeInProgress=true&includeMaxPlayers=true`
     );
-
     if (response.ok) {
       const data = await response.json();
       console.log("Fetched data: ", data);
-      return data.activeGames; 
+      return data.activeGames;
     } else {
       console.error("Failed to fetch available rooms");
-      return []; // Return an empty array in case of an error
+      return [];
     }
   } catch (error) {
     console.error("Error fetching available rooms:", error);
-    return []; // Return an empty array in case of an exception
+    return [];
   }
 };
-
 
 const WaitingPage = () => {
   const user = useSelector((state) => state.auth.user);
@@ -51,48 +47,56 @@ const WaitingPage = () => {
   const [displayName, setDisplayName] = useState(null);
   const [maxPlayers, setMaxPlayers] = useState(4);
   const [readyStatus, setReadyStatus] = useState(false);
+  const [roomIsFull, setRoomIsFull] = useState(false);  
   const router = useRouter();
 
   const socket = useSocket((message) => {
     console.log("Message received from server:", message);
 
-    if (message.type === 'player_joined' || message.type === 'player_ready') {
+    if (message.type === "player_joined" || message.type === "player_ready") {
       updatePlayerList(message);
-    } else if (message.type === 'update_players_list') {
+    } else if (message.type === "update_players_list") {
       setPlayers(message.players);
     }
   });
 
   useEffect(() => {
-    console.log("WaitingPage useEffect");
-    console.log("player:", players, "displayName:", displayName, "readyStatus:", readyStatus);
+    console.log("WaitingPage useEffect triggered");
     const storedRoomKey = localStorage.getItem("roomKey");
-    const completeRoomInfo = JSON.parse(localStorage.getItem("completeRoomInfo"));
-    console.log("WHATEVER THIS IS",completeRoomInfo)
 
     if (storedRoomKey) {
       setRoomNumber(storedRoomKey);
       fetchAvailableRooms()
-      .then((availableRooms) => {
-        console.log("Availabel ROoms",availableRooms)
-        const maxPlayersForRoom = getMaxPlayersByGameId(storedRoomKey, availableRooms);
-        if (maxPlayersForRoom !== null) {
-          setMaxPlayers(maxPlayersForRoom);
-        } else {
-          console.error("Room key not found in available rooms");
-        }
-      })
-      .catch((error) => {
-        console.error("Error fetching available rooms:", error);
-      });
-  }
+        .then((availableRooms) => {
+          const maxPlayersForRoom = getMaxPlayersByGameId(
+            storedRoomKey,
+            availableRooms
+          );
+          if (maxPlayersForRoom !== null) {
+            setMaxPlayers(maxPlayersForRoom);
+            const currentPlayersInRoom = Object.keys(players).length;
+            // Check if room is full
+            if (currentPlayersInRoom > maxPlayersForRoom) {
+              setRoomIsFull(true);  // Mark room as full
+              alert("The room is full. Please join another room.");
+              router.push(`/user`);
+              return; 
+            }
+          } else {
+            console.error("Room key not found in available rooms");
+          }
+        })
+        .catch((error) => {
+          console.error("Error fetching available rooms:", error);
+        });
+    }
 
     const currentDisplayName = localStorage.getItem("displayName");
 
     if (currentDisplayName) {
       setDisplayName(currentDisplayName);
     } else {
-      setDisplayName(user?.email || 'Anonymous');
+      setDisplayName(user?.email || "Anonymous");
     }
 
     if (socket && storedRoomKey && displayName) {
@@ -102,123 +106,127 @@ const WaitingPage = () => {
         setPlayers(message.players);
       });
 
-      if(!Object.keys(players).includes(displayName)) {
-        socket.emit('player_joined', { roomKey: storedRoomKey, playerName: displayName});
+      if (!Object.keys(players).includes(displayName)) {
+        socket.emit("player_joined", {
+          roomKey: storedRoomKey,
+          playerName: displayName,
+        });
       }
     }
 
     return () => {
       if (socket) {
         console.log("Cleaning up socket listeners in WaitingPage...");
-        socket.off('player_joined');
-        socket.off('player_ready');
-        socket.off('update_players_list');
+        socket.off("player_joined");
+        socket.off("player_ready");
+        socket.off("update_players_list");
       }
     };
-  }, [socket, user, displayName]);
+  }, [socket, user, displayName, players]);
 
   const updatePlayerList = (message) => {
-    console.log("updatingPlayerList", message);
-    setPlayers((prevPlayers) => {
-      const updatedPlayers = {
-        ...prevPlayers,
-        [message.playerName]: { roomKey: message.roomKey, status: message.playerStatus }
-      };
-      return updatedPlayers;
-    });
+    setPlayers((prevPlayers) => ({
+      ...prevPlayers,
+      [message.playerName]: {
+        roomKey: message.roomKey,
+        status: message.playerStatus,
+      },
+    }));
   };
 
   const handleReady = () => {
-    console.log("READY BUTTON CLICKED");
     const roomKey = localStorage.getItem("roomKey");
-
     if (!displayName) {
-      const userDisplayName = localStorage.getItem("displayName");
-      setDisplayName(userDisplayName);
+      setDisplayName(localStorage.getItem("displayName"));
     }
-
     if (socket && roomKey) {
-      try {
-        console.log(`${roomKey} - ${displayName} ready status toggled from ${readyStatus}`);
-        socket.emit("player_ready", { roomKey, playerName: displayName });
-        window.togglePlayerStatus(roomKey, displayName);
-        setReadyStatus((prevStatus) => !prevStatus);
-      } catch (error) {
-        console.error("Error toggling player status:", error);
-      }
+      socket.emit("player_ready", { roomKey, playerName: displayName });
+      setReadyStatus((prevStatus) => !prevStatus);
     }
-
-  router.push("/game-search-page");
-};
-
-  useEffect(() => {
-    const allReady = Object.keys(players).every(player => players[player].ready);
-    console.log("All players ready: ", allReady);
-    if (Object.keys(players).length > 1 && allReady) {
-      console.log("Players ready:", players);
-      router.push('/game-search-page');
-    }
-  }, [players, router]);
+    router.push("/game-search-page");
+  };
 
   const handleExit = () => {
-    console.log("EXIT BUTTON CLICKED");
     const roomKey = localStorage.getItem("roomKey");
     socket.emit("player_left", { roomKey, playerName: displayName });
     socket.disconnect();
     router.push(`/${user.uid}`);
   };
 
-  const toggleRules = () => setShowRules(prevState => !prevState);
+  const toggleRules = () => setShowRules((prevState) => !prevState);
 
   return (
     <div className={styles.page}>
       <header className={styles.header}>
         <div className={styles.headerContainer}>
           <div className={styles.logoContainer}>
-            <Image src={jeopardyLogo} alt="Jeopardy Logo" width={200} height={100} />
+            <Image
+              src={jeopardyLogo}
+              alt="Jeopardy Logo"
+              width={200}
+              height={100}
+            />
             <div className={styles.withFriends}>With Friends!</div>
           </div>
           <div className={styles.exitButtonContainer}>
-            <button className={styles.exitButton} onClick={handleExit}>Exit Room</button>
+            <button className={styles.exitButton} onClick={handleExit}>
+              Exit Room
+            </button>
           </div>
         </div>
       </header>
 
       <div className={styles.roomInfo}>
         <h1>Room Number: {roomNumber}</h1>
-        <h2>Players: {Object.keys(players).length}/{maxPlayers}</h2>
+        <h2>
+          Players: {roomIsFull ? maxPlayers : Object.keys(players).length}/{maxPlayers}
+        </h2>
       </div>
 
       <div className={styles.waitingContent}>
         <h1 className={styles.playerStatus}>
-          {Object.keys(players).length === 0 ? 'Waiting for players...' : 'Current players in the room:'}
+          {Object.keys(players).length === 0
+            ? "Waiting for players..."
+            : "Current players in the room:"}
         </h1>
       </div>
 
       <div className={styles.readyPlayers}>
         {Object.keys(players).length > 0 ? (
-          Object.keys(players)
-            .map((player, index) => (
-              <div className={styles.playersContainer}>
-              <div key={index} className={styles.playerCircle}>
-                {player} {players[player].status === 'ready' && '(Ready)'}
-                {player === displayName && ' (You)'}
+          Object.keys(players).map((player, index) => (
+            <div className={styles.playersContainer} key={index}>
+              <div className={styles.playerCircle}>
+                {player} {players[player].status === "ready" && "(Ready)"}
+                {player === displayName && " (You)"}
               </div>
-              {players[player].ready ? <div className={styles.readyStatus}>Ready</div> : <div className={styles.readyStatus}>Not Ready</div>}
+              <div className={styles.readyStatus}>
+                {players[player].status === "ready"
+                  ? "Ready"
+                  : "Not Ready"}
               </div>
-            ))
+            </div>
+          ))
         ) : (
           <div>No players in this room.</div>
         )}
       </div>
 
       <div className={styles.readyStatusContainer}>
-        <button className={`${styles.readyButton} ${readyStatus ? '' : styles.readyButtonMarginBottom}`} onClick={handleReady}>Ready</button>
-        {readyStatus ? <p className={styles.waitingMessage}>Waiting for other players...</p> : null}
+        <button
+          className={`${styles.readyButton} ${
+            readyStatus ? "" : styles.readyButtonMarginBottom
+          }`}
+          onClick={handleReady}
+        >
+          Ready
+        </button>
+        {readyStatus && (
+          <p className={styles.waitingMessage}>Waiting for other players...</p>
+        )}
       </div>
 
       <div className={styles.rulesToggle} onClick={toggleRules}>
-        {showRules ? 'Hide Rules' : 'Show Rules'}
+        {showRules ? "Hide Rules" : "Show Rules"}
       </div>
 
       <div className={`${styles.rulesBox} ${showRules ? styles.active : ''}`}>

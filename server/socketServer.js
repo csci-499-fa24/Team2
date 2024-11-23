@@ -2,7 +2,15 @@ const { Server } = require('socket.io');
 
 let io;
 const rooms = {
-    "": {money: 0, ready: false}, // Default room for users without a room, stores players and their money
+    "": { money: 0, ready: false }, // Default room for users without a room, stores players and their money
+};
+
+const MAX_PLAYERS = {
+    "room1": 4, // Example: Room 1 can have up to 4 players
+    "room2": 5, // Room 2 can have up to 5 players
+    "room3": 6, // Room 3 can have up to 6 players
+    "room4": 7, // Room 4 can have up to 7 players
+    "room5": 8, // Room 5 can have up to 8 players
 };
 
 function setupSocketServer(server) {
@@ -42,7 +50,7 @@ function setupSocketServer(server) {
                 socket.emit("promptDisplayName", "Please set your display name before joining a room.");
                 return;
             }
-            
+
             /* 
             Originally there was a block of code here that removed user from default room
             It's actually easier to keep a duplicate of everyone in the default room to refer back to
@@ -53,6 +61,13 @@ function setupSocketServer(server) {
                 delete rooms[currentRoomKey][currentDisplayName]; // Remove from the previous room
                 socket.leave(currentRoomKey); // Leave the previous room
                 console.log(`User "${currentDisplayName}" removed from room "${currentRoomKey}".`);
+            }
+
+            // Check if the room has reached the maximum player limit
+            if (rooms[roomKey] && Object.keys(rooms[roomKey]).length >= MAX_PLAYERS[roomKey]) {
+                console.log(`Room "${roomKey}" is full. Cannot join.`);
+                socket.emit("roomFull", `Room "${roomKey}" has reached the maximum player limit.`);
+                return;
             }
 
             // Update the current room key to the new room
@@ -87,11 +102,18 @@ function setupSocketServer(server) {
         // Event listener for player joining room
         socket.on("player_joined", ({ roomKey, playerName }) => {
             console.log("Player joined room called in server:", roomKey, playerName);
-            if(!rooms[roomKey]) {
+            if (!rooms[roomKey]) {
                 rooms[roomKey] = {};
             }
-            
-            rooms[roomKey][playerName] = {money: 0, ready: false}; // Default money/ready status
+
+            // Check if room exceeds max players
+            if (Object.keys(rooms[roomKey]).length >= MAX_PLAYERS[roomKey]) {
+                console.log(`Room ${roomKey} is full. Cannot add player ${playerName}`);
+                socket.emit("roomFull", `Room ${roomKey} is full. Cannot join.`);
+                return;
+            }
+
+            rooms[roomKey][playerName] = { money: 0, ready: false }; // Default money/ready status
             io.to(roomKey).emit("update_players_list", { players: rooms[roomKey] });
         });
 
@@ -110,7 +132,7 @@ function setupSocketServer(server) {
         // Event listener for toggling player ready status in room
         socket.on("player_ready", ({ roomKey, displayName }) => {
             console.log(`Player ${displayName} ready status toggled in room ${roomKey}`);
-            if(rooms[roomKey] && rooms[roomKey][displayName]) {
+            if (rooms[roomKey] && rooms[roomKey][displayName]) {
                 const player = rooms[roomKey][displayName];
                 player.ready = !player.ready;
                 console.log(`Player ${displayName} ready status toggled to ${player.ready}`);
@@ -138,7 +160,7 @@ function setupSocketServer(server) {
             // Ensure the displayName and roomKey are valid
             if (displayName && roomKey) {
                 if (!rooms[roomKey]) {
-                    rooms[roomKey] = {money: 0, ready: false}; // Create the room if it doesn't exist
+                    rooms[roomKey] = { money: 0, ready: false }; // Create the room if it doesn't exist
                 }
         
                 if (rooms[roomKey][displayName] !== undefined) {
