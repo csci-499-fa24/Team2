@@ -2,8 +2,7 @@
   background-color: rgb(0, 0, 1);
   font-family: "Impact", sans-serif;
   width: 100vw;
-  height: 100vh;
-  overflow: hidden;
+  min-height: 100vh;
   display: flex;
 }
 
@@ -24,15 +23,16 @@
 
 .playerScores {
   width: 20%;
-  height: 97.5%;
+  height: auto;
+  flex-grow: 1;
+  flex-shrink: 1;
   background-color: rgb(7, 18, 119);
   color: rgb(238, 196, 78);
   padding: 20px;
   display: flex;
   flex-direction: column;
-  margin-top: 10px;
-  margin-right: 12px;
-  margin-left: 8px;
+  align-items: center;
+  margin: 10px 12px 10px 8px; /* top right bottom left */
   border-radius: 10px;
 }
 
@@ -61,8 +61,8 @@
 }
 
 .button {
-  width: 300px;
-  height: 130px;
+  width: 200px;
+  height: 100px;
   margin: 10px;
   color: rgb(238, 196, 78);
   background-color: rgb(7, 18, 119);
@@ -103,24 +103,6 @@
   background-color: rgb(240, 214, 107);
   transform: scale(1.1);
   color: white;
-}
-
-.next-round-button {
-  padding: 15px 30px;
-  font-size: 20px;
-  background-color: rgb(238, 196, 78);
-  color: rgb(7, 18, 119);
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  margin-top: auto;
-  margin-bottom: 20px;
-  align-self: center;
-  transition: background-color 0.3s ease;
-}
-
-.next-round-button:hover {
-  background-color: rgb(240, 214, 107);
 }
 
 .modal {
@@ -269,11 +251,8 @@
 }
 
 .nextRoundButton {
-  position: absolute;
-  bottom: 30px;
-  right: 0px;
-  transform: translateX(-50%);
   padding: 15px 30px;
+  margin-top: 1rem;
   font-size: 24px;
   background-color: rgb(238, 196, 78);
   color: rgb(7, 18, 119);
@@ -287,9 +266,8 @@
 
 .nextRoundButton:hover {
   background-color: rgb(240, 214, 107);
-  transform: translateX(-50%) scale(1.05);
+  transform: scale(1.05);
 }
-
 
 .dailyDoubleHeader {
   font-size: 5rem; /* Make the text twice as big */

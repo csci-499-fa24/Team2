@@ -1,5 +1,5 @@
 .container {
-  min-height: 100vh;
+  height: 100vh;
   background-color: #001f3f;
   color: white;
   font-family: sans-serif;
@@ -14,7 +14,6 @@
 
 .howToPlay {
   width: 50%;
-  height: 820px;
   background-color: #002a5c;
   padding: 2rem;
   border-radius: 8px;
