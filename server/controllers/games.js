@@ -182,12 +182,14 @@ router.post("/end-game/:gameId", (req, res) => {
     return res.status(404).json({ message: "Game not found." });
   }
 
-  if (!participantData || typeof participantData !== 'object') {
+  if (!participantData || typeof participantData !== "object") {
     return res.status(400).json({ message: "Invalid participant data." });
   }
 
   endGame(gameId, participantData);
-  res.status(200).json({ message: `Game ${gameId} has been ended and cleaned up.` });
+  res
+    .status(200)
+    .json({ message: `Game ${gameId} has been ended and cleaned up.` });
 });
 
 module.exports = router;
@@ -221,18 +223,34 @@ router.post("/add-participant/:gameId", (req, res) => {
   }
 
   gameParticipants[gameId][userId] = { displayName }; // Store displayName with userId
-  res.status(200).json({ message: `User ${userId} (${displayName}) added to game ${gameId}.` });
+  res.status(200).json({
+    message: `User ${userId} (${displayName}) added to game ${gameId}.`,
+  });
 });
 
 // Remove a participant from a game
 router.post("/remove-participant/:gameId", (req, res) => {
   const { gameId } = req.params;
-  const { userId } = req.body;
+  const { userId, displayName } = req.body;
 
-  if (!userId || !gameParticipants[gameId]) {
-    return res.status(400).json({ message: "Invalid game or user ID." });
+  if (!userId || !gameId) {
+    return res.status(400).json({
+      message: "Invalid game or user ID.",
+    });
   }
 
-  gameParticipants[gameId].delete(userId);
-  res.status(200).json({ message: `User ${userId} removed from game ${gameId}.` });
+  if (!gameParticipants[gameId]) {
+    gameParticipants[gameId] = {};
+  }
+
+  if (gameParticipants[gameId][userId]) {
+    delete gameParticipants[gameId][userId];
+    res.status(200).json({
+      message: `User ${userId} (${displayName}) removed from game ${gameId}.`,
+    });
+  } else {
+    res.status(200).json({
+      message: `User ${userId} was already removed or not found in game ${gameId}.`,
+    });
+  }
 });
