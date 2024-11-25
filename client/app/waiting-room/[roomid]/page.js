@@ -7,39 +7,6 @@ import styles from "../waiting-page.module.css";
 import { useSocket } from "../../socketClient";
 import { useSelector } from "react-redux";
 import { IoMdCloseCircleOutline } from "react-icons/io";
-import jeopardyLogo from "../../icons/Jeopardy-Symbol.png";
-import styles from "../waiting-page.module.css";
-
-const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL;
-
-function getMaxPlayersByGameId(gameId, games) {
-  if (!Array.isArray(games)) {
-    console.error("The 'games' parameter is not an array:", games);
-    return null;
-  }
-
-  const game = games.find((game) => game.gameId === gameId);
-  return game ? game.maxPlayers : null;
-}
-
-const fetchAvailableRooms = async () => {
-  try {
-    const response = await fetch(
-      `${serverUrl}/api/games/active-games?includePrivate=true&includeInProgress=true&includeMaxPlayers=true`
-    );
-    if (response.ok) {
-      const data = await response.json();
-      console.log("Fetched data: ", data);
-      return data.activeGames;
-    } else {
-      console.error("Failed to fetch available rooms");
-      return [];
-    }
-  } catch (error) {
-    console.error("Error fetching available rooms:", error);
-    return [];
-  }
-};
 
 const WaitingPage = () => {
   const user = useSelector((state) => state.auth.user);
@@ -49,7 +16,6 @@ const WaitingPage = () => {
   const [displayName, setDisplayName] = useState(null);
   const [maxPlayers, setMaxPlayers] = useState(4);
   const [readyStatus, setReadyStatus] = useState(false);
-  const [roomIsFull, setRoomIsFull] = useState(false);  
   const router = useRouter();
 
   const socket = useSocket((message) => {
@@ -64,12 +30,14 @@ const WaitingPage = () => {
 
   useEffect(() => {
     console.log("WaitingPage useEffect");
-    console.log("player:", players, "displayName:", displayName, "readyStatus:", readyStatus);
     const storedRoomKey = localStorage.getItem("roomKey");
-    const completeRoomInfo = JSON.parse(localStorage.getItem("completeRoomInfo"));
+    const completeRoomInfo = JSON.parse(
+      localStorage.getItem("completeRoomInfo")
+    );
 
     if (storedRoomKey) {
       setRoomNumber(storedRoomKey);
+      window.addParticipant(storedRoomKey);
     }
 
     const currentDisplayName = localStorage.getItem("displayName");
@@ -80,6 +48,7 @@ const WaitingPage = () => {
       setDisplayName(user?.email || "Anonymous");
     }
 
+    // Emit the player join event when user enters the room
     if (socket && storedRoomKey && displayName) {
       socket.emit("getPlayersInRoom", { roomKey: storedRoomKey });
       socket.on("update_players_list", (message) => {
@@ -98,39 +67,54 @@ const WaitingPage = () => {
     return () => {
       if (socket) {
         console.log("Cleaning up socket listeners in WaitingPage...");
-        socket.off('player_joined');
-        socket.off('player_ready');
-        socket.off('update_players_list');
+        socket.off("player_joined");
+        socket.off("player_ready");
+        socket.off("update_players_list");
+
+        if (storedRoomKey) {
+          window.removeParticipant(storedRoomKey);
+        }
       }
     };
-  }, [socket, user, displayName, players]);
+  }, [socket, user, displayName]);
 
   const updatePlayerList = (message) => {
     console.log("updatingPlayerList", message);
     setPlayers((prevPlayers) => {
       const updatedPlayers = {
         ...prevPlayers,
-        [message.playerName]: { roomKey: message.roomKey, status: message.playerStatus }
+        [message.playerName]: {
+          roomKey: message.roomKey,
+          status: message.playerStatus,
+        },
       };
       return updatedPlayers;
     });
   };
 
   const handleReady = () => {
-    console.log("READY BUTTON CLICKEDDDD")
+    console.log("READY BUTTON CLICKEDDDD");
     const roomKey = localStorage.getItem("roomKey");
 
-    console.log("player:", players, "displayName:", displayName, "readyStatus:", readyStatus);
+    console.log(
+      "player:",
+      players,
+      "displayName:",
+      displayName,
+      "readyStatus:",
+      readyStatus
+    );
 
-    
-    if(!displayName) {
+    if (!displayName) {
       const userDisplayName = localStorage.getItem("displayName");
       setDisplayName(userDisplayName);
     }
 
     try {
-      console.log(`${roomKey} - ${displayName} ready status toggled from ${readyStatus}`);
-      window.togglePlayerStatus(roomKey, displayName);  
+      console.log(
+        `${roomKey} - ${displayName} ready status toggled from ${readyStatus}`
+      );
+      window.togglePlayerStatus(roomKey, displayName);
       setReadyStatus((prevStatus) => !prevStatus);
     } catch (error) {
       console.error("Error toggling player status:", error);
@@ -138,15 +122,17 @@ const WaitingPage = () => {
   };
 
   useEffect(() => {
-    const allReady = Object.keys(players).every(player => players[player].ready);
+    const allReady = Object.keys(players).every(
+      (player) => players[player].ready
+    );
     console.log("All players ready: ", allReady);
     if (Object.keys(players).length > 1 && allReady) {
       console.log("Players ready:", players);
-      router.push('/game-search-page');
+      router.push("/game-search-page");
     }
   }, [players, router]);
 
-  const handleExit = () => {
+  const handleExit = async () => {
     console.log("EXIT BUTTON CLICKED");
     const roomKey = localStorage.getItem("roomKey");
 
@@ -185,7 +171,9 @@ const WaitingPage = () => {
 
       <div className={styles.roomInfo}>
         <h1>Room Number: {roomNumber}</h1>
-        <h2>Players: {Object.keys(players).length}/{maxPlayers}</h2>
+        <h2>
+          Players: {Object.keys(players).length}/{maxPlayers}
+        </h2>
       </div>
 
       <div className={styles.waitingContent}>
@@ -202,11 +190,16 @@ const WaitingPage = () => {
             // .filter(player => players[player].roomKey === roomNumber) // Filter players by the current room number
             .map((player, index) => (
               <div className={styles.playersContainer}>
-              <div key={index} className={styles.playerCircle}>
-                {player} {players[player].status === 'ready' && '(Ready)'}
-                {player === displayName && ' (You)'} {/* Mark the current player with '(You)' */}
-              </div>
-              {players[player].ready ? <div className={styles.readyStatus}>Ready</div> : <div className={styles.readyStatus}>Not Ready</div>}
+                <div key={index} className={styles.playerCircle}>
+                  {player} {players[player].status === "ready" && "(Ready)"}
+                  {player === displayName && " (You)"}{" "}
+                  {/* Mark the current player with '(You)' */}
+                </div>
+                {players[player].ready ? (
+                  <div className={styles.readyStatus}>Ready</div>
+                ) : (
+                  <div className={styles.readyStatus}>Not Ready</div>
+                )}
               </div>
             ))
         ) : (
@@ -215,8 +208,17 @@ const WaitingPage = () => {
       </div>
 
       <div className={styles.readyStatusContainer}>
-        <button className={`${styles.readyButton} ${readyStatus ? '' : styles.readyButtonMarginBottom}`} onClick={handleReady}>Ready</button>
-        {readyStatus ? <p className={styles.waitingMessage}>Waiting for other players...</p> : null}
+        <button
+          className={`${styles.readyButton} ${
+            readyStatus ? "" : styles.readyButtonMarginBottom
+          }`}
+          onClick={handleReady}
+        >
+          Ready
+        </button>
+        {readyStatus ? (
+          <p className={styles.waitingMessage}>Waiting for other players...</p>
+        ) : null}
       </div>
 
       <div className={styles.rulesToggle} onClick={toggleRules}>
