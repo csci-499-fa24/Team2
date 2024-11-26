@@ -103,6 +103,7 @@ const WaitingPage = () => {
       setDisplayName(user?.email || "Anonymous");
     }
 
+    // Emit the player join event when user enters the room
     if (socket && storedRoomKey && displayName) {
       socket.emit("getPlayersInRoom", { roomKey: storedRoomKey });
       socket.on("update_players_list", (message) => {
@@ -130,28 +131,49 @@ const WaitingPage = () => {
         }
       }
     };
-  }, [socket, user, displayName, players]);
+  }, [socket, user, displayName]);
 
   const updatePlayerList = (message) => {
-    setPlayers((prevPlayers) => ({
-      ...prevPlayers,
-      [message.playerName]: {
-        roomKey: message.roomKey,
-        status: message.playerStatus,
-      },
-    }));
+    console.log("updatingPlayerList", message);
+    setPlayers((prevPlayers) => {
+      const updatedPlayers = {
+        ...prevPlayers,
+        [message.playerName]: {
+          roomKey: message.roomKey,
+          status: message.playerStatus,
+        },
+      };
+      return updatedPlayers;
+    });
   };
 
   const handleReady = () => {
+    console.log("READY BUTTON CLICKEDDDD");
     const roomKey = localStorage.getItem("roomKey");
+
+    console.log(
+      "player:",
+      players,
+      "displayName:",
+      displayName,
+      "readyStatus:",
+      readyStatus
+    );
+
     if (!displayName) {
-      setDisplayName(localStorage.getItem("displayName"));
+      const userDisplayName = localStorage.getItem("displayName");
+      setDisplayName(userDisplayName);
     }
-    if (socket && roomKey) {
-      socket.emit("player_ready", { roomKey, playerName: displayName });
+
+    try {
+      console.log(
+        `${roomKey} - ${displayName} ready status toggled from ${readyStatus}`
+      );
+      window.togglePlayerStatus(roomKey, displayName);
       setReadyStatus((prevStatus) => !prevStatus);
+    } catch (error) {
+      console.error("Error toggling player status:", error);
     }
-    router.push("/game-search-page");
   };
 
   const handleExit = () => {
@@ -193,8 +215,7 @@ const WaitingPage = () => {
       <div className={styles.roomInfo}>
         <h1>Room Number: {roomNumber}</h1>
         <h2>
-          Players: {roomIsFull ? maxPlayers : Object.keys(players).length}/
-          {maxPlayers}
+          Players: {Object.keys(players).length}/{maxPlayers}
         </h2>
       </div>
 
@@ -208,17 +229,22 @@ const WaitingPage = () => {
 
       <div className={styles.readyPlayers}>
         {Object.keys(players).length > 0 ? (
-          Object.keys(players).map((player, index) => (
-            <div className={styles.playersContainer} key={index}>
-              <div className={styles.playerCircle}>
-                {player} {players[player].status === "ready" && "(Ready)"}
-                {player === displayName && " (You)"}
+          Object.keys(players)
+            // .filter(player => players[player].roomKey === roomNumber) // Filter players by the current room number
+            .map((player, index) => (
+              <div className={styles.playersContainer}>
+                <div key={index} className={styles.playerCircle}>
+                  {player} {players[player].status === "ready" && "(Ready)"}
+                  {player === displayName && " (You)"}{" "}
+                  {/* Mark the current player with '(You)' */}
+                </div>
+                {players[player].ready ? (
+                  <div className={styles.readyStatus}>Ready</div>
+                ) : (
+                  <div className={styles.readyStatus}>Not Ready</div>
+                )}
               </div>
-              <div className={styles.readyStatus}>
-                {players[player].status === "ready" ? "Ready" : "Not Ready"}
-              </div>
-            </div>
-          ))
+            ))
         ) : (
           <div>No players in this room.</div>
         )}
@@ -233,9 +259,9 @@ const WaitingPage = () => {
         >
           Ready
         </button>
-        {readyStatus && (
+        {readyStatus ? (
           <p className={styles.waitingMessage}>Waiting for other players...</p>
-        )}
+        ) : null}
       </div>
 
       <div className={styles.rulesToggle} onClick={toggleRules}>
