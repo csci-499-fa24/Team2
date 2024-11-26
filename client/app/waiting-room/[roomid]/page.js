@@ -169,6 +169,7 @@ const WaitingPage = () => {
 
     socket.emit("player_left", { roomKey, playerName: displayName });
     socket.disconnect();
+    localStorage.setItem("roomKey", "");
     router.push(`/${user.uid}`);
   };
 
