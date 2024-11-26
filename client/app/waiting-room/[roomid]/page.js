@@ -68,7 +68,7 @@ const WaitingPage = () => {
         socket.off('update_players_list');
       }
     };
-  }, [socket, user, displayName]);
+  }, [socket, user, displayName, players]);
 
   const updatePlayerList = (message) => {
     console.log("updatingPlayerList", message);
@@ -116,6 +116,7 @@ const WaitingPage = () => {
     const roomKey = localStorage.getItem("roomKey");
     socket.emit("player_left", { roomKey, playerName: displayName });
     socket.disconnect();
+    localStorage.setItem("roomKey", "");
     router.push(`/${user.uid}`);
   };
 
