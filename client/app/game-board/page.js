@@ -25,6 +25,8 @@ export default function GameBoardPage() {
   const [correctNotification, setCorrectNotification] = useState(null);
   const [turnNotification, setTurnNotification] = useState(null);
   const [lastPlayerCorrect, setLastPlayerCorrect] = useState("");
+  const [currentClueAnswer, setCurrentClueAnswer] = useState(null);
+  const [clueAnswerNotification, setClueAnswerNotification] = useState(null);
   const questionRef = useRef(null);
   const router = useRouter();
 
@@ -265,6 +267,41 @@ export default function GameBoardPage() {
     }
   }, [roundInfo, playerScores, lastPlayerCorrect]);
 
+  function parseQuestionContent(questionText) {
+    let imageLink = null;
+    let mediaLink = null;
+    let processedText = questionText;
+
+    // Use a regular expression to find the <a href="..."> tag
+    const linkRegex = /<a href="(.*?)"[^>]*>(.*?)<\/a>/i;
+    const match = linkRegex.exec(questionText);
+
+    if (match) {
+      const href = match[1]; // The href link
+      const linkText = match[2]; // The text inside the <a> tag (e.g., "here")
+      // Determine if the link is an image or media
+      const extension = href.split('.').pop().toLowerCase();
+      if (['jpg', 'jpeg', 'png', 'gif'].includes(extension)) {
+        imageLink = href;
+        // Replace the <a> tag with "above" or "above " if needed
+        processedText = questionText.replace(match[0], "above");
+      } else if (['mp3', 'mp4'].includes(extension)) {
+        mediaLink = href;
+        // Replace the <a> tag with "Link to Media"
+        processedText = questionText.replace(match[0], "[Content Linked Above]");
+      } else {
+        // Other types of links, treat as media link
+        mediaLink = href;
+        processedText = questionText.replace(match[0], "[Content Linked Above]");
+      }
+    }
+
+    // Remove any other HTML tags except <a>
+    processedText = processedText.replace(/<\/?(?!a)([^>]+)>/gi, '');
+
+    return { processedText, imageLink, mediaLink };
+  }
+
   const clickMe = useCallback(
     (question, value) => {
       const isCurrentPlayerTurn = localStorage.getItem("displayName") === lastPlayerCorrect;
@@ -309,10 +346,16 @@ export default function GameBoardPage() {
       });
 
       setTimeout(() => {
+        // Process the question content to extract image link
+        const { processedText, imageLink, mediaLink } = parseQuestionContent(question.question);
         setSelectedQuestion({
           ...question,
           isDailyDouble: question.question === dailyDoubleClue,
+          processedText,
+          imageLink,
+          mediaLink,
         });
+        setCurrentClueAnswer(question.answer); // Set the current clue answer
       }, 500);
       setAnswerFeedback("");
     },
@@ -342,10 +385,16 @@ export default function GameBoardPage() {
 
       setDisabledQuestions(updatedDisabledQuestions);
       setTimeout(() => {
+        // Process the question content to extract image link
+        const { processedText, imageLink, mediaLink } = parseQuestionContent(question.question);
         setSelectedQuestion({
           ...question,
           isDailyDouble: question.question === dailyDoubleClue,
+          processedText,
+          imageLink,
+          mediaLink,
         });
+        setCurrentClueAnswer(question.answer); // Set the current clue answer
       }, 500);
       setAnswerFeedback("");
       setAnsweredAlready(false);
@@ -357,13 +406,19 @@ export default function GameBoardPage() {
     setSelectedQuestion(null);
     window.sendMessage({
       action: "closeQuestion",
-      content: "",
+      content: { clueAnswer: currentClueAnswer },
     });
+    // Display the notification locally
+    setClueAnswerNotification(`The correct answer was: ${currentClueAnswer}`);
+    setTimeout(() => {
+      setClueAnswerNotification(null);
+    }, 3000);
     setTimeout(() => {
       setExpandingBox(null);
       setDailyDoubleExpandingBox(null);
     }, 500);
-  }, []);
+    setCurrentClueAnswer(null); // Clear the current clue answer
+  }, [currentClueAnswer]);
 
   // Triggering nextRound message function
   const calledNextRound = useCallback(() => {
@@ -379,12 +434,18 @@ export default function GameBoardPage() {
     updateRound();
   }, []);
 
-  const socketCloseQuestion = useCallback(() => {
+  const socketCloseQuestion = useCallback((clueAnswer) => {
     setSelectedQuestion(null);
+    // Display the notification
+    setClueAnswerNotification(`The correct answer was: ${clueAnswer}`);
+    setTimeout(() => {
+      setClueAnswerNotification(null);
+    }, 3000);
     setTimeout(() => {
       setExpandingBox(null);
       setDailyDoubleExpandingBox(null);
     }, 500);
+    setCurrentClueAnswer(null); // Clear the current clue answer
   }, []);
 
   const handleServerMessage = useCallback(
@@ -408,7 +469,8 @@ export default function GameBoardPage() {
           clickedByUser
         );
       } else if (action === "closeQuestion") {
-        socketCloseQuestion();
+        const { clueAnswer } = message["content"];
+        socketCloseQuestion(clueAnswer);
       } else if (action === "syncDisabledQuestions") {
         console.log("Syncing disabled questions:", message["content"]);
         setDisabledQuestions(message["content"]);
@@ -423,7 +485,7 @@ export default function GameBoardPage() {
         setLastPlayerCorrect(message["content"]["lastPlayerCorrect"]);
       }
     },
-    [socketClickMe, socketCloseQuestion]
+    [socketClickMe, socketCloseQuestion, socketNextRound]
   );
 
   const handleRoomData = useCallback((rooms) => {
@@ -736,6 +798,13 @@ export default function GameBoardPage() {
           <h2>Player Selecting Next:</h2>
           <p>{lastPlayerCorrect}</p>
         </div>
+        <div className={styles.nextRoundButtonContainer}>
+          {!selectedQuestion && (
+            <button onClick={nextRound} className={styles.nextRoundButton}>
+              {round === "Final Jeopardy!" ? "End Game" : "Next Round!"}
+            </button>
+          )}
+        </div>
       </div>
       {expandingBox && (
         <div
@@ -745,10 +814,24 @@ export default function GameBoardPage() {
         >
           {selectedQuestion ? (
             <div className={styles.questionContent}>
+              {selectedQuestion.imageLink && (
+                <img
+                  src={selectedQuestion.imageLink}
+                  alt="Clue image"
+                  className={styles.clueImage}
+                />
+              )}
+              {selectedQuestion.mediaLink && (
+                <div className={styles.mediaLinkContainer}>
+                  <a href={selectedQuestion.mediaLink} target="_blank" rel="noopener noreferrer">
+                    Link to Media
+                  </a>
+                </div>
+              )}
               <h2 className={styles.questionHeader}>
                 {selectedQuestion.category}
               </h2>
-              <p className={styles.questionText}>{selectedQuestion.question}</p>
+              <p className={styles.questionText}>{selectedQuestion.processedText}</p>
               <form onSubmit={handleSubmit}>
                 <input
                   type="text"
@@ -782,11 +865,25 @@ export default function GameBoardPage() {
         >
           {selectedQuestion ? (
             <div className={styles.questionContent}>
+              {selectedQuestion.imageLink && (
+                <img
+                  src={selectedQuestion.imageLink}
+                  alt="Clue image"
+                  className={styles.clueImage}
+                />
+              )}
+              {selectedQuestion.mediaLink && (
+                <div className={styles.mediaLinkContainer}>
+                  <a href={selectedQuestion.mediaLink} target="_blank" rel="noopener noreferrer">
+                    Link to Media
+                  </a>
+                </div>
+              )}
               <h2 className={styles.dailyDoubleHeader}>DAILY DOUBLE!</h2>
               <h2 className={styles.questionHeader}>
                 {selectedQuestion.category}
               </h2>
-              <p className={styles.questionText}>{selectedQuestion.question}</p>
+              <p className={styles.questionText}>{selectedQuestion.processedText}</p>
               {!dailyDoubleExpandingBox.isOtherUser ? (
               <>
                 <form onSubmit={handleSubmit}>
@@ -842,6 +939,11 @@ export default function GameBoardPage() {
       )}
       {turnNotification && (
         <div className={styles.turnNotification}>{turnNotification}</div>
+      )}
+      {clueAnswerNotification && (
+        <div className={styles.clueAnswerNotification}>
+          {clueAnswerNotification}
+        </div>
       )}
       <div>
         {!selectedQuestion && (
