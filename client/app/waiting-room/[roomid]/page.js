@@ -47,6 +47,9 @@ const WaitingPage = () => {
   const [maxPlayers, setMaxPlayers] = useState(4);
   const [readyStatus, setReadyStatus] = useState(false);
   const [roomIsFull, setRoomIsFull] = useState(false);
+  const [hasAddedParticipant, setHasAddedParticipant] = useState(false);
+  const [hasRemovedParticipant, setHasRemovedParticipant] = useState(false);
+
   const router = useRouter();
 
   const socket = useSocket((message) => {
@@ -66,9 +69,11 @@ const WaitingPage = () => {
       localStorage.getItem("completeRoomInfo")
     );
 
-    if (storedRoomKey) {
+    if (storedRoomKey && !hasAddedParticipant) {
       setRoomNumber(storedRoomKey);
       window.addParticipant(storedRoomKey);
+      setHasAddedParticipant(true);
+
       fetchAvailableRooms()
         .then((availableRooms) => {
           const maxPlayersForRoom = getMaxPlayersByGameId(
@@ -93,7 +98,6 @@ const WaitingPage = () => {
           console.error("Error fetching available rooms:", error);
         });
     }
-
 
     const currentDisplayName = localStorage.getItem("displayName");
     setDisplayName(currentDisplayName || user?.email || "Anonymous");
@@ -124,13 +128,9 @@ const WaitingPage = () => {
         socket.off("player_joined");
         socket.off("player_ready");
         socket.off("update_players_list");
-
-        if (storedRoomKey) {
-          window.removeParticipant(storedRoomKey);
-        }
       }
     };
-  }, [socket, user, displayName, players]);
+  }, [socket, user, displayName, players, hasAddedParticipant]);
 
   const updatePlayerList = (message) => {
     setPlayers((prevPlayers) => {
@@ -148,6 +148,7 @@ const WaitingPage = () => {
   const handleReady = () => {
     const roomKey = localStorage.getItem("roomKey");
     try {
+      window.addParticipant(roomKey);
       window.togglePlayerStatus(roomKey, displayName);
       setReadyStatus((prevStatus) => !prevStatus);
     } catch (error) {
@@ -158,7 +159,10 @@ const WaitingPage = () => {
   const handleExit = () => {
     const roomKey = localStorage.getItem("roomKey");
 
-    window.removeParticipant(roomKey);
+    if (!hasRemovedParticipant) {
+      window.removeParticipant(roomKey);
+      setHasRemovedParticipant(true);
+    }
 
     localStorage.removeItem("roomKey");
     localStorage.removeItem("displayName");
@@ -246,41 +250,41 @@ const WaitingPage = () => {
               onClick={toggleRules}
             />
           </div>
-        <ul>
-          <li className={styles.gameRules}>
-            Select a category and dollar amount from the game board.
-          </li>
-          <li className={styles.gameRules}>
-            Read the clue carefully and formulate your response.
-          </li>
-          <li className={styles.gameRules}>
-            Always phrase your answer in the form of a question, e.g., "What
-            is...?" or "Who is...?"
-          </li>
-          <li className={styles.gameRules}>
-            Correct answers add the clue's dollar amount to your score;
-            incorrect answers deduct the same amount.
-          </li>
-          <li className={styles.gameRules}>
-            The player with control of the board selects the next clue.
-          </li>
-        </ul>
-        <h2 className={styles.gameRules}>Special Rules</h2>
-        <ul>
-          <li className={styles.gameRules}>
-            Daily Doubles: Hidden on the board, they allow you to wager up to
-            your entire score or the highest dollar amount on the board.
-          </li>
-          <li className={styles.gameRules}>
-            Final Jeopardy!: All players can wager any amount up to their total
-            score on the final clue.
-          </li>
-          <li className={styles.gameRules}>
-            Timing: You have a limited time to buzz in after the clue is read,
-            and then to provide your answer.
-          </li>
-        </ul>
-      </div>
+          <ul>
+            <li className={styles.gameRules}>
+              Select a category and dollar amount from the game board.
+            </li>
+            <li className={styles.gameRules}>
+              Read the clue carefully and formulate your response.
+            </li>
+            <li className={styles.gameRules}>
+              Always phrase your answer in the form of a question, e.g., "What
+              is...?" or "Who is...?"
+            </li>
+            <li className={styles.gameRules}>
+              Correct answers add the clue's dollar amount to your score;
+              incorrect answers deduct the same amount.
+            </li>
+            <li className={styles.gameRules}>
+              The player with control of the board selects the next clue.
+            </li>
+          </ul>
+          <h2 className={styles.gameRules}>Special Rules</h2>
+          <ul>
+            <li className={styles.gameRules}>
+              Daily Doubles: Hidden on the board, they allow you to wager up to
+              your entire score or the highest dollar amount on the board.
+            </li>
+            <li className={styles.gameRules}>
+              Final Jeopardy!: All players can wager any amount up to their
+              total score on the final clue.
+            </li>
+            <li className={styles.gameRules}>
+              Timing: You have a limited time to buzz in after the clue is read,
+              and then to provide your answer.
+            </li>
+          </ul>
+        </div>
       )}
     </div>
   );
