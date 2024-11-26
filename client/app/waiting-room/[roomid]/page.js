@@ -27,7 +27,6 @@ const fetchAvailableRooms = async () => {
     );
     if (response.ok) {
       const data = await response.json();
-      //console.log("Fetched data: ", data);
       return data.activeGames;
     } else {
       console.error("Failed to fetch available rooms");
@@ -51,7 +50,7 @@ const WaitingPage = () => {
   const router = useRouter();
 
   const socket = useSocket((message) => {
-    //console.log("Message received from server:", message);
+    console.log("Message received from server:", message);
 
     if (message.type === "player_joined" || message.type === "player_ready") {
       updatePlayerList(message);
@@ -95,20 +94,21 @@ const WaitingPage = () => {
         });
     }
 
+
     const currentDisplayName = localStorage.getItem("displayName");
+    setDisplayName(currentDisplayName || user?.email || "Anonymous");
 
-    if (currentDisplayName) {
-      setDisplayName(currentDisplayName);
-    } else {
-      setDisplayName(user?.email || "Anonymous");
-    }
-
-    // Emit the player join event when user enters the room
-    if (socket && storedRoomKey && displayName) {
+    if (socket && storedRoomKey) {
       socket.emit("getPlayersInRoom", { roomKey: storedRoomKey });
+
       socket.on("update_players_list", (message) => {
-        //console.log("Players list received from server:", message.players);
         setPlayers(message.players);
+
+        if (Object.keys(message.players).length > maxPlayers) {
+          setRoomIsFull(true);
+          alert("The room is full. Please join another room.");
+          router.push(`/user`);
+        }
       });
 
       if (!Object.keys(players).includes(displayName)) {
@@ -121,7 +121,6 @@ const WaitingPage = () => {
 
     return () => {
       if (socket) {
-        //console.log("Cleaning up socket listeners in WaitingPage...");
         socket.off("player_joined");
         socket.off("player_ready");
         socket.off("update_players_list");
@@ -131,10 +130,9 @@ const WaitingPage = () => {
         }
       }
     };
-  }, [socket, user, displayName]);
+  }, [socket, user, displayName, players]);
 
   const updatePlayerList = (message) => {
-    console.log("updatingPlayerList", message);
     setPlayers((prevPlayers) => {
       const updatedPlayers = {
         ...prevPlayers,
@@ -148,27 +146,8 @@ const WaitingPage = () => {
   };
 
   const handleReady = () => {
-    console.log("READY BUTTON CLICKEDDDD");
     const roomKey = localStorage.getItem("roomKey");
-
-    console.log(
-      "player:",
-      players,
-      "displayName:",
-      displayName,
-      "readyStatus:",
-      readyStatus
-    );
-
-    if (!displayName) {
-      const userDisplayName = localStorage.getItem("displayName");
-      setDisplayName(userDisplayName);
-    }
-
     try {
-      console.log(
-        `${roomKey} - ${displayName} ready status toggled from ${readyStatus}`
-      );
       window.togglePlayerStatus(roomKey, displayName);
       setReadyStatus((prevStatus) => !prevStatus);
     } catch (error) {
@@ -229,22 +208,12 @@ const WaitingPage = () => {
 
       <div className={styles.readyPlayers}>
         {Object.keys(players).length > 0 ? (
-          Object.keys(players)
-            // .filter(player => players[player].roomKey === roomNumber) // Filter players by the current room number
-            .map((player, index) => (
-              <div className={styles.playersContainer}>
-                <div key={index} className={styles.playerCircle}>
-                  {player} {players[player].status === "ready" && "(Ready)"}
-                  {player === displayName && " (You)"}{" "}
-                  {/* Mark the current player with '(You)' */}
-                </div>
-                {players[player].ready ? (
-                  <div className={styles.readyStatus}>Ready</div>
-                ) : (
-                  <div className={styles.readyStatus}>Not Ready</div>
-                )}
-              </div>
-            ))
+          Object.keys(players).map((player, index) => (
+            <div key={index} className={styles.playerCircle}>
+              {player} {players[player].status === "ready" && "(Ready)"}
+              {player === displayName && " (You)"}
+            </div>
+          ))
         ) : (
           <div>No players in this room.</div>
         )}
@@ -268,14 +237,15 @@ const WaitingPage = () => {
         {showRules ? "Hide Rules" : "Show Rules"}
       </div>
 
-      <div className={`${styles.rulesBox} ${showRules ? styles.active : ""}`}>
-        <div className={styles.rulesBoxHeader}>
-          <h2 className={styles.gameRules}>Jeopardy Game Rules</h2>
-          <IoMdCloseCircleOutline
-            className={styles.closeRules}
-            onClick={toggleRules}
-          />
-        </div>
+      {showRules && (
+        <div className={styles.rulesBox}>
+          <div className={styles.rulesBoxHeader}>
+            <h2 className={styles.gameRules}>Jeopardy Game Rules</h2>
+            <IoMdCloseCircleOutline
+              className={styles.closeRules}
+              onClick={toggleRules}
+            />
+          </div>
         <ul>
           <li className={styles.gameRules}>
             Select a category and dollar amount from the game board.
@@ -311,6 +281,7 @@ const WaitingPage = () => {
           </li>
         </ul>
       </div>
+      )}
     </div>
   );
 };
