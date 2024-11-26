@@ -73,8 +73,37 @@ async function removeGame(showNumber) {
     }
 }
 
-function endGame(gameId) {
+// Updated endGame function to handle userID, displayName, and points
+function endGame(gameId, participantData) {
+    if (!activeGames[gameId]) return;
+
+    const game = activeGames[gameId];
+    const participants = gameParticipants[gameId] || new Set();
+
+    const players = Array.from(participants).map(userId => {
+        const displayName = Object.keys(participantData[gameId] || {}).find(name => participantData[gameId][name]);
+        const points = participantData[gameId]?.[displayName]?.money || 0;
+
+        return {
+            userId,
+            displayName: displayName || userId, // Fallback to userId if displayName is missing
+            win: false, // Set to true later if this user is marked as the winner
+            points
+        };
+    });
+
+    // Record the game in the database
+    recordGameHistory(
+        gameId,
+        game.showNumber,
+        game.owner || null,
+        game.winner || null,
+        game.points || 0,
+        players
+    );
+
     delete activeGames[gameId];
+    delete gameParticipants[gameId]; // Remove participants
 }
 
 function resolveGame(gameId) {

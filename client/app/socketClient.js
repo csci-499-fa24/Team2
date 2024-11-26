@@ -11,12 +11,57 @@ export const useSocket = (onMessageReceivedCallback) => {
   const [roomsData, setRoomsData] = useState(null);
   const [playersInRoom, setPlayersInRoom] = useState([]);
   const [money, setMoney] = useState(0);
-  // Create a ref to store socketDisplayName synchronously, as diplayName then setting roomKey timing matters
   const socketDisplayNameRef = useRef("");
+
+  // New function to manage participant endpoints
+  const manageParticipant = async (action, gameId) => {
+    const userId = user?.uid;
+    const displayName = socketDisplayNameRef.current;
+
+    if (!userId || !displayName || !gameId) {
+      console.log(
+        "[Client-side Error] Missing required parameters for participant management"
+      );
+      return;
+    }
+
+    try {
+      const endpoint =
+        action === "add" ? "add-participant" : "remove-participant";
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_SERVER_URL}/api/games/${endpoint}/${gameId}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            userId,
+            displayName,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Failed to ${action} participant`);
+      }
+
+      console.log(
+        `[Client-side Acknowledgement] Successfully ${action}${
+          action === "add" ? "ed" : "d"
+        } participant`
+      );
+    } catch (error) {
+      console.error(
+        `[Client-side Error] Failed to ${action} participant:`,
+        error
+      );
+    }
+  };
 
   // setting socket displayName from logged in user
   useEffect(() => {
-    if (user && (window.location.pathname != "/")) {
+    if (user && window.location.pathname != "/") {
       setDisplayName(user.displayName);
       setSocketDisplayName(user.displayName);
       socketDisplayNameRef.current = user.displayName;
@@ -25,21 +70,26 @@ export const useSocket = (onMessageReceivedCallback) => {
       if (storedDisplayName) {
         setSocketDisplayName(storedDisplayName);
         socketDisplayNameRef.current = storedDisplayName;
-        console.log(`[Client-side Acknowledgement] Retrieved display name from localStorage: ${storedDisplayName}`);
+        console.log(
+          `[Client-side Acknowledgement] Retrieved display name from localStorage: ${storedDisplayName}`
+        );
       }
     }
   }, [user]);
 
-  // Change localStorage based on the current route, this is how we handle persistence
+  // Change localStorage based on the current route
   useEffect(() => {
     if (typeof window !== "undefined") {
       const currentPath = window.location.pathname;
+      const gameId = localStorage.getItem("roomKey");
 
       if (currentPath === "/") {
-        // On route '/' meaning user starts fresh, clear localStorage, otherwise we assume user wants to persist connection
+        if (gameId) {
+          manageParticipant("remove", gameId);
+        }
         localStorage.removeItem("displayName");
         localStorage.removeItem("roomKey");
-        localStorage.removeItem("money"); // Clear money on fresh start
+        localStorage.removeItem("money");
         setSocketDisplayName("");
         setRoomKey("");
         setMoney(0);
@@ -47,36 +97,45 @@ export const useSocket = (onMessageReceivedCallback) => {
         console.log("[Client-side Acknowledgement] localStorage cleared.");
       } else {
         (async () => {
-          // First, retrieve and set displayName
           const storedDisplayName = localStorage.getItem("displayName");
           if (storedDisplayName) {
             await new Promise((resolve) => {
               setSocketDisplayName(storedDisplayName);
               socketDisplayNameRef.current = storedDisplayName;
-              console.log(`[Client-side Acknowledgement] Retrieved display name from localStorage: ${storedDisplayName}`);
+              console.log(
+                `[Client-side Acknowledgement] Retrieved display name from localStorage: ${storedDisplayName}`
+              );
               resolve();
             });
           }
-  
-          // After displayName is set, retrieve and set roomKey
+
           const storedRoomKey = localStorage.getItem("roomKey");
           if (storedRoomKey) {
             setRoomKey(storedRoomKey);
-            console.log(`[Client-side Acknowledgement] Retrieved room key from localStorage: ${storedRoomKey}`);
+            console.log(
+              `[Client-side Acknowledgement] Retrieved room key from localStorage: ${storedRoomKey}`
+            );
+            await manageParticipant("add", storedRoomKey);
           }
 
-          // After roomKey is set, retrieve and set playersInRoom
           if (storedRoomKey && socketRef.current) {
-            console.log("[Client-side Acknowledgement] Requesting players in the current room...");
-            socketRef.current.emit("getPlayersInRoom", { roomKey: storedRoomKey });
-            console.log(`[Client-side Acknowledgement] Requesting players in room ${storedRoomKey}...`);
+            console.log(
+              "[Client-side Acknowledgement] Requesting players in the current room..."
+            );
+            socketRef.current.emit("getPlayersInRoom", {
+              roomKey: storedRoomKey,
+            });
+            console.log(
+              `[Client-side Acknowledgement] Requesting players in room ${storedRoomKey}...`
+            );
           }
-  
-          // Retrieve and set money independently
+
           const storedMoney = localStorage.getItem("money");
           if (storedMoney) {
             setMoney(Number(storedMoney));
-            console.log(`[Client-side Acknowledgement] Retrieved money from localStorage: ${storedMoney}`);
+            console.log(
+              `[Client-side Acknowledgement] Retrieved money from localStorage: ${storedMoney}`
+            );
           }
         })();
       }
@@ -84,7 +143,7 @@ export const useSocket = (onMessageReceivedCallback) => {
   }, []);
 
   useEffect(() => {
-    const socketInstance = io(process.env.NEXT_PUBLIC_SERVER_URL); 
+    const socketInstance = io(process.env.NEXT_PUBLIC_SERVER_URL);
 
     socketRef.current = socketInstance;
 
@@ -113,7 +172,7 @@ export const useSocket = (onMessageReceivedCallback) => {
         name,
         ...attributes,
       }));
-      
+
       setPlayersInRoom(playerList);
       console.log("[From Server: Players in room] -", playerList);
     });
@@ -125,30 +184,32 @@ export const useSocket = (onMessageReceivedCallback) => {
         message["content"]
       );
       if (onMessageReceivedCallback) {
-        onMessageReceivedCallback(message); // Trigger the callback when a message is received
+        onMessageReceivedCallback(message);
       }
     });
 
-    // Receive rooms object from server and we opt to store it
     socketInstance.on("receiveRooms", (rooms) => {
-      // console.log("[From Server] - Rooms data received from server:", rooms);
       setRoomsData(rooms);
-      // console.log("[From Server: Rooms data received from server] -", rooms);
     });
 
     return () => {
       if (socketRef.current) {
+        const gameId = localStorage.getItem("roomKey");
+        if (gameId) {
+          manageParticipant("remove", gameId);
+        }
         socketRef.current.disconnect();
       }
     };
   }, []);
 
-  // Start of our emit functions
   useEffect(() => {
     if (socketRef.current && socketDisplayName) {
       socketRef.current.emit("displayName", socketDisplayName);
       localStorage.setItem("displayName", socketDisplayName);
-      console.log(`[Client-side Acknowledgement] Display name set automatically to ${socketDisplayName}` );
+      console.log(
+        `[Client-side Acknowledgement] Display name set automatically to ${socketDisplayName}`
+      );
     }
   }, [socketDisplayName]);
 
@@ -156,32 +217,35 @@ export const useSocket = (onMessageReceivedCallback) => {
     if (socketRef.current && roomKey) {
       socketRef.current.emit("roomKey", roomKey);
       localStorage.setItem("roomKey", roomKey);
-      console.log(`[Client-side Acknowledgement] Room key set automatically to ${roomKey}`);
+      console.log(
+        `[Client-side Acknowledgement] Room key set automatically to ${roomKey}`
+      );
       socketRef.current.emit("getPlayersInRoom", { roomKey });
     }
   }, [roomKey]);
 
-  // Listen for updated player list from the server
   useEffect(() => {
     if (socketRef.current) {
-      console.log("[Client-side Acknowledgement] Listening for updated player list...");
+      console.log(
+        "[Client-side Acknowledgement] Listening for updated player list..."
+      );
       socketRef.current.on("playersInRoom", (players) => {
-        setPlayersInRoom(players);  // Update the players in room state
+        setPlayersInRoom(players);
         console.log("[From Server: Players in room] -", players);
       });
     }
   }, []);
 
-  // Load money amount from localStorage on component mount
   useEffect(() => {
     const storedMoney = localStorage.getItem("money");
     if (storedMoney) {
       setMoney(Number(storedMoney));
-      console.log("[Client-side Acknowledgement] Loaded money from localStorage.");
+      console.log(
+        "[Client-side Acknowledgement] Loaded money from localStorage."
+      );
     }
   }, []);
 
-  // Save money amount to localStorage whenever it updates
   useEffect(() => {
     if (money !== null) {
       localStorage.setItem("money", money);
@@ -198,44 +262,18 @@ export const useSocket = (onMessageReceivedCallback) => {
     }
   }, [socketMessage]);
 
-  // Ensure the getRooms function is initialized once the socket is ready
-  useEffect(() => {
-    if (socketRef.current) {
-      window.getRooms = () => {
-        socketRef.current.emit("getRooms"); // here we make the actual request for the rooms object from server
-      };
-    } else {
-      window.getRooms = () => {
-        console.log("[Client-side Acknowledgement] Socket is not initialized.");
-      };
-    }
-  }, []);
-
-  useEffect(() => {
-    if (socketRef.current) {
-      window.getPlayersInRoom = () => {
-        console.log(
-          "[Client-side Acknowledgement] Requesting players in the current room..."
-        );
-        socketRef.current.emit("getPlayersInRoom");
-      };
-
-      socketRef.current.on("playersInRoom", (players) => {
-        console.log("[From Server: Players in room] -", players);
-      });
-    }
-  }, []);
-
   useEffect(() => {
     if (typeof window !== "undefined") {
       window.setDisplayName = (name) => {
-        if(name === "" || name === null || name === "null") {
-          console.log("[Client-side Acknowledgement] Display name cannot be empty.");
+        if (name === "" || name === null || name === "null") {
+          console.log(
+            "[Client-side Acknowledgement] Display name cannot be empty."
+          );
           return;
         }
 
         setSocketDisplayName(name);
-        socketDisplayNameRef.current = name; // Update ref
+        socketDisplayNameRef.current = name;
         localStorage.setItem("displayName", name);
         console.log(
           `[Client-side Acknowledgement] Display name set to: "${name}"`
@@ -244,7 +282,9 @@ export const useSocket = (onMessageReceivedCallback) => {
 
       window.addPlayerToRoom = (roomKey, displayName) => {
         if (socketRef.current) {
-          console.log(`[Client-side Acknowledgement] Adding player "${displayName}" to room "${roomKey}"...`);
+          console.log(
+            `[Client-side Acknowledgement] Adding player "${displayName}" to room "${roomKey}"...`
+          );
           socketRef.current.emit("setPlayersInRoom", {
             roomKey: roomKey,
             displayName: displayName,
@@ -252,13 +292,15 @@ export const useSocket = (onMessageReceivedCallback) => {
         }
 
         setPlayersInRoom((prevPlayers) => {
-          return [...prevPlayers, {name: displayName}];
+          return [...prevPlayers, { name: displayName }];
         });
 
         localStorage.setItem("players", JSON.stringify(playersInRoom));
 
-        console.log(`[Client-side Acknowledgement] Player "${displayName}" added to room "${roomKey}"`);
-      }
+        console.log(
+          `[Client-side Acknowledgement] Player "${displayName}" added to room "${roomKey}"`
+        );
+      };
 
       window.setRoomKey = (key) => {
         if (socketDisplayNameRef.current) {
@@ -274,23 +316,25 @@ export const useSocket = (onMessageReceivedCallback) => {
 
       window.togglePlayerStatus = (roomKey, displayName) => {
         if (socketRef.current && roomKey && displayName) {
-          console.log(`[Client-side Acknowledgement] Toggling player status for ${displayName} in ${roomKey}`);
+          console.log(
+            `[Client-side Acknowledgement] Toggling player status for ${displayName} in ${roomKey}`
+          );
           socketRef.current.emit("player_ready", {
             roomKey: roomKey,
             displayName: displayName,
           });
         }
-      }
+      };
 
       window.setMoneyAmount = (amount) => {
         if (typeof amount === "number") {
-          setMoney(amount); // Update local money state
+          setMoney(amount);
           if (socketRef.current) {
             socketRef.current.emit("setMoneyAmount", {
               displayName: localStorage.getItem("displayName"),
               roomKey: localStorage.getItem("roomKey"),
               money: amount,
-            }); // Communicate the money amount to the server
+            });
           }
         }
       };
@@ -298,6 +342,63 @@ export const useSocket = (onMessageReceivedCallback) => {
       window.sendMessage = (msg) => {
         setSocketMessage(msg);
         console.log(`[Client-side Acknowledgement] Message sent: "${msg}"`);
+      };
+
+      window.getRooms = () => {
+        if (socketRef.current) {
+          socketRef.current.emit("getRooms");
+        } else {
+          console.log(
+            "[Client-side Acknowledgement] Socket is not initialized."
+          );
+        }
+      };
+
+      window.getPlayersInRoom = () => {
+        if (socketRef.current) {
+          console.log(
+            "[Client-side Acknowledgement] Requesting players in the current room..."
+          );
+          socketRef.current.emit("getPlayersInRoom");
+        }
+      };
+
+      // Add new functions for participant management
+      window.addParticipant = async (gameId) => {
+        await manageParticipant("add", gameId);
+      };
+
+      window.removeParticipant = async (gameId) => {
+        await manageParticipant("remove", gameId);
+      };
+
+      // Modified endGame function to use completeRoomInfo
+      window.endGame = async () => {
+        const completeRoomInfo = localStorage.getItem("completeRoomInfo");
+        if (completeRoomInfo && socketRef.current) {
+          try {
+            const response = await fetch(
+              `${process.env.NEXT_PUBLIC_SERVER_URL}/endGame`,
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: completeRoomInfo,
+              }
+            );
+
+            if (!response.ok) {
+              throw new Error("Failed to end game");
+            }
+
+            console.log(
+              "[Client-side Acknowledgement] Game ended successfully"
+            );
+          } catch (error) {
+            console.error("[Client-side Error] Failed to end game:", error);
+          }
+        }
       };
     }
   }, []);
