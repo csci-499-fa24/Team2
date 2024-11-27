@@ -4,12 +4,28 @@
   color: white;
   font-family: sans-serif;
   overflow-y: scroll;
+  overflow-x: hidden;
 }
 
 .main {
   display: flex;
   padding: 1rem;
   gap: 1rem;
+}
+
+@media (max-width: 768px) {
+  .main {
+    flex-direction: column; 
+  }
+
+  .main .howToPlay, 
+  .main .gameInfoContainer {
+    width: 100%;
+  }
+
+  .howToPlay {
+    order: 1;
+  }
 }
 
 .howToPlay {
@@ -37,6 +53,7 @@
 
 .lowerGameInfo {
   display: flex;
+  width: 100%;
   gap: 1rem;
 }
 
@@ -86,7 +103,7 @@
 .createRoomButton,
 .joinRoomButton {
   display: block;
-  width: 200px;
+  /* width: 200px; */
   background-color: #ffcc33;
   color: #001f3f;
   border: none;
@@ -113,6 +130,7 @@
 }
 
 .buttonRow {
+  width: 100%;
   display: flex;
   justify-content: space-between;
   gap: 10px;
