@@ -142,13 +142,13 @@ const JeopardyLoggedInPage = () => {
   const fetchAvailableRooms = async () => {
     try {
       const response = await fetch(
-        `${serverUrl}/api/games/active-games?includePrivate=true&includeInProgress=true&includeMaxPlayers=true`
+        `${serverUrl}/api/games/active-games?includePrivate=true&includeInProgress=true&includeMaxPlayers=true&includePlayerCount=true`
       );
 
       if (response.ok) {
         const data = await response.json();
         const filteredRooms = data.activeGames.filter(
-          (room) => !room.isPrivate && !room.inProgress
+          (room) => !room.isPrivate && !room.inProgress && room.playerCount > 0
         );
         setAvailableRooms(filteredRooms);
       } else {
@@ -187,7 +187,18 @@ const JeopardyLoggedInPage = () => {
     }
 
     fetchAvailableRooms();
-  }, []);
+
+    if (socket) {
+      socket.on("roomsUpdated", () => {
+        console.log("Rooms updated, fetching new room list");
+        fetchAvailableRooms();
+      });
+
+      return () => {
+        socket.off("roomsUpdated");
+      };
+    }
+  }, [socket]);
 
   const handleCreateRoom = async (isPrivate, maxPlayers) => {
     try {
@@ -204,7 +215,7 @@ const JeopardyLoggedInPage = () => {
 
       if (response.ok) {
         const data = await response.json();
-        localStorage.setItem("maxPlayers",data.maxPlayers);
+        localStorage.setItem("maxPlayers", data.maxPlayers);
         // console.log(data.maxPlayers);
         window.setRoomKey(data.gameId);
         router.push(`/waiting-room/${data.gameId}`);
@@ -374,6 +385,9 @@ const JeopardyLoggedInPage = () => {
                         <div>{room.gameId}</div>
                         <div className={styles.maxPlayers}>
                           Max Players: {room.maxPlayers}
+                        </div>
+                        <div className={styles.maxPlayers}>
+                          Players: {room.playerCount || 0}/{room.maxPlayers}
                         </div>
                       </button>
                     </li>

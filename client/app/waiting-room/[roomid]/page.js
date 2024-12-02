@@ -74,6 +74,13 @@ const WaitingPage = () => {
       window.addParticipant(storedRoomKey);
       setHasAddedParticipant(true);
 
+      if (socket) {
+        socket.emit("updateRoomPlayerCount", {
+          roomKey: storedRoomKey,
+          action: "increment",
+        });
+      }
+
       fetchAvailableRooms()
         .then((availableRooms) => {
           const maxPlayersForRoom = getMaxPlayersByGameId(
@@ -101,7 +108,6 @@ const WaitingPage = () => {
 
     const currentDisplayName = localStorage.getItem("displayName");
     setDisplayName(currentDisplayName || user?.email || "Anonymous");
-
   }, [hasAddedParticipant, user]);
 
   useEffect(() => {
@@ -129,11 +135,23 @@ const WaitingPage = () => {
 
   // Check if all players are ready and if they are then reroutes to game search page
   useEffect(() => {
-    const allReady = Object.keys(players).every(player => players[player].ready);
+    const allReady = Object.keys(players).every(
+      (player) => players[player].ready
+    );
     console.log("All players ready: ", allReady);
     if (Object.keys(players).length > 1 && allReady) {
       console.log("Players ready:", players);
-      router.push('/game-search-page');
+      // Mark the game as in progress before transitioning
+      const roomKey = localStorage.getItem("roomKey");
+      fetch(`${serverUrl}/api/games/start-gameplay/${roomKey}`, {
+        method: "POST",
+      })
+        .then(() => {
+          router.push("/game-search-page");
+        })
+        .catch((error) => {
+          console.error("Error marking game as in progress:", error);
+        });
     }
   }, [players, router]);
 
@@ -176,6 +194,13 @@ const WaitingPage = () => {
     if (!hasRemovedParticipant) {
       window.removeParticipant(roomKey);
       setHasRemovedParticipant(true);
+
+      if (socket) {
+        socket.emit("updateRoomPlayerCount", {
+          roomKey: roomKey,
+          action: "decrement",
+        });
+      }
     }
 
     localStorage.removeItem("roomKey");
@@ -233,7 +258,11 @@ const WaitingPage = () => {
                 {player} {players[player].status === "ready" && "(Ready)"}
                 {player === displayName && " (You)"}
               </div>
-              {players[player].ready ? <div className={styles.readyStatus}>Ready</div> : <div className={styles.readyStatus}>Not Ready</div>}
+              {players[player].ready ? (
+                <div className={styles.readyStatus}>Ready</div>
+              ) : (
+                <div className={styles.readyStatus}>Not Ready</div>
+              )}
             </div>
           ))
         ) : (

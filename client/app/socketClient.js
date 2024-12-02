@@ -192,6 +192,13 @@ export const useSocket = (onMessageReceivedCallback) => {
       setRoomsData(rooms);
     });
 
+    socketInstance.on("roomPlayerCountUpdated", (message) => {
+      console.log("[From Server: Room player count updated] -", message);
+      if (onMessageReceivedCallback) {
+        onMessageReceivedCallback(message);
+      }
+    });
+
     return () => {
       if (socketRef.current) {
         const gameId = localStorage.getItem("roomKey");

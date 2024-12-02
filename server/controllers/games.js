@@ -39,17 +39,38 @@ router.post("/start-game", async (req, res) => {
     lastActivity: Date.now(),
     warningSent: false,
     round: "Jeopardy!",
-    isPrivate, // Store the new properties
-    inProgress: false, // Always start with `inProgress` as false
-    maxPlayers, // Store the dynamic value from the client
+    isPrivate,
+    inProgress: false,
+    maxPlayers,
+    playerCount: 0,
   };
 
   res.status(200).json({
     message: "Game started",
     gameId,
+    maxPlayers,
     totalQuestions: jeopardyData.length,
   });
 });
+
+// Add a new endpoint to mark a game as in progress
+router.post("/start-gameplay/:gameId", (req, res) => {
+  const { gameId } = req.params;
+
+  if (!activeGames[gameId]) {
+    return res.status(404).json({ message: "Game not found." });
+  }
+
+  activeGames[gameId].inProgress = true;
+
+  // Notify all clients about the room update
+  if (io) {
+    io.emit("roomsUpdated");
+  }
+
+  res.status(200).json({ message: "Game marked as in progress" });
+});
+
 // API endpoint to get all active game UIDs with optional details
 router.get("/active-games", (req, res) => {
   // Set default values for query parameters to 'false' to return only gameId by default
@@ -57,6 +78,7 @@ router.get("/active-games", (req, res) => {
     includePrivate = "false",
     includeInProgress = "false",
     includeMaxPlayers = "false",
+    includePlayerCount = "false",
   } = req.query;
 
   const activeGamesData = Object.entries(activeGames).map(
@@ -71,6 +93,9 @@ router.get("/active-games", (req, res) => {
       }
       if (includeMaxPlayers === "true") {
         gameInfo.maxPlayers = gameData.maxPlayers;
+      }
+      if (includePlayerCount === "true") {
+        gameInfo.playerCount = gameData.playerCount || 0;
       }
 
       return gameInfo;
@@ -205,6 +230,9 @@ router.post("/set-in-progress/:gameId", (req, res) => {
   game.inProgress = true;
   game.lastActivity = Date.now(); // Update last activity timestamp for tracking
 
+  // Emit room update event to all clients
+  io.emit("roomsUpdated");
+
   res.status(200).json({ message: `Game ${gameId} is now in progress.` });
 });
 
@@ -218,10 +246,17 @@ router.post("/add-participant/:gameId", (req, res) => {
   }
 
   if (!gameParticipants[gameId]) {
-    gameParticipants[gameId] = {}; // Store participants as an object with userId keys
+    gameParticipants[gameId] = {};
   }
 
-  gameParticipants[gameId][userId] = { displayName }; // Store displayName with userId
+  gameParticipants[gameId][userId] = { displayName };
+  activeGames[gameId].playerCount = Object.keys(
+    gameParticipants[gameId]
+  ).length;
+
+  // Emit room update event to all clients
+  io.emit("roomsUpdated");
+
   res.status(200).json({
     message: `User ${userId} (${displayName}) added to game ${gameId}.`,
   });
@@ -233,9 +268,7 @@ router.post("/remove-participant/:gameId", (req, res) => {
   const { userId, displayName } = req.body;
 
   if (!userId || !gameId) {
-    return res.status(400).json({
-      message: "Invalid game or user ID.",
-    });
+    return res.status(400).json({ message: "Invalid game or user ID." });
   }
 
   if (!gameParticipants[gameId]) {
@@ -244,6 +277,13 @@ router.post("/remove-participant/:gameId", (req, res) => {
 
   if (gameParticipants[gameId][userId]) {
     delete gameParticipants[gameId][userId];
+    activeGames[gameId].playerCount = Object.keys(
+      gameParticipants[gameId]
+    ).length;
+
+    // Emit room update event to all clients
+    io.emit("roomsUpdated");
+
     res.status(200).json({
       message: `User ${userId} (${displayName}) removed from game ${gameId}.`,
     });
