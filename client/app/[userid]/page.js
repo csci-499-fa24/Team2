@@ -204,7 +204,7 @@ const JeopardyLoggedInPage = () => {
 
       if (response.ok) {
         const data = await response.json();
-        localStorage.setItem("maxPlayers",data.maxPlayers);
+        localStorage.setItem("maxPlayers", data.maxPlayers);
         // console.log(data.maxPlayers);
         window.setRoomKey(data.gameId);
         router.push(`/waiting-room/${data.gameId}`);
@@ -219,9 +219,27 @@ const JeopardyLoggedInPage = () => {
     setShowCreateModal(false);
   };
 
-  const handleJoinRoom = (roomKey) => {
-    window.setRoomKey(roomKey);
-    router.push(`waiting-room/${roomKey}`);
+  const handleJoinRoom = async (roomKey) => {
+    try {
+      const response = await fetch(
+        `${serverUrl}/api/games/active-games?includePrivate=true&includeInProgress=true&includeMaxPlayers=true`
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        const room = data.activeGames.find((game) => game.gameId === roomKey);
+
+        if (room && room.inProgress) {
+          alert("This game is already in progress. Please join another room.");
+          return;
+        }
+
+        window.setRoomKey(roomKey);
+        router.push(`waiting-room/${roomKey}`);
+      }
+    } catch (error) {
+      console.error("Error checking room status:", error);
+    }
   };
 
   const handleJoinByKey = (roomKey) => {
