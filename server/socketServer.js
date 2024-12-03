@@ -140,13 +140,15 @@ function setupSocketServer(server) {
 
       rooms[roomKey][playerName] = { money: 0, ready: false }; // Default money/ready status
 
-      // Change this line to send the correct data structure
-      io.to(roomKey).emit("update_players_list", {
-        players: { [roomKey]: rooms[roomKey] }, // Wrap the room data in an object with roomKey
-      });
+      // Emit update with the correct data structure for both client and tests
+      const updateData = {
+        players: {
+          [roomKey]: rooms[roomKey],
+        },
+      };
 
-      // Emit room update to all clients
-      io.emit("roomsUpdated");
+      io.emit("update_players_list", updateData);
+      socket.emit("update_players_list", updateData); // Ensure the sender also gets the update
     });
 
     // Server-side custom leaveRoom event
@@ -192,7 +194,12 @@ function setupSocketServer(server) {
     socket.on("getPlayersInRoom", ({ roomKey }) => {
       console.log("Request to server for players list in room:", roomKey);
       if (rooms[roomKey]) {
-        socket.emit("update_players_list", { players: rooms[roomKey] });
+        const updateData = {
+          players: {
+            [roomKey]: rooms[roomKey],
+          },
+        };
+        socket.emit("update_players_list", updateData);
       } else {
         console.log(`Room ${roomKey} does not exist.`);
       }
