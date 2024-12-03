@@ -91,6 +91,27 @@ describe("Socket.IO server tests", () => {
     });
   });
 
+  test("should handle player joining non existing room", (done) => {
+    const roomKey = null;
+    const playerName = "TestUser";
+
+    clientSocket.emit("player_joined", { roomKey, playerName });
+
+    serverSocket.on("player_joined", ({ roomKey, playerName }) => {
+      expect(rooms[roomKey][playerName]).toStrictEqual({
+        money: 0,
+        ready: false,
+      });
+    });
+
+    clientSocket.on("update_players_list", (data) => {
+      expect(data.players[roomKey]).toBeDefined();
+      expect(Object.keys(rooms[roomKey])).toContain(playerName);
+    });
+
+    done();
+  });
+
   test("should handle player joining room", (done) => {
     const roomKey = "Room1";
     const playerName = "TestUser";
@@ -152,8 +173,8 @@ describe("Socket.IO server tests", () => {
           } catch (error) {
             done(error);
           }
-        }, 500); // Increased timeout to ensure disconnect is processed
+        }); // Increased timeout to ensure disconnect is processed
       });
     });
-  }, 6000);
+  });
 });
