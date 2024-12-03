@@ -17,17 +17,20 @@ describe("Socket.IO server tests", () => {
         });
 
         server.listen(() => {
-            const port = server.address().port;
-            clientSocket = Client(`http://localhost:${port}`);
-            clientSocket.on("connect", done); // Proceed once client is connected
+            done();
         });
     });
 
-    // beforeEach(() => {
-    //     for (const key in rooms) {
-    //         delete rooms[key];
-    //     }
-    // });
+    beforeEach((done) => {
+        const port = server.address().port;
+        clientSocket = Client(`http://localhost:${port}`);
+        clientSocket.on("connect", done); // Proceed once client is connected
+    });
+
+    afterEach(() => {
+        if (clientSocket) clientSocket.close();
+        if (serverSocket) serverSocket.disconnect();  
+    });
 
     afterAll(() => {
         io.close();
@@ -44,15 +47,19 @@ describe("Socket.IO server tests", () => {
         });
     });
 
-    // test("should set room key with null displayName", (done) => {
-    //     clientSocket.emit("roomKey", "Room1");
+    test("should prompt for a set displayName if given null displayName", (done) => {
+        clientSocket.emit("roomKey", "Room1");
 
-    //     clientSocket.on("promptDisplayName", (message) => {
-    //         expect(message).toBe("Please set your display name before joining a room.");
-    //         expect(rooms["Room1"]).toBeUndefined();
-    //         done();
-    //     });
-    // });
+        clientSocket.on("promptDisplayName", (message) => {
+            expect(message).toBe("Please set your display name before joining a room.");
+            expect(rooms["Room1"]).toBeUndefined();
+            done();
+        });
+
+        setTimeout(() => {
+            done(new Error("Test timed out: 'promptDisplayName' event not emitted."));
+        }, 3000).unref(); // Set a timeout of 3 seconds
+    });
 
     test("should set room key and move user to specified room", (done) => {
         clientSocket.emit("displayName", "TestUser");
@@ -123,6 +130,8 @@ describe("Socket.IO server tests", () => {
     });
 
     test("should update money for user in a room", (done) => {
+        clientSocket.emit("displayName", "TestUser");
+        clientSocket.emit("roomKey", "Room1");
         clientSocket.emit("setMoneyAmount", {
             displayName: "TestUser",
             roomKey: "Room1",
