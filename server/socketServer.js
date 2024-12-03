@@ -139,7 +139,11 @@ function setupSocketServer(server) {
       }
 
       rooms[roomKey][playerName] = { money: 0, ready: false }; // Default money/ready status
-      io.to(roomKey).emit("update_players_list", { players: rooms[roomKey] });
+
+      // Change this line to send the correct data structure
+      io.to(roomKey).emit("update_players_list", {
+        players: { [roomKey]: rooms[roomKey] }, // Wrap the room data in an object with roomKey
+      });
 
       // Emit room update to all clients
       io.emit("roomsUpdated");
