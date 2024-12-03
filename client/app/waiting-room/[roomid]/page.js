@@ -63,7 +63,6 @@ const WaitingPage = () => {
   });
 
   useEffect(() => {
-    //console.log("WaitingPage useEffect triggered");
     const storedRoomKey = localStorage.getItem("roomKey");
     const completeRoomInfo = JSON.parse(
       localStorage.getItem("completeRoomInfo")
@@ -81,8 +80,9 @@ const WaitingPage = () => {
         });
       }
 
-      fetchAvailableRooms()
-        .then((availableRooms) => {
+      const checkRoomAvailability = async () => {
+        try {
+          const availableRooms = await fetchAvailableRooms();
           const maxPlayersForRoom = getMaxPlayersByGameId(
             storedRoomKey,
             availableRooms
@@ -90,9 +90,8 @@ const WaitingPage = () => {
           if (maxPlayersForRoom !== null) {
             setMaxPlayers(maxPlayersForRoom);
             const currentPlayersInRoom = Object.keys(players).length;
-            // Check if room is full
             if (currentPlayersInRoom > maxPlayersForRoom) {
-              setRoomIsFull(true); // Mark room as full
+              setRoomIsFull(true);
               alert("The room is full. Please join another room.");
               router.push(`/${user.uid}`);
               return;
@@ -100,10 +99,12 @@ const WaitingPage = () => {
           } else {
             console.error("Room key not found in available rooms");
           }
-        })
-        .catch((error) => {
+        } catch (error) {
           console.error("Error fetching available rooms:", error);
-        });
+        }
+      };
+
+      checkRoomAvailability();
     }
 
     const currentDisplayName = localStorage.getItem("displayName");
@@ -114,8 +115,28 @@ const WaitingPage = () => {
     const storedRoomKey = localStorage.getItem("roomKey");
 
     if (socket && storedRoomKey) {
+      const handleUpdatePlayersList = (message) => {
+        setPlayers(message.players);
+        if (Object.keys(message.players).length > maxPlayers) {
+          setRoomIsFull(true);
+          alert("The room is full. Please join another room.");
+          router.push(`/${user.uid}`);
+        }
+      };
+
+      const handlePlayerJoin = (message) => {
+        setPlayers((prevPlayers) => ({
+          ...prevPlayers,
+          [message.playerName]: {
+            roomKey: message.roomKey,
+            status: message.playerStatus,
+          },
+        }));
+      };
+
       socket.emit("getPlayersInRoom", { roomKey: storedRoomKey });
       socket.on("update_players_list", handleUpdatePlayersList);
+      socket.on("player_joined", handlePlayerJoin);
 
       if (!Object.keys(players).includes(displayName)) {
         socket.emit("player_joined", {
@@ -123,15 +144,13 @@ const WaitingPage = () => {
           playerName: displayName,
         });
       }
-    }
 
-    return () => {
-      if (socket) {
-        socket.off("player_joined");
+      return () => {
         socket.off("update_players_list", handleUpdatePlayersList);
-      }
-    };
-  }, [socket, user, displayName]);
+        socket.off("player_joined", handlePlayerJoin);
+      };
+    }
+  }, [socket, user, displayName, maxPlayers, router]);
 
   // Check if all players are ready and if they are then reroutes to game search page
   useEffect(() => {
@@ -154,15 +173,6 @@ const WaitingPage = () => {
         });
     }
   }, [players, router]);
-
-  const handleUpdatePlayersList = (message) => {
-    setPlayers(message.players);
-    if (Object.keys(message.players).length > maxPlayers) {
-      setRoomIsFull(true);
-      alert("The room is full. Please join another room.");
-      router.push(`/${user.uid}`);
-    }
-  };
 
   const updatePlayerList = (message) => {
     setPlayers((prevPlayers) => {
