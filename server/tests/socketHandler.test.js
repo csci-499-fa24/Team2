@@ -27,14 +27,16 @@ describe("Socket.IO server tests", () => {
         clientSocket.on("connect", done); // Proceed once client is connected
     });
 
-    afterEach(() => {
+    afterEach((done) => {
         if (clientSocket) clientSocket.close();
         if (serverSocket) serverSocket.disconnect();  
+        done();
     });
 
-    afterAll(() => {
+    afterAll((done) => {
         io.close();
         clientSocket.close();
+        server.close(done);
     });
 
     test("should set display name and add user to default room", (done) => {
@@ -145,6 +147,51 @@ describe("Socket.IO server tests", () => {
             expect(rooms["Room1"]["TestUser"].money).toBe(100);
             done();
         });
+    });
+
+    test("should create a room when setting money amount for user if it doesn't exist", (done) => {
+        const roomKey = "nonExistentRoom";
+        const displayName = "TestUser";
+        const money = 100;
+
+        expect(rooms[roomKey]).toBeUndefined();
+
+        clientSocket.emit("setMoneyAmount", { 
+            displayName: displayName, 
+            roomKey: roomKey,
+            money: money 
+        });
+        
+        setTimeout(() => {
+            expect(rooms[roomKey]).toBeDefined();
+            expect(rooms[roomKey].money).toBe(0); 
+            expect(rooms[roomKey].ready).toBe(false);
+            expect(rooms[roomKey][displayName]).toBeUndefined(); 
+            done();
+        }, 10);
+    });
+
+    test("should log error for player not in room when setting money amount", (done) => {
+        const consoleLog = jest.spyOn(console, "log").mockImplementation();
+        const displayName = "TestUser";
+        const roomKey = "Room1";
+        rooms[roomKey] = {};
+
+        clientSocket.emit("setMoneyAmount", {
+            displayName: displayName,
+            roomKey: roomKey,
+            money: 100,
+        });
+
+        setTimeout(() => {
+            expect(consoleLog).toHaveBeenCalledWith(
+                `Player ${displayName} is not in room ${roomKey}`
+            );
+            expect(rooms[roomKey][displayName]).toBeUndefined();
+
+            consoleLog.mockRestore(); // Restore console.log
+            done();
+        }, 50);
     });
 
     test("should handle user disconnect", (done) => {
