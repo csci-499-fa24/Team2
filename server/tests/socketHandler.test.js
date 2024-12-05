@@ -131,6 +131,73 @@ describe("Socket.IO server tests", () => {
         done();
     });
 
+    test("should handle player leaving room", (done) => {
+        const roomKey = "Room1";
+        const playerName = "TestUser";
+        rooms[roomKey] = { [playerName]: { money: 0, ready: false } };
+
+        clientSocket.emit("player_left", { roomKey, displayName: playerName });
+        serverSocket.on("player_left", ({ roomKey, displayName }) => {
+            expect(rooms[roomKey][displayName]).toBeUndefined();
+            done();
+        });
+    });
+
+    test("should toggle player ready status from false to true in room", (done) => {
+        const roomKey = "room1";
+        const displayName = "TestUser";
+
+        rooms[roomKey] = {
+            [displayName]: {money: 0, ready: false}
+        };
+
+        clientSocket.emit("player_ready", {roomKey, displayName});
+        serverSocket.on("player_ready", ({roomKey, displayName}) => {
+            expect(rooms[roomKey][displayName].ready).toBe(true);
+            done();
+        });
+    });
+
+    test("should log error for non-existent player/room for ready status", (done) => {
+        const roomKey = "room1";
+        const displayName = "nonExistentPlayer";
+        const consoleLog = jest.spyOn(console, "log").mockImplementation();
+
+        clientSocket.emit("player_ready", {roomKey, displayName});
+        serverSocket.on("player_ready", ({roomKey, displayName}) => {
+            expect(consoleLog).toHaveBeenCalledWith(`Player ${displayName} or room ${roomKey} not found`);
+            done();
+        });
+    });
+
+    test("should get players in existing room",(done) => {
+        const roomKey = "RoomPlayers";
+        const player1 = "TestPlayerInRoom";
+        const player2 = "TestPlayerInRoom2";
+        const consoleLog = jest.spyOn(console, "log").mockImplementation();
+
+        rooms[roomKey] = {
+            player1: {money: 0, ready: false}, 
+            player2: {money: 0, ready: false}};
+
+        clientSocket.emit("getPlayersInRoom", {roomKey});
+        clientSocket.on("update_players_list", ({players}) => {
+            expect(players).toStrictEqual(rooms[roomKey]);
+            done();
+        });
+    });
+
+    test("should log error for getting players in non-existent room",(done) => {
+        const roomKey = "NonExistentRoom";;
+        const consoleLog = jest.spyOn(console, "log").mockImplementation();
+
+        clientSocket.emit("getPlayersInRoom", {roomKey});
+        serverSocket.on("getPlayersInRoom", ({roomKey}) => {
+            expect(consoleLog).toHaveBeenCalledWith(`Room ${roomKey} does not exist.`);
+            done();
+        });
+    });
+
     test("should update money for user in a room", (done) => {
         clientSocket.emit("displayName", "TestUser");
         clientSocket.emit("roomKey", "Room1");
