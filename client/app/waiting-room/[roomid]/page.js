@@ -108,11 +108,11 @@ const WaitingPage = () => {
       socket.on("update_players_list", (message) => {
         setPlayers(message.players);
 
-        if (Object.keys(message.players).length > maxPlayers) {
-          setRoomIsFull(true);
-          alert("The room is full. Please join another room.");
-          router.push(`/user`);
-        }
+        // if (Object.keys(message.players).length > maxPlayers) {
+        //   setRoomIsFull(true);
+        //   alert("The room is full. Please join another room.");
+        //   router.push(`/user`);
+        // }
       });
 
       if (!Object.keys(players).includes(displayName)) {
