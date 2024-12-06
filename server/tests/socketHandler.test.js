@@ -74,6 +74,32 @@ describe("Socket.IO server tests", () => {
         });
     });
 
+    // For testing lines 69-80 of "roomKey" event listener
+    // To be debugged:
+
+    // test("should remove player from previous room and add them to new room", (done) => {
+    //     const previousRoomKey = "prevRoom";
+    //     const newRoomKey = "newRoom";
+    //     const displayName = "TestUser";
+
+    //     rooms[previousRoomKey] = { [displayName]: { money: 0, ready: false } };
+
+    //     clientSocket.emit("displayName", displayName);
+    //     clientSocket.emit("player_joined", { 
+    //         roomKey: previousRoomKey, 
+    //         displayName: displayName });
+    //     clientSocket.emit("roomKey", newRoomKey);
+
+    //     serverSocket.on("roomKey", (roomKey) => {
+    //         setTimeout(() => {  
+    //             expect(roomKey).toBe("newRoom");
+    //             expect(rooms[roomKey][displayName]).toStrictEqual({});
+    //             expect(rooms[previousRoomKey][displayName]).toBeUndefined();
+    //             done();
+    //         }, 100); 
+    //     });
+    // }, 10000);
+
     test("should send a custom message to specified room", (done) => {
         clientSocket.emit("customMessage", {
             displayName: "TestUser",
@@ -95,40 +121,34 @@ describe("Socket.IO server tests", () => {
         });
     });
 
-    test("should handle player joining non existing room", (done) => {
-        const roomKey = null;
+    test("should handle player joining new room", (done) => {
+        const roomKey = "NewRoom";
         const playerName = "TestUser";
 
         clientSocket.emit("player_joined", {roomKey, playerName});
-
         serverSocket.on("player_joined", ({ roomKey, playerName }) => {
             expect(rooms[roomKey][playerName]).toStrictEqual({ money: 0, ready: false });
+            done();
         });
-
-        clientSocket.on("update_players_list", (data) => {
-            expect(data.players[roomKey]).toBeDefined();
-            expect(Object.keys(rooms[roomKey])).toContain(playerName);
-        });
-
-        done();
     });
 
-    test("should handle player joining room", (done) => {
-        const roomKey = "Room1";
+    test("should prevent user from joining full room", (done) => {
+        const roomKey = "room1";
         const playerName = "TestUser";
 
+        rooms[roomKey] = {
+            "player1": {money: 0, ready: false},
+            "player2": {money: 0, ready: false},
+            "player3": {money: 0, ready: false},
+            "player4": {money: 0, ready: false},
+        };
+
         clientSocket.emit("player_joined", {roomKey, playerName});
-
-        serverSocket.on("player_joined", ({ roomKey, playerName }) => {
-            expect(rooms[roomKey][playerName]).toStrictEqual({ money: 0, ready: false });
+        clientSocket.on("roomFull", (message) => {
+            expect(message).toBe(`Room ${roomKey} is full. Cannot join.`);
+            expect(rooms[roomKey][playerName]).toBeUndefined();
+            done();
         });
-
-        clientSocket.on("update_players_list", (data) => {
-            expect(data.players[roomKey]).toBeDefined();
-            expect(Object.keys(rooms[roomKey])).toContain(playerName);
-        });
-
-        done();
     });
 
     test("should handle player leaving room", (done) => {
@@ -136,6 +156,7 @@ describe("Socket.IO server tests", () => {
         const playerName = "TestUser";
         rooms[roomKey] = { [playerName]: { money: 0, ready: false } };
 
+        clientSocket.emit("displayName", playerName);
         clientSocket.emit("player_left", { roomKey, displayName: playerName });
         serverSocket.on("player_left", ({ roomKey, displayName }) => {
             expect(rooms[roomKey][displayName]).toBeUndefined();
@@ -270,6 +291,6 @@ describe("Socket.IO server tests", () => {
         setTimeout(() => {
             expect(rooms["Room1"]["TestUser"]).toBeUndefined();
             done();
-        }, 50); // Wait briefly for disconnect handling
+        }, 50); 
     });
 });
