@@ -24,6 +24,7 @@ const JeopardyLoggedInPage = () => {
   });
   const [joinRoomKey, setJoinRoomKey] = useState("");
   const roomsPerPage = 7;
+  const [roomsData, setRoomsData] = useState([]);
   const socket = useSocket();
   const db = getFirebaseFirestore();
   const { userid } = useParams();
@@ -139,20 +140,17 @@ const JeopardyLoggedInPage = () => {
     );
   };
 
-  function getUpdatedPlayerCount(roomKey) {
-    const room = availableRooms[roomKey];
-    if (!room) {
-      console.log(`Room ${roomKey} not found.`);
-      return 0; // Return 0 if the room doesn't exist
+  const getUpdatedPlayerCount = (roomData, roomKey) => {
+    if (!roomData || !roomKey || !roomData[roomKey]) {
+        return 0; // Return 0 if the room doesn't exist or invalid input
     }
 
-    // Return the count of players, excluding non-player properties
-    const playerCount = Object.keys(room)
-      .filter(playerName => playerName !== 'maxPlayers') 
-      .length;
+    // Count keys in the specific room object
+    const roomPlayers = Object.keys(roomData[roomKey]);
 
-    return playerCount;
-  }
+    // Return the number of players
+    return roomPlayers.length;
+};
 
   const fetchAvailableRooms = async () => {
     try {
@@ -173,6 +171,24 @@ const JeopardyLoggedInPage = () => {
       console.error("Error fetching available rooms:", error);
     }
   };
+
+  useEffect(() => {
+    if (socket) {
+      // Request the room data from the server
+      socket.emit("getRooms");
+
+      // Listen for the room data
+      socket.on("receiveRooms", (data) => {
+        setRoomsData(data);
+      });
+
+      // Clean up listener when component unmounts
+      return () => {
+        
+        socket.off("receiveRooms");
+      };
+    }
+  }, [socket]);
 
   useEffect(() => {
     const getActivePlayers = async () => {
@@ -377,14 +393,30 @@ const JeopardyLoggedInPage = () => {
                     return (
                       <li key={room.gameId}>
                         <button
-                          className={`${styles.roomButton} ${selectedRoom === room.gameId ? styles.selectedRoom : ""
-                            }`}
-                          onClick={() => handleJoinRoom(room.gameId)}
+                          className={`${styles.roomButton} ${selectedRoom === room.gameId ? styles.selectedRoom : ""}`}
+                          onClick={() => {
+                            const currentPlayerCount = getUpdatedPlayerCount(roomsData, room.gameId);
+                    
+                            // Check if the room is full
+                            if (currentPlayerCount === room.maxPlayers) {
+                              window.alert("This room is full. Please join another room.");
+                              return; // Prevent joining the room if it's full
+                            }
+                    
+                            // Proceed with joining the room
+                            handleJoinRoom(room.gameId);
+                          }}
                           disabled={isRoomFull}
                         >
                           <div>{room.gameId}</div>
                           <div className={styles.playerCount}>
-                            Players: {getUpdatedPlayerCount(room.gameId)}/{room.maxPlayers}
+                            {getUpdatedPlayerCount(roomsData, room.gameId) === room.maxPlayers ? (
+                              <span>FULL</span> // Display "FULL" if the room is full
+                            ) : (
+                              <>
+                                Players: {getUpdatedPlayerCount(roomsData, room.gameId)}/{room.maxPlayers}
+                              </>
+                            )}
                           </div>
                           {isRoomFull && (
                             <div className={styles.roomFullMessage}>Room Full</div>
@@ -392,6 +424,8 @@ const JeopardyLoggedInPage = () => {
                         </button>
                       </li>
                     );
+                    
+                    
                   })}
               </ul>
             ) : (
