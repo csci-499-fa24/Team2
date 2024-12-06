@@ -142,13 +142,13 @@ const JeopardyLoggedInPage = () => {
 
   const getUpdatedPlayerCount = (roomData, roomKey) => {
     if (!roomData || !roomKey || !roomData[roomKey]) {
-        return 0; // Return 0 if the room doesn't exist or invalid input
+        return 0; 
     }
 
-    // Count keys in the specific room object
+    
     const roomPlayers = Object.keys(roomData[roomKey]);
 
-    // Return the number of players
+   
     return roomPlayers.length;
 };
 
