@@ -293,4 +293,19 @@ describe("Socket.IO server tests", () => {
             done();
         }, 50).unref(); 
     });
+
+    test("should join a room and add the player to the rooms object", (done) => {
+      const displayName = "Player1";
+      const roomKey = "room1";
+    
+      clientSocket.emit("displayName", displayName);
+      clientSocket.emit("roomKey", roomKey);
+    
+      serverSocket.on("roomKey", () => {
+        expect(rooms[roomKey]).toBeDefined();
+        expect(rooms[roomKey][displayName]).toEqual({});
+        done();
+      });
+    });
+    
 });
