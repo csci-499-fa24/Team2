@@ -2,23 +2,27 @@
   background-color: rgb(0, 0, 1);
   font-family: "Impact", sans-serif;
   width: 100vw;
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
   display: flex;
+}
+
+@media (max-width: 768px) {
+  .page .button {
+    font-size: 1rem;
+  }
+
+  .page .firstrow {
+    font-size: 0.75rem;
+  }
 }
 
 .gameBoard {
   width: 80%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
-
-.boardContent {
-  flex-grow: 1;
+  height: 100%; 
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 10px;
-  padding: 10px;
+  grid-template-rows: repeat(6, 1fr); /* 6 equal rows */
+  gap: 10px; 
 }
 
 .playerScores {
@@ -61,12 +65,11 @@
 }
 
 .button {
-  width: 200px;
-  height: 100px;
+  flex: 1;
   margin: 10px;
   color: rgb(238, 196, 78);
   background-color: rgb(7, 18, 119);
-  font-size: 55px;
+  font-size: 2rem;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -78,15 +81,17 @@
 .firstbuttonrow,
 .buttonrow {
   display: flex;
+  justify-content: space-evenly;
+  width: 100%;
 }
 
 .firstrow {
-  width: 300px;
-  height: 145px;
+  width: 100%;
+  max-width: 100%;
   margin: 10px;
   color: rgb(255, 255, 255);
   background-color: rgb(7, 18, 119);
-  font-size: 28px;
+  font-size: 1rem;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -103,6 +108,14 @@
   background-color: rgb(240, 214, 107);
   transform: scale(1.1);
   color: white;
+}
+
+.buttonValue {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .modal {

@@ -518,7 +518,7 @@ export default function GameBoardPage() {
 
     return roundInfo.map((category, index) => (
       <button className={styles.firstrow} key={index}>
-        {category.category}
+        <span className={styles.buttonValue}>{category.category}</span>
       </button>
     ));
   }, [roundInfo]);
@@ -566,7 +566,7 @@ export default function GameBoardPage() {
       }
     }
 
-    // Create rows
+    // Create rows using grid structure
     for (let rowIndex = 0; rowIndex < maxValues; rowIndex++) {
       const buttonRow = (
         <div className={styles.buttonrow} key={rowIndex}>
@@ -616,7 +616,7 @@ export default function GameBoardPage() {
                   fetchQuestion(category, value);
                 }}
               >
-                {value || ""}
+                <span className={`${styles.buttonValue}`}>{value || ""}</span>
               </button>
             );
           })}
@@ -945,13 +945,6 @@ export default function GameBoardPage() {
           {clueAnswerNotification}
         </div>
       )}
-      <div>
-        {!selectedQuestion && (
-          <button onClick={nextRound} className={styles.nextRoundButton}>
-            {round === "Final Jeopardy!" ? "End Game" : "Next Round!"}
-          </button>
-        )}
-      </div>
     </div>
   );
 }
