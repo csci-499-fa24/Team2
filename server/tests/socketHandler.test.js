@@ -256,7 +256,7 @@ describe("Socket.IO server tests", () => {
             expect(rooms[roomKey].ready).toBe(false);
             expect(rooms[roomKey][displayName]).toBeUndefined(); 
             done();
-        }, 10);
+        }, 10).unref();
     });
 
     test("should log error for player not in room when setting money amount", (done) => {
@@ -279,7 +279,7 @@ describe("Socket.IO server tests", () => {
 
             consoleLog.mockRestore(); // Restore console.log
             done();
-        }, 50);
+        }, 50).unref();
     });
 
     test("should handle user disconnect", (done) => {
@@ -291,6 +291,6 @@ describe("Socket.IO server tests", () => {
         setTimeout(() => {
             expect(rooms["Room1"]["TestUser"]).toBeUndefined();
             done();
-        }, 50); 
+        }, 50).unref(); 
     });
 });
