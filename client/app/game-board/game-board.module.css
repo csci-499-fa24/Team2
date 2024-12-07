@@ -9,42 +9,60 @@
 
 @media (max-width: 768px) {
   .page .button {
-    font-size: 1rem;
+    font-size: 1.25rem;
   }
 
   .page .firstrow {
-    font-size: 0.75rem;
+    font-size: 10px;
+  }
+
+  .page .nextRoundButton {
+    padding: 15px 20px;
   }
 }
 
 .gameBoard {
   width: 80%;
-  height: 100%; 
+  height: 100%;
   display: grid;
   grid-template-rows: repeat(6, 1fr); /* 6 equal rows */
   gap: 10px; 
 }
 
-.playerScores {
+.InfoContainer {
   width: 20%;
   height: auto;
-  flex-grow: 1;
-  flex-shrink: 1;
-  background-color: rgb(7, 18, 119);
-  color: rgb(238, 196, 78);
-  padding: 20px;
   display: flex;
   flex-direction: column;
+  justify-content: space-evenly;
   align-items: center;
+  padding: 20px;
   margin: 10px 12px 10px 8px; /* top right bottom left */
+  background-color: rgb(7, 18, 119);
+  border-radius: 10px;
+}
+
+.playerScores {
+  width: 100%;
+  height: 100%;
+  flex-grow: 1;
+  flex-shrink: 1;
+  color: rgb(238, 196, 78);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  align-items: center;
   border-radius: 10px;
 }
 
 .playerScores h2 {
-  font-size: 40px;
+  font-size: 1.5rem;
   text-align: center;
-  margin-top: 40px;
-  margin-bottom: 40px;
+}
+
+.playerScoreContainer {
+  display: flex;
+  flex-direction: column;
 }
 
 .playerScore {
@@ -69,13 +87,14 @@
   margin: 10px;
   color: rgb(238, 196, 78);
   background-color: rgb(7, 18, 119);
-  font-size: 2rem;
+  font-size: 1.5rem;
   display: flex;
   justify-content: center;
   align-items: center;
   border: none;
   cursor: pointer;
   transition: transform 0.3s ease;
+  width: 100%;
 }
 
 .firstbuttonrow,
@@ -87,16 +106,13 @@
 
 .firstrow {
   width: 100%;
-  max-width: 100%;
   margin: 10px;
   color: rgb(255, 255, 255);
   background-color: rgb(7, 18, 119);
-  font-size: 1rem;
   display: flex;
   justify-content: center;
   align-items: center;
   border: none;
-  padding: 15px;
   text-align: center;
   word-wrap: break-word;
   line-height: 1.2;
@@ -265,7 +281,6 @@
 
 .nextRoundButton {
   padding: 15px 30px;
-  margin-top: 1rem;
   font-size: 24px;
   background-color: rgb(238, 196, 78);
   color: rgb(7, 18, 119);

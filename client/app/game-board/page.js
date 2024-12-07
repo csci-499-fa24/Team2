@@ -787,24 +787,28 @@ export default function GameBoardPage() {
         <div className={styles.firstbuttonrow}>{renderCategories()}</div>
         {renderRows()}
       </div>
-      <div className={styles.playerScores}>
-        <h2>Player Scores</h2>
-        {Object.entries(playerScores).map(([player, score]) => (
-          <div key={player} className={styles.playerScore}>
-            {player}: {score.money}
+      <div className={styles.InfoContainer}>
+        <div className={styles.playerScores}>
+          <div className={styles.playerScoreContainer}>
+            <h2>Player Scores</h2>
+            {Object.entries(playerScores).map(([player, score]) => (
+              <div key={player} className={styles.playerScore}>
+                {player}: {score.money}
+              </div>
+            ))}
           </div>
-        ))}
-        <div className={styles.playerSelectingNext}>
-          <h2>Player Selecting Next:</h2>
-          <p>{lastPlayerCorrect}</p>
+          <div className={styles.playerScoreContainer}>
+            <div className={styles.playerSelectingNext}>
+              <h2>Player Selecting Next:</h2>
+              <p>{lastPlayerCorrect}</p>
+            </div>
+          </div>
         </div>
-        <div className={styles.nextRoundButtonContainer}>
-          {!selectedQuestion && (
+        {!selectedQuestion && (
             <button onClick={nextRound} className={styles.nextRoundButton}>
               {round === "Final Jeopardy!" ? "End Game" : "Next Round!"}
             </button>
           )}
-        </div>
       </div>
       {expandingBox && (
         <div
