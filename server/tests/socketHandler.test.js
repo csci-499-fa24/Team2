@@ -307,5 +307,34 @@ describe("Socket.IO server tests", () => {
         done();
       });
     });
+
+    test("should not allow duplicate display names in the same room", (done) => {
+      const roomKey = "room1";
+      rooms[roomKey] = { Player1: {} }; 
     
+      clientSocket.emit("displayName", "Player1");
+      clientSocket.emit("roomKey", roomKey);
+    
+      serverSocket.on("roomKey", () => {
+        expect(Object.keys(rooms[roomKey]).length).toBe(1); 
+        expect(rooms[roomKey]["Player1"]).toBeDefined();
+        done();
+      });
+    });
+
+    test("should return the list of players in a room", (done) => {
+      const roomKey = "room1";
+      rooms[roomKey] = { Player1: {}, Player2: {} };
+    
+      clientSocket.emit("getPlayersInRoom", { roomKey });
+    
+      clientSocket.on("update_players_list", ({ players }) => {
+        expect(Object.keys(players)).toEqual(["Player1", "Player2"]);
+        done();
+      });
+    });
+    
+    
+    
+
 });
