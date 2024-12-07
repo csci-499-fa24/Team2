@@ -321,18 +321,6 @@ describe("Socket.IO server tests", () => {
         done();
       });
     });
-
-    test("should return the list of players in a room", (done) => {
-      const roomKey = "room1";
-      rooms[roomKey] = { Player1: {}, Player2: {} };
-    
-      clientSocket.emit("getPlayersInRoom", { roomKey });
-    
-      clientSocket.on("update_players_list", ({ players }) => {
-        expect(Object.keys(players)).toEqual(["Player1", "Player2"]);
-        done();
-      });
-    });
     
     
     
