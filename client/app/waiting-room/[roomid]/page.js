@@ -124,7 +124,7 @@ const WaitingPage = () => {
         socket.off("update_players_list", handleUpdatePlayersList);
       }
     };
-  }, [socket, user, displayName]);
+  }, [socket, user, displayName, players]);
 
   // Check if all players are ready and if they are then reroutes to game search page
   useEffect(() => {
@@ -206,7 +206,7 @@ const WaitingPage = () => {
     localStorage.removeItem("roomKey");
     localStorage.removeItem("displayName");
 
-    socket.emit("player_left", { roomKey, playerName: displayName });
+    // socket.emit("player_left", { roomKey, playerName: displayName });
     socket.disconnect();
     localStorage.setItem("roomKey", "");
     router.push(`/${user.uid}`);
