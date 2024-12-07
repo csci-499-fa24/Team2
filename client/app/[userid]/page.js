@@ -24,6 +24,7 @@ const JeopardyLoggedInPage = () => {
   });
   const [joinRoomKey, setJoinRoomKey] = useState("");
   const roomsPerPage = 7;
+  const [roomsData, setRoomsData] = useState([]);
   const socket = useSocket();
   const db = getFirebaseFirestore();
   const { userid } = useParams();
@@ -139,6 +140,18 @@ const JeopardyLoggedInPage = () => {
     );
   };
 
+  const getUpdatedPlayerCount = (roomData, roomKey) => {
+    if (!roomData || !roomKey || !roomData[roomKey]) {
+        return 0; 
+    }
+
+    
+    const roomPlayers = Object.keys(roomData[roomKey]);
+
+   
+    return roomPlayers.length;
+};
+
   const fetchAvailableRooms = async () => {
     try {
       const response = await fetch(
@@ -158,6 +171,24 @@ const JeopardyLoggedInPage = () => {
       console.error("Error fetching available rooms:", error);
     }
   };
+
+  useEffect(() => {
+    if (socket) {
+      // Request the room data from the server
+      socket.emit("getRooms");
+
+      // Listen for the room data
+      socket.on("receiveRooms", (data) => {
+        setRoomsData(data);
+      });
+
+      // Clean up listener when component unmounts
+      return () => {
+        
+        socket.off("receiveRooms");
+      };
+    }
+  }, [socket]);
 
   useEffect(() => {
     const getActivePlayers = async () => {
@@ -260,6 +291,7 @@ const JeopardyLoggedInPage = () => {
     startIndex,
     startIndex + roomsPerPage
   );
+  console.log(paginatedRooms);
 
   const handleNextPage = () => {
     if (currentPage < totalPages) {
@@ -369,35 +401,57 @@ const JeopardyLoggedInPage = () => {
         <div className={styles.lowerGameInfo}>
           <section className={styles.availableRooms}>
             <h2>Available Rooms</h2>
-            {paginatedRooms.filter(
-              (room) => !room.isPrivate && !room.inProgress
-            ).length === 0 ? (
-              <div className={styles.noOnlinePlayerMessage}>
-                No rooms available yet. Please create or join a room!
-              </div>
-            ) : (
+            {paginatedRooms.some((room) => !room.isPrivate && !room.inProgress) ? (
               <ul>
                 {paginatedRooms
                   .filter((room) => !room.isPrivate && !room.inProgress)
-                  .map((room, index) => (
-                    <li key={index}>
-                      <button
-                        className={`${styles.roomButton} ${
-                          selectedRoom === room.gameId
-                            ? styles.selectedRoom
-                            : ""
-                        }`}
-                        onClick={() => handleJoinRoom(room.gameId)}
-                      >
-                        <div>{room.gameId}</div>
-                        <div className={styles.maxPlayers}>
-                          Max Players: {room.maxPlayers}
-                        </div>
-                      </button>
-                    </li>
-                  ))}
+                  .map((room) => {
+                    const isRoomFull = room.currentPlayers > room.maxPlayers;
+
+                    return (
+                      <li key={room.gameId}>
+                        <button
+                          className={`${styles.roomButton} ${selectedRoom === room.gameId ? styles.selectedRoom : ""}`}
+                          onClick={() => {
+                            const currentPlayerCount = getUpdatedPlayerCount(roomsData, room.gameId);
+                    
+                            // Check if the room is full
+                            if (currentPlayerCount === room.maxPlayers) {
+                              window.alert("This room is full. Please join another room.");
+                              return; // Prevent joining the room if it's full
+                            }
+                    
+                            // Proceed with joining the room
+                            handleJoinRoom(room.gameId);
+                          }}
+                          disabled={isRoomFull}
+                        >
+                          <div>{room.gameId}</div>
+                          <div className={styles.playerCount}>
+                            {getUpdatedPlayerCount(roomsData, room.gameId) === room.maxPlayers ? (
+                              <span>FULL</span> // Display "FULL" if the room is full
+                            ) : (
+                              <>
+                                Players: {getUpdatedPlayerCount(roomsData, room.gameId)}/{room.maxPlayers}
+                              </>
+                            )}
+                          </div>
+                          {isRoomFull && (
+                            <div className={styles.roomFullMessage}>Room Full</div>
+                          )}
+                        </button>
+                      </li>
+                    );
+                    
+                    
+                  })}
               </ul>
+            ) : (
+              <div className={styles.noOnlinePlayerMessage}>
+                No rooms available yet. Please create or join a room!
+              </div>
             )}
+
             {availableRooms.length > 0 && (
               <div className={styles.paginationControls}>
                 <button onClick={handlePrevPage} disabled={currentPage === 1}>
