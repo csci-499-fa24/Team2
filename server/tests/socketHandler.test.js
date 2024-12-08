@@ -2,6 +2,9 @@ const { setupSocketServer, rooms } = require('../socketServer');
 const { Server } = require("socket.io");
 const Client = require("socket.io-client");
 
+// Mock the global objects
+global.activeGames = {};
+
 describe("Socket.IO server tests", () => {
     let io, server, clientSocket, serverSocket, currentDisplayName, currentRoomKey;
 
