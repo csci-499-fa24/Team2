@@ -5,8 +5,7 @@
   "scripts": {
     "test": "jest --coverage",
     "start": "node server",
-    "dev": "nodemon server",
-    "coverage": "jest --coverage"
+    "dev": "nodemon server"
   },
   "author": "",
   "license": "ISC",
