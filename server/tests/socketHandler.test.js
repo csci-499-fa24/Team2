@@ -294,19 +294,19 @@ describe("Socket.IO server tests", () => {
         }, 50).unref(); 
     });
 
-    test("should join a room and add the player to the rooms object", (done) => {
-      const displayName = "Player1";
-      const roomKey = "room1";
+    // test("should join a room and add the player to the rooms object", (done) => {
+    //   const displayName = "Player1";
+    //   const roomKey = "room1";
     
-      clientSocket.emit("displayName", displayName);
-      clientSocket.emit("roomKey", roomKey);
+    //   clientSocket.emit("displayName", displayName);
+    //   clientSocket.emit("roomKey", roomKey);
     
-      serverSocket.on("roomKey", () => {
-        expect(rooms[roomKey]).toBeDefined();
-        expect(rooms[roomKey][displayName]).toEqual({});
-        done();
-      });
-    });
+    //   serverSocket.on("roomKey", () => {
+    //     expect(rooms[roomKey]).toBeDefined();
+    //     expect(rooms[roomKey][displayName]).toEqual({});
+    //     done();
+    //   });
+    // });
 
     test("should not allow duplicate display names in the same room", (done) => {
       const roomKey = "room1";
@@ -323,24 +323,24 @@ describe("Socket.IO server tests", () => {
     });
     
 
-  //   test("should remove player from previous room and add them to new room", (done) => {
-  //     const previousRoomKey = "prevRoom";
-  //     const newRoomKey = "newRoom";
-  //     const displayName = "TestUser";
+    test("should remove player from previous room and add them to new room", (done) => {
+      const previousRoomKey = "prevRoom";
+      const newRoomKey = "newRoom";
+      const displayName = "TestUser";
   
      
-  //     rooms[previousRoomKey] = { [displayName]: { money: 0, ready: false } };
+      rooms[previousRoomKey] = { [displayName]: { money: 0, ready: false } };
   
      
-  //     clientSocket.emit("displayName", displayName);
-  //     clientSocket.emit("roomKey", previousRoomKey);
-  //     clientSocket.emit("roomKey", newRoomKey);
+      clientSocket.emit("displayName", displayName);
+      clientSocket.emit("roomKey", previousRoomKey);
+      clientSocket.emit("roomKey", newRoomKey);
   
-  //     setTimeout(() => {
-  //         expect(rooms[newRoomKey][displayName]).toStrictEqual({}); 
-  //         expect(rooms[previousRoomKey][displayName]).toBeUndefined(); // Player removed from old room
-  //         done();
-  //     }, 50).unref(); 
-  // });
+      setTimeout(() => {
+          expect(rooms[newRoomKey][displayName]).toStrictEqual({}); 
+          expect(rooms[previousRoomKey][displayName]).toBeUndefined(); // Player removed from old room
+          done();
+      }, 50).unref(); 
+  });
 
 });
