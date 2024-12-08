@@ -5,14 +5,6 @@ const rooms = {
   "": { money: 0, ready: false }, // Default room for users without a room, stores players and their money
 };
 
-// const MAX_PLAYERS = {
-//   room1: 4, // Example: Room 1 can have up to 4 players
-//   room2: 5, // Room 2 can have up to 5 players
-//   room3: 6, // Room 3 can have up to 6 players
-//   room4: 7, // Room 4 can have up to 7 players
-//   room5: 8, // Room 5 can have up to 8 players
-// };
-
 function setupSocketServer(server) {
   io = new Server(server, {
     cors: {
@@ -61,9 +53,9 @@ function setupSocketServer(server) {
       }
 
       /* 
-            Originally there was a block of code here that removed user from default room
-            It's actually easier to keep a duplicate of everyone in the default room to refer back to
-            */
+        Originally there was a block of code here that removed user from default room
+        It's actually easier to keep a duplicate of everyone in the default room to refer back to
+        */
 
       // Check if the player is in another room and remove them from that room
       if (
@@ -77,19 +69,6 @@ function setupSocketServer(server) {
           `User "${currentDisplayName}" removed from room "${currentRoomKey}".`
         );
       }
-
-      // Check if the room has reached the maximum player limit
-    //   if (
-    //     rooms[roomKey] &&
-    //     Object.keys(rooms[roomKey]).length >= MAX_PLAYERS[roomKey]
-    //   ) {
-    //     console.log(`Room "${roomKey}" is full. Cannot join.`);
-    //     socket.emit(
-    //       "roomFull",
-    //       `Room "${roomKey}" has reached the maximum player limit.`
-    //     );
-    //     return;
-    //   }
 
       // Update the current room key to the new room
       currentRoomKey = roomKey;
@@ -130,13 +109,6 @@ function setupSocketServer(server) {
       if (!rooms[roomKey]) {
         rooms[roomKey] = {};
       }
-
-      // Check if room exceeds max players
-    //   if (Object.keys(rooms[roomKey]).length >= MAX_PLAYERS[roomKey]) {
-    //     console.log(`Room ${roomKey} is full. Cannot add player ${playerName}`);
-    //     socket.emit("roomFull", `Room ${roomKey} is full. Cannot join.`);
-    //     return;
-    //   }
 
       rooms[roomKey][playerName] = { money: 0, ready: false }; // Default money/ready status
       io.to(roomKey).emit("update_players_list", { players: rooms[roomKey] });
