@@ -518,7 +518,7 @@ export default function GameBoardPage() {
 
     return roundInfo.map((category, index) => (
       <button className={styles.firstrow} key={index}>
-        {category.category}
+        <span className={styles.buttonValue}>{category.category}</span>
       </button>
     ));
   }, [roundInfo]);
@@ -566,7 +566,7 @@ export default function GameBoardPage() {
       }
     }
 
-    // Create rows
+    // Create rows using grid structure
     for (let rowIndex = 0; rowIndex < maxValues; rowIndex++) {
       const buttonRow = (
         <div className={styles.buttonrow} key={rowIndex}>
@@ -616,7 +616,7 @@ export default function GameBoardPage() {
                   fetchQuestion(category, value);
                 }}
               >
-                {value || ""}
+                <span className={`${styles.buttonValue}`}>{value || ""}</span>
               </button>
             );
           })}
@@ -787,24 +787,28 @@ export default function GameBoardPage() {
         <div className={styles.firstbuttonrow}>{renderCategories()}</div>
         {renderRows()}
       </div>
-      <div className={styles.playerScores}>
-        <h2>Player Scores</h2>
-        {Object.entries(playerScores).map(([player, score]) => (
-          <div key={player} className={styles.playerScore}>
-            {player}: {score.money}
+      <div className={styles.InfoContainer}>
+        <div className={styles.playerScores}>
+          <div className={styles.playerScoreContainer}>
+            <h2>Player Scores</h2>
+            {Object.entries(playerScores).map(([player, score]) => (
+              <div key={player} className={styles.playerScore}>
+                {player}: {score.money}
+              </div>
+            ))}
           </div>
-        ))}
-        <div className={styles.playerSelectingNext}>
-          <h2>Player Selecting Next:</h2>
-          <p>{lastPlayerCorrect}</p>
+          <div className={styles.playerScoreContainer}>
+            <div className={styles.playerSelectingNext}>
+              <h2>Player Selecting Next:</h2>
+              <p>{lastPlayerCorrect}</p>
+            </div>
+          </div>
         </div>
-        <div className={styles.nextRoundButtonContainer}>
-          {!selectedQuestion && (
+        {!selectedQuestion && (
             <button onClick={nextRound} className={styles.nextRoundButton}>
               {round === "Final Jeopardy!" ? "End Game" : "Next Round!"}
             </button>
           )}
-        </div>
       </div>
       {expandingBox && (
         <div
@@ -945,13 +949,6 @@ export default function GameBoardPage() {
           {clueAnswerNotification}
         </div>
       )}
-      <div>
-        {!selectedQuestion && (
-          <button onClick={nextRound} className={styles.nextRoundButton}>
-            {round === "Final Jeopardy!" ? "End Game" : "Next Round!"}
-          </button>
-        )}
-      </div>
     </div>
   );
 }
