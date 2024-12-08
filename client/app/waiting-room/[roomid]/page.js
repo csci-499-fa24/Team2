@@ -84,12 +84,12 @@ const WaitingPage = () => {
             setMaxPlayers(maxPlayersForRoom);
             const currentPlayersInRoom = Object.keys(players).length;
             // Check if room is full
-            if (currentPlayersInRoom > maxPlayersForRoom) {
-              setRoomIsFull(true); // Mark room as full
-              alert("The room is full. Please join another room.");
-              router.push(`/${user.uid}`);
-              return;
-            }
+            // if (currentPlayersInRoom > maxPlayersForRoom) {
+            //   setRoomIsFull(true); // Mark room as full
+            //   alert("The room is full. Please join another room.");
+            //   router.push(`/${user.uid}`);
+            //   return;
+            // }
           } else {
             console.error("Room key not found in available rooms");
           }
@@ -164,11 +164,11 @@ const WaitingPage = () => {
 
   const handleUpdatePlayersList = (message) => {
     setPlayers(message.players);
-    if (Object.keys(message.players).length > maxPlayers) {
-      setRoomIsFull(true);
-      alert("The room is full. Please join another room.");
-      router.push(`/${user.uid}`);
-    }
+    // if (Object.keys(message.players).length > maxPlayers) {
+    //   setRoomIsFull(true);
+    //   alert("The room is full. Please join another room.");
+    //   router.push(`/${user.uid}`);
+    // }
   };
 
   const updatePlayerList = (message) => {

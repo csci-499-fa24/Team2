@@ -2,45 +2,67 @@
   background-color: rgb(0, 0, 1);
   font-family: "Impact", sans-serif;
   width: 100vw;
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
   display: flex;
+}
+
+@media (max-width: 768px) {
+  .page .button {
+    font-size: 1.25rem;
+  }
+
+  .page .firstrow {
+    font-size: 0.75rem;
+  }
+
+  .page .nextRoundButton {
+    padding: 15px 20px;
+  }
 }
 
 .gameBoard {
   width: 80%;
   height: 100%;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-rows: repeat(6, 1fr); /* 6 equal rows */
+  gap: 10px; 
 }
 
-.boardContent {
-  flex-grow: 1;
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 10px;
-  padding: 10px;
+.InfoContainer {
+  width: 20%;
+  height: auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  align-items: center;
+  padding: 20px;
+  margin: 10px 12px 10px 8px; /* top right bottom left */
+  background-color: rgb(7, 18, 119);
+  border-radius: 10px;
 }
 
 .playerScores {
-  width: 20%;
-  height: auto;
+  width: 100%;
+  height: 100%;
   flex-grow: 1;
   flex-shrink: 1;
-  background-color: rgb(7, 18, 119);
   color: rgb(238, 196, 78);
-  padding: 20px;
   display: flex;
   flex-direction: column;
+  justify-content: space-evenly;
   align-items: center;
-  margin: 10px 12px 10px 8px; /* top right bottom left */
   border-radius: 10px;
 }
 
 .playerScores h2 {
-  font-size: 40px;
+  font-size: 1.5rem;
   text-align: center;
-  margin-top: 40px;
-  margin-bottom: 40px;
+}
+
+.playerScoreContainer {
+  display: flex;
+  flex-direction: column;
 }
 
 .playerScore {
@@ -61,37 +83,40 @@
 }
 
 .button {
-  width: 200px;
-  height: 100px;
-  margin: 10px;
+  flex: 1;
+  margin: 0 5px;
   color: rgb(238, 196, 78);
   background-color: rgb(7, 18, 119);
-  font-size: 55px;
+  font-size: 1.5rem;
   display: flex;
   justify-content: center;
   align-items: center;
   border: none;
   cursor: pointer;
   transition: transform 0.3s ease;
+  width: 100%;
+  height: 95%;
 }
 
 .firstbuttonrow,
 .buttonrow {
   display: flex;
+  justify-content: space-evenly;
+  align-items: center;
+  width: 100%;
 }
 
 .firstrow {
-  width: 300px;
-  height: 145px;
-  margin: 10px;
+  width: 100%;
+  height: 95%;
+  margin: 0 5px;
+  font-size: 1rem;
   color: rgb(255, 255, 255);
   background-color: rgb(7, 18, 119);
-  font-size: 28px;
   display: flex;
   justify-content: center;
   align-items: center;
   border: none;
-  padding: 15px;
   text-align: center;
   word-wrap: break-word;
   line-height: 1.2;
@@ -103,6 +128,14 @@
   background-color: rgb(240, 214, 107);
   transform: scale(1.1);
   color: white;
+}
+
+.buttonValue {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .modal {
@@ -252,7 +285,6 @@
 
 .nextRoundButton {
   padding: 15px 30px;
-  margin-top: 1rem;
   font-size: 24px;
   background-color: rgb(238, 196, 78);
   color: rgb(7, 18, 119);
