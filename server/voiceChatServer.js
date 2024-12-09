@@ -1,10 +1,8 @@
 const WebSocket = require('ws');
 
-let wss;
-let clients = [];
-
 function setupWebRTCSocketServer() {
-  wss = new WebSocket.Server({ port: 8081 });
+  const wss = new WebSocket.Server({ noServer: true });
+  let clients = [];
 
   wss.on('connection', (ws) => {
     clients.push(ws);

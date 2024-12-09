@@ -58,7 +58,7 @@ if (process.env.NODE_ENV !== 'test') {
       console.log(`Server is running on http://localhost:${port}`);
     });
     initializeSockets.setupSocketServer(server);
-    setupWebRTCSocketServer();
+    setupWebRTCSocketServer(server);
   });
 } else {
   console.log('Test environment: Server will not start.');
