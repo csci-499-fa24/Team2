@@ -178,11 +178,15 @@ const JeopardyLoggedInPage = () => {
         console.log("Received updateRooms event");
         fetchAvailableRooms();
       };
-  
+      socket.emit("getRooms");
       socket.on("updateRooms", handleUpdateRooms);
-  
+      socket.on("receiveRooms", (data) => {
+        setRoomsData(data);
+      });
+
       return () => {
         socket.off("updateRooms", handleUpdateRooms);
+        socket.off("receiveRooms");
       };
     }
   }, [socket]);
