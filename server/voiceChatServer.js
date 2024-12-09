@@ -32,7 +32,17 @@ function setupWebRTCSocketServer() {
     });
   });
 
-  console.log('WebRTC signaling server is running on ws://localhost:8081');
+  server.on('upgrade', (request, socket, head) => {
+    const { pathname } = new URL(request.url, `http://${request.headers.host}`);
+    if (pathname === '/webrtc') {
+      wss.handleUpgrade(request, socket, head, (ws) => {
+        wss.emit('connection', ws, request);
+      });
+    } else {
+      // If this upgrade request isn't for /webrtc, it's not our concern
+      socket.destroy();
+    }
+  });
 }
 
 module.exports = { setupWebRTCSocketServer };
