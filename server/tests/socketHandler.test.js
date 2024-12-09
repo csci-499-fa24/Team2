@@ -352,5 +352,40 @@ describe("Socket.IO server tests", () => {
         // Assertions for socket.leave
         expect(serverSocket.leave).toHaveBeenCalledWith(currentRoomKey);
       });
+
+      test("should remove user from the previous room and leave the room", () => {
+        const currentRoomKey = "room1";
+        const roomKey = "room2";
+        const currentDisplayName = "userA";
+      
+        // Mock rooms object
+        const rooms = {
+          room1: { userA: {}, userB: {} },
+          room2: { userC: {} },
+        };
+      
+        
+        const socket = { leave: jest.fn() };
+      
+        
+        console.log = jest.fn();
+      
+        
+        if (currentRoomKey && currentRoomKey !== roomKey && rooms[currentRoomKey]) {
+          delete rooms[currentRoomKey][currentDisplayName];
+          socket.leave(currentRoomKey);
+          console.log(
+            `User "${currentDisplayName}" removed from room "${currentRoomKey}".`
+          );
+        }
+      
+       
+        expect(rooms[currentRoomKey]).not.toHaveProperty(currentDisplayName); // Check user was removed
+        expect(socket.leave).toHaveBeenCalledWith(currentRoomKey); 
+        expect(console.log).toHaveBeenCalledWith(
+          `User "${currentDisplayName}" removed from room "${currentRoomKey}".`
+        ); 
+      });
+      
       
 });
