@@ -7,8 +7,10 @@ import styles from "../waiting-page.module.css";
 import { useSocket } from "../../socketClient";
 import { useSelector } from "react-redux";
 import { IoMdCloseCircleOutline } from "react-icons/io";
+import VoiceChat from './voiceChatClient';
 
 const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL;
+const signalingServerUrl = 'wss://team2-server-pr-208.onrender.com/webrtc';
 
 function getMaxPlayersByGameId(gameId, games) {
   if (!Array.isArray(games)) {
@@ -283,7 +285,17 @@ const WaitingPage = () => {
           <p className={styles.waitingMessage}>Waiting for other players...</p>
         ) : null}
       </div>
-
+      
+      <br></br>
+      <br></br>
+      <br></br>
+      <div className={styles.playerScoreContainer}>
+          <VoiceChat signalingServerUrl={signalingServerUrl} />
+      </div>
+      <br></br>
+      <br></br>
+      <br></br>
+      
       <div className={styles.rulesToggle} onClick={toggleRules}>
         {showRules ? "Hide Rules" : "Show Rules"}
       </div>
