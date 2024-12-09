@@ -174,22 +174,23 @@ const JeopardyLoggedInPage = () => {
 
   useEffect(() => {
     if (socket) {
-      // Request the room data from the server
+      const handleUpdateRooms = () => {
+        console.log("Received updateRooms event");
+        fetchAvailableRooms();
+      };
       socket.emit("getRooms");
-
-      // Listen for the room data
+      socket.on("updateRooms", handleUpdateRooms);
       socket.on("receiveRooms", (data) => {
         setRoomsData(data);
       });
 
-      // Clean up listener when component unmounts
       return () => {
-        
+        socket.off("updateRooms", handleUpdateRooms);
         socket.off("receiveRooms");
       };
     }
   }, [socket]);
-
+  
   useEffect(() => {
     const getActivePlayers = async () => {
       const getQuery = query(
@@ -241,6 +242,10 @@ const JeopardyLoggedInPage = () => {
         router.push(`/waiting-room/${data.gameId}`);
         dispatch(setSelectedData(data.gameId));
         console.log("Updated RoomID:", data.gameId);
+
+        // Emit event to server to update rooms
+        socket.emit("roomCreated");
+
       } else {
         console.error("Failed to create room");
       }

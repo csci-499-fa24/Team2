@@ -198,7 +198,7 @@ export const useSocket = (onMessageReceivedCallback) => {
         if (gameId) {
           manageParticipant("remove", gameId);
         }
-        socketRef.current.disconnect();
+        // socketRef.current.disconnect();
       }
     };
   }, []);

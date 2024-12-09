@@ -1,5 +1,5 @@
 const { Server } = require("socket.io");
-
+const { resolveGame} = require("./lib/gameUtils")
 let io;
 const rooms = {
   "": { money: 0, ready: false }, // Default room for users without a room, stores players and their money
@@ -176,7 +176,7 @@ function setupSocketServer(server) {
 
     // Event listener for fetching players in a room
     socket.on("getPlayersInRoom", ({ roomKey }) => {
-      console.log("Request to server for players list in room:", roomKey);
+      //console.log("Request to server for players list in room:", roomKey);
       if (rooms[roomKey]) {
         socket.emit("update_players_list", { players: rooms[roomKey] });
       } else {
@@ -207,6 +207,11 @@ function setupSocketServer(server) {
       }
     });
 
+    socket.on("roomCreated", () => {
+      // Broadcast updated rooms to all connected clients
+      io.emit("updateRooms", rooms);
+    });
+    
     // Event listener for handling disconnects
     socket.on("disconnect", () => {
       // Remove the user from their current room when they disconnect
@@ -216,6 +221,14 @@ function setupSocketServer(server) {
         console.log(
           `User ${currentDisplayName} disconnected and removed from room "${currentRoomKey}".`
         );
+        if (Object.keys(rooms[currentRoomKey]).length === 0) {
+          console.log(`Room "${currentRoomKey}" is empty. Resolving game.`);
+          resolveGame(currentRoomKey);
+          
+        } else {
+          console.log("The function did not trigger.")
+        }
+        io.emit("updateRooms", rooms);
       }
       console.log("Updated rooms object after disconnect:", rooms);
     });
