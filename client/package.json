@@ -21,7 +21,6 @@
     "recharts": "^2.13.3",
     "redux-thunk": "^3.1.0",
     "sharp": "^0.33.5",
-    "socket.io-client": "^4.8.0",
-    "simple-peer": "^9.11.1"
+    "socket.io-client": "^4.8.0"
   }
 }
