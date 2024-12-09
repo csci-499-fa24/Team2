@@ -1,6 +1,6 @@
 const WebSocket = require('ws');
 
-function setupWebRTCSocketServer() {
+function setupWebRTCSocketServer(server) {
   const wss = new WebSocket.Server({ noServer: true });
   let clients = [];
 
