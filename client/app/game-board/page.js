@@ -30,7 +30,7 @@ export default function GameBoardPage() {
   const [clueAnswerNotification, setClueAnswerNotification] = useState(null);
   const questionRef = useRef(null);
   const router = useRouter();
-  const signalingServerUrl = process.env.NEXT_PUBLIC_SERVER_URL.replace(/^https/, 'ws');
+  const signalingServerUrl = "wss://team2-server-pr-207.onrender.com";
   
   // Load completeRoomInfo from localStorage on component mount
   useEffect(() => {
