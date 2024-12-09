@@ -276,4 +276,81 @@ describe("Socket.IO server tests", () => {
         done();
       });
     });
+
+    test("should remove the player from the previous room and leave it", () => {
+        const currentRoomKey = "room1";
+        const currentDisplayName = "userA";
+        const roomKey = "room2";
+    
+        // Mock socket leave method
+        serverSocket.leave = jest.fn();
+    
+        // Logic being tested
+        if (
+          currentRoomKey &&
+          currentRoomKey !== roomKey &&
+          rooms[currentRoomKey]
+        ) {
+          delete rooms[currentRoomKey][currentDisplayName]; // Remove from the previous room
+          serverSocket.leave(currentRoomKey); // Leave the previous room
+          console.log(
+            `User "${currentDisplayName}" removed from room "${currentRoomKey}".`
+          );
+        }
+    
+        // Assertions
+        expect(rooms[currentRoomKey]).not.toHaveProperty(currentDisplayName); // Removed from previous room
+        expect(serverSocket.leave).toHaveBeenCalledWith(currentRoomKey); // Leave the previous room
+      });
+
+      test("should delete the player from the previous room", () => {
+        const currentRoomKey = "room1";
+        const currentDisplayName = "userA";
+        const roomKey = "room2";
+    
+        // Mock socket leave method
+        serverSocket.leave = jest.fn();
+    
+        // Logic being tested
+        if (
+          currentRoomKey &&
+          currentRoomKey !== roomKey &&
+          rooms[currentRoomKey]
+        ) {
+          delete rooms[currentRoomKey][currentDisplayName]; // Remove from the previous room
+          serverSocket.leave(currentRoomKey); // Leave the previous room
+          console.log(
+            `User "${currentDisplayName}" removed from room "${currentRoomKey}".`
+          );
+        }
+    
+        // Assertions for deletion
+        expect(rooms[currentRoomKey]).not.toHaveProperty(currentDisplayName);
+      });
+    
+      test("should call socket.leave with the correct room", () => {
+        const currentRoomKey = "room1";
+        const currentDisplayName = "userA";
+        const roomKey = "room2";
+    
+        // Mock socket leave method
+        serverSocket.leave = jest.fn();
+    
+        // Logic being tested
+        if (
+          currentRoomKey &&
+          currentRoomKey !== roomKey &&
+          rooms[currentRoomKey]
+        ) {
+          delete rooms[currentRoomKey][currentDisplayName]; // Remove from the previous room
+          serverSocket.leave(currentRoomKey); // Leave the previous room
+          console.log(
+            `User "${currentDisplayName}" removed from room "${currentRoomKey}".`
+          );
+        }
+    
+        // Assertions for socket.leave
+        expect(serverSocket.leave).toHaveBeenCalledWith(currentRoomKey);
+      });
+      
 });

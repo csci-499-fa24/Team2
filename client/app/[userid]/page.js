@@ -191,6 +191,25 @@ const JeopardyLoggedInPage = () => {
   }, [socket]);
 
   useEffect(() => {
+    if (socket) {
+      const handleUpdateRooms = () => {
+        console.log("Received updateRooms event");
+        fetchAvailableRooms();
+      };
+      socket.emit("getRooms");
+      socket.on("updateRooms", handleUpdateRooms);
+      socket.on("receiveRooms", (data) => {
+        setRoomsData(data);
+      });
+
+      return () => {
+        socket.off("updateRooms", handleUpdateRooms);
+        socket.off("receiveRooms");
+      };
+    }
+  }, [socket]);
+
+  useEffect(() => {
     const getActivePlayers = async () => {
       const getQuery = query(
         collection(db, "users"),
