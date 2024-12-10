@@ -8,7 +8,7 @@ const app = express();
 const initializeSockets = require('./socketServer');
 const routes = require('./controllers');
 const { endGame } = require('./lib/gameUtils'); // Import endGame function
-
+const { setupWebRTCSocketServer } = require('./voiceChatServer');
 
 app.use(cors({ origin: "*" }));
 app.use(express.json());
@@ -58,6 +58,7 @@ if (process.env.NODE_ENV !== 'test') {
       console.log(`Server is running on http://localhost:${port}`);
     });
     initializeSockets.setupSocketServer(server);
+    setupWebRTCSocketServer(server);
   });
 } else {
   console.log('Test environment: Server will not start.');

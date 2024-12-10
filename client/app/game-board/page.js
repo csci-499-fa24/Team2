@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { setSelectedData } from "../redux/data";
 import Fuse from 'fuse.js'; 
 import axios from 'axios';
+import VoiceChat from './voiceChatClient';
 
 export default function GameBoardPage() {
   const selectedData = useSelector((state) => state.selectedData.value);
@@ -29,6 +30,7 @@ export default function GameBoardPage() {
   const [clueAnswerNotification, setClueAnswerNotification] = useState(null);
   const questionRef = useRef(null);
   const router = useRouter();
+  const signalingServerUrl = 'wss://team2-server.onrender.com/webrtc';
 
   // Load completeRoomInfo from localStorage on component mount
   useEffect(() => {
@@ -804,6 +806,12 @@ export default function GameBoardPage() {
             </div>
           </div>
         </div>
+        <div className={styles.playerScoreContainer}>
+          <VoiceChat signalingServerUrl={signalingServerUrl} />
+        </div>
+        <br></br>
+        <br></br>
+        <br></br>
         {!selectedQuestion && (
             <button onClick={nextRound} className={styles.nextRoundButton}>
               {round === "Final Jeopardy!" ? "End Game" : "Next Round!"}
