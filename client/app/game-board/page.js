@@ -5,7 +5,7 @@ import { useSelector } from "react-redux";
 import { useSocket } from "../socketClient";
 import { useRouter } from "next/navigation";
 import { setSelectedData } from "../redux/data";
-import Fuse from 'fuse.js'; 
+import Fuse from 'fuse.js';
 import axios from 'axios';
 import VoiceChat from './voiceChatClient';
 
@@ -97,29 +97,24 @@ export default function GameBoardPage() {
       if (winner) {
         // Display winner alert before any further processing
         alert(`${winner} is the winner!`);
-  
+
         // Convert `showNumber` to a number if necessary
         const showNumber = isNaN(Number(round)) ? 1 : Number(round); // Default to 1 if not a number
         const points = playerScores[winner]; // Get the points for the winner 
-  
-        const gameData = {
-          gameId: selectedData,
-          showNumber,
-          owner: winner,
-          winner,
-          points,
-          players: Object.keys(playerScores), // Needs to be made the correct array with userIDs
-        };
-  
-        console.log("Sending game data:", gameData);
-  
-        // Step 1: Record the game history
-        // await axios.post(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/history/record_game`, gameData);
-        console.log("Game history temporarily not recorded.");
-  
-        // Step 2: End the game
-        const endGameResponse = await axios.post(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/games/end-game/${selectedData}`);
-        console.log(endGameResponse.data.message); // Outputs: "Game {gameId} has been ended."
+
+        // Prepare participantData as {displayName: score}
+        const participantData = {};
+        for (const [displayName, scoreObj] of Object.entries(playerScores)) {
+          participantData[displayName] = scoreObj.money;
+        }
+
+        console.log("Sending participant data:", participantData);
+
+        // Step 2: End the game (sending participantData)
+        const endGameResponse = await axios.post(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/games/end-game/${selectedData}`, {
+          participantData
+        });
+        console.log(endGameResponse.data.message);
       }
     } catch (error) {
       console.error("Failed to record or end game:", error);
@@ -529,8 +524,7 @@ export default function GameBoardPage() {
   const fetchQuestion = (category, value) => {
     // Fetch the question data
     fetch(
-      `${
-        process.env.NEXT_PUBLIC_SERVER_URL
+      `${process.env.NEXT_PUBLIC_SERVER_URL
       }/api/games/question/${selectedData}?category=${encodeURIComponent(
         category
       )}&value=${encodeURIComponent(value)}`
@@ -598,9 +592,8 @@ export default function GameBoardPage() {
             return (
               <button
                 key={categoryIndex}
-                className={`${styles.button} ${
-                  isDisabled ? styles.disabled : ""
-                }`}
+                className={`${styles.button} ${isDisabled ? styles.disabled : ""
+                  }`}
                 onClick={() => {
                   if (isDisabled) {
                     // Do nothing if the clue is already used
@@ -633,12 +626,12 @@ export default function GameBoardPage() {
   const handleSubmit = useCallback(
     async (e) => {
       e.preventDefault();
-  
+
       function formatQuestion(question) {
         const cleanedQuestion = question.replace(/[;:&[\]]|q\[\w+\]=/g, "").trim();
         return cleanedQuestion;
       }
-      
+
       async function getAnswerFromGoogle(question) {
         try {
           const formattedQuestion = formatQuestion(question);
@@ -651,7 +644,7 @@ export default function GameBoardPage() {
               q: formattedQuestion
             }
           });
-      
+
           if (response.data.items && response.data.items.length > 0) {
             return response.data.items[0].snippet;
           }
@@ -661,7 +654,7 @@ export default function GameBoardPage() {
           return "";
         }
       }
-      
+
       async function isCorrectAnswer(correctAnswer = "", playerResponse = "", question = "") {
         let usedGoogle = false;
         if (!correctAnswer && question) {
@@ -672,12 +665,12 @@ export default function GameBoardPage() {
           console.log("No correct answer or player response provided.");
           return false;
         }
-  
+
         const cleanText = text =>
           text.replace(/[^a-zA-Z\s]/g, "").toLowerCase().trim();
         const cleanCorrectAnswer = cleanText(correctAnswer);
         const cleanPlayerResponse = cleanText(playerResponse);
-  
+
         if (!cleanCorrectAnswer || !cleanPlayerResponse) {
           console.log("One of the cleaned answers is empty.");
           return false;
@@ -685,7 +678,7 @@ export default function GameBoardPage() {
         if (usedGoogle && cleanCorrectAnswer.includes(cleanPlayerResponse)) {
           return true;
         }
-  
+
         const options = {
           includeScore: true,
           threshold: 0.3,
@@ -696,36 +689,36 @@ export default function GameBoardPage() {
         const isMatch = result.length > 0 && result[0].score < options.threshold;
         return isMatch;
       }
-  
+
       if (answeredAlready) {
         setAnswerFeedback("Sorry, you can't answer again!");
         return;
       }
-  
+
       const userAnswer = e.target.elements.answer.value.trim().toLowerCase();
       const correctAnswer = selectedQuestion?.answer?.toLowerCase();
       const currentDisplayName = localStorage.getItem("displayName");
       const currentMoney = Number(localStorage.getItem("money")) || 0;
-  
+
       // Determine the amount to adjust based on question type
       let adjustAmount = Number(selectedQuestion.value.substring(1).replace(/,/g, ""));
-  
+
       if (selectedQuestion.isDailyDouble) {
         adjustAmount = Number(wagerAmount);
-  
+
         // Validate the wager amount
         if (isNaN(adjustAmount) || adjustAmount <= 0) {
           setAnswerFeedback("Invalid wager amount!");
           return;
         }
-  
+
         const maxWager = currentMoney > 0 ? currentMoney : 1000;
         if (adjustAmount > maxWager) {
           setAnswerFeedback(`Wager cannot exceed $${maxWager}`);
           return;
         }
       }
-  
+
       const correct = await isCorrectAnswer(correctAnswer, userAnswer, selectedQuestion.question);
       if (correct) {
         const newMoney = currentMoney + adjustAmount;
@@ -762,7 +755,7 @@ export default function GameBoardPage() {
           [currentDisplayName]: `$${newMoney}`,
         }));
       }
-  
+
       setAnsweredAlready(true);
     },
     [selectedQuestion, answeredAlready, closeQuestion, wagerAmount]
@@ -813,16 +806,15 @@ export default function GameBoardPage() {
         <br></br>
         <br></br>
         {!selectedQuestion && (
-            <button onClick={nextRound} className={styles.nextRoundButton}>
-              {round === "Final Jeopardy!" ? "End Game" : "Next Round!"}
-            </button>
-          )}
+          <button onClick={nextRound} className={styles.nextRoundButton}>
+            {round === "Final Jeopardy!" ? "End Game" : "Next Round!"}
+          </button>
+        )}
       </div>
       {expandingBox && (
         <div
-          className={`${styles.expandingBox} ${
-            selectedQuestion ? styles.expanded : ""
-          }`}
+          className={`${styles.expandingBox} ${selectedQuestion ? styles.expanded : ""
+            }`}
         >
           {selectedQuestion ? (
             <div className={styles.questionContent}>
@@ -871,9 +863,8 @@ export default function GameBoardPage() {
       )}
       {dailyDoubleExpandingBox && (
         <div
-          className={`${styles.expandingBox} ${
-            selectedQuestion ? styles.expanded : ""
-          }`}
+          className={`${styles.expandingBox} ${selectedQuestion ? styles.expanded : ""
+            }`}
         >
           {selectedQuestion ? (
             <div className={styles.questionContent}>
@@ -897,41 +888,41 @@ export default function GameBoardPage() {
               </h2>
               <p className={styles.questionText}>{selectedQuestion.processedText}</p>
               {!dailyDoubleExpandingBox.isOtherUser ? (
-              <>
-                <form onSubmit={handleSubmit}>
-                  <input
-                    type="number"
-                    name="wager"
-                    required
-                    className={`${styles.wagerInput} ${styles.dailyDouble}`}
-                    placeholder=" Your wager"
-                    min="0"
-                    max={Number(localStorage.getItem("money")) > 0
-                      ? Number(localStorage.getItem("money"))
-                      : 1000}
-                    onChange={(e) => setWagerAmount(e.target.value)}
-                  />
-                  <input
-                    type="text"
-                    name="answer"
-                    required
-                    ref={questionRef}
-                    className={`${styles.answerInput} ${styles.dailyDouble}`}
-                    placeholder="Your answer"
-                  />
-                  <button type="submit" className={styles.submitButton}>
-                    Submit
-                  </button>
-                </form>
-                {answerFeedback && (
-                  <p className={styles.feedback}>{answerFeedback}</p>
-                )}
-              </>
-            ) : (
-              <p className={styles.dailyDoubleNotification}>
-                {dailyDoubleExpandingBox.clickedByUser} is answering the Daily Double!
-              </p>
-            )}
+                <>
+                  <form onSubmit={handleSubmit}>
+                    <input
+                      type="number"
+                      name="wager"
+                      required
+                      className={`${styles.wagerInput} ${styles.dailyDouble}`}
+                      placeholder=" Your wager"
+                      min="0"
+                      max={Number(localStorage.getItem("money")) > 0
+                        ? Number(localStorage.getItem("money"))
+                        : 1000}
+                      onChange={(e) => setWagerAmount(e.target.value)}
+                    />
+                    <input
+                      type="text"
+                      name="answer"
+                      required
+                      ref={questionRef}
+                      className={`${styles.answerInput} ${styles.dailyDouble}`}
+                      placeholder="Your answer"
+                    />
+                    <button type="submit" className={styles.submitButton}>
+                      Submit
+                    </button>
+                  </form>
+                  {answerFeedback && (
+                    <p className={styles.feedback}>{answerFeedback}</p>
+                  )}
+                </>
+              ) : (
+                <p className={styles.dailyDoubleNotification}>
+                  {dailyDoubleExpandingBox.clickedByUser} is answering the Daily Double!
+                </p>
+              )}
               <button onClick={closeQuestion} className={styles.closeButton}>
                 X
               </button>

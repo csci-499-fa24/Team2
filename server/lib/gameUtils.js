@@ -78,28 +78,50 @@ function endGame(gameId, participantData) {
     if (!activeGames[gameId]) return;
 
     const game = activeGames[gameId];
-    const participants = gameParticipants[gameId] || new Set();
+    const participants = gameParticipants[gameId] || {};
 
-    const players = Array.from(participants).map(userId => {
-        const displayName = Object.keys(participantData[gameId] || {}).find(name => participantData[gameId][name]);
-        const points = participantData[gameId]?.[displayName]?.money || 0;
-
+    // Create the players array with points from participantData
+    const players = Object.entries(participants).map(([userId, participant]) => {
+        const displayName = participant.displayName;
+        const points = participantData[displayName] || 0;
         return {
             userId,
-            displayName: displayName || userId, // Fallback to userId if displayName is missing
-            win: false, // Set to true later if this user is marked as the winner
+            displayName: displayName || userId,
             points
         };
     });
+
+    // Determine winner by highest points
+    let owner = null;
+    let winner = null;
+    let highestPoints = -Infinity;
+
+    for (const player of players) {
+        if (player.points > highestPoints) {
+            highestPoints = player.points;
+            owner = player.displayName;
+            winner = player.displayName;
+        }
+    }
+
+    // If no players or no winner found, fall back to a placeholder
+    if (!owner) owner = "No Owner";
+    if (!winner) winner = "No Winner";
+
+    // Mark the winning player(s)
+    const finalPlayers = players.map(p => ({
+        ...p,
+        win: p.displayName === winner
+    }));
 
     // Record the game in the database
     recordGameHistory(
         gameId,
         game.showNumber,
-        game.owner || null,
-        game.winner || null,
-        game.points || 0,
-        players
+        owner,
+        winner,
+        highestPoints > 0 ? highestPoints : 0,
+        finalPlayers
     );
 
     delete activeGames[gameId];
@@ -118,15 +140,15 @@ async function recordGameHistory(gameId, showNumber, owner, winner, points, play
             Owner: owner,
             Winner: winner,
             Points: points,
-            GameDate: new Date() // Use the current date/time
+            GameDate: new Date()
         });
 
         // Add each player's details to player_history
         const playerHistoryRecords = players.map(player => ({
-            GameID: gameHistory.GameID, // Link to the newly created game
-            UserID: player.userId, // User ID of the player
-            Win: player.win, // Boolean indicating if the player won
-            Points: player.points // Points scored by the player
+            GameID: gameHistory.GameID,
+            UserID: player.userId,
+            Win: player.win,
+            Points: player.points
         }));
 
         await db.player_history.bulkCreate(playerHistoryRecords);
