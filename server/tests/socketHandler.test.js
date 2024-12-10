@@ -353,39 +353,26 @@ describe("Socket.IO server tests", () => {
         expect(serverSocket.leave).toHaveBeenCalledWith(currentRoomKey);
       });
 
-      test("should remove user from the previous room and leave the room", () => {
-        const currentRoomKey = "room1";
-        const roomKey = "room2";
+    test("should remove user from the previous room and leave the room", (done) => {
+        const firstRoomKey = "room1";
+        const secondRoomKey = "room2";
         const currentDisplayName = "userA";
-      
-        // Mock rooms object
-        const rooms = {
-          room1: { userA: {}, userB: {} },
-          room2: { userC: {} },
-        };
-      
+        const leaveSpy = jest.spyOn(serverSocket, "leave");
+
+        clientSocket.emit("displayName", currentDisplayName); 
+        clientSocket.emit("roomKey", firstRoomKey);
+        clientSocket.emit("roomKey", secondRoomKey);
         
-        const socket = { leave: jest.fn() };
-      
-        
-        console.log = jest.fn();
-      
-        
-        if (currentRoomKey && currentRoomKey !== roomKey && rooms[currentRoomKey]) {
-          delete rooms[currentRoomKey][currentDisplayName];
-          socket.leave(currentRoomKey);
-          console.log(
-            `User "${currentDisplayName}" removed from room "${currentRoomKey}".`
-          );
-        }
-      
-       
-        expect(rooms[currentRoomKey]).not.toHaveProperty(currentDisplayName); // Check user was removed
-        expect(socket.leave).toHaveBeenCalledWith(currentRoomKey); 
-        expect(console.log).toHaveBeenCalledWith(
-          `User "${currentDisplayName}" removed from room "${currentRoomKey}".`
-        ); 
-      });
-      
-      
+        serverSocket.on("roomKey", (roomKey) => {
+            if (roomKey === firstRoomKey) {
+              expect(rooms[firstRoomKey][currentDisplayName]).toBeDefined();
+              expect(rooms[secondRoomKey]).toBeUndefined();
+            } else if (roomKey === secondRoomKey) {
+              expect(rooms[firstRoomKey][currentDisplayName]).toBeUndefined(); 
+              expect(rooms[secondRoomKey][currentDisplayName]).toBeDefined(); 
+              expect(leaveSpy).toHaveBeenCalledWith(firstRoomKey);
+              done();
+            }
+          });
+    });
 });
