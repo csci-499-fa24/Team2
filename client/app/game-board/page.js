@@ -30,7 +30,7 @@ export default function GameBoardPage() {
   const [clueAnswerNotification, setClueAnswerNotification] = useState(null);
   const questionRef = useRef(null);
   const router = useRouter();
-  const signalingServerUrl = 'wss://team2-server-pr-208.onrender.com/webrtc';
+  const signalingServerUrl = 'wss://team2-server.onrender.com/webrtc';
 
   // Load completeRoomInfo from localStorage on component mount
   useEffect(() => {

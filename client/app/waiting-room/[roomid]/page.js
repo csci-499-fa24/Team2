@@ -10,7 +10,7 @@ import { IoMdCloseCircleOutline } from "react-icons/io";
 import VoiceChat from './voiceChatClient';
 
 const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL;
-const signalingServerUrl = 'wss://team2-server-pr-208.onrender.com/webrtc';
+const signalingServerUrl = 'wss://team2-server.onrender.com/webrtc';
 
 function getMaxPlayersByGameId(gameId, games) {
   if (!Array.isArray(games)) {
