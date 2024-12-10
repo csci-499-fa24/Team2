@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
 import { updateDisplayName, updateUserEmail } from "../../redux/authSlice";
 import styles from "./profile.module.css";
@@ -18,50 +18,62 @@ import {
   Cell,
 } from "recharts";
 
-const MOCK_GAME_HISTORY = [
-  {
-    id: 1,
-    show_number: "8765",
-    points: 600,
-    date: "2024-03-15",
-    win: true,
-  },
-  {
-    id: 2,
-    show_number: "8764",
-    points: 400,
-    date: "2024-03-14",
-    win: false,
-  },
-  {
-    id: 3,
-    show_number: "8762",
-    points: 2100,
-    date: "2024-03-12",
-    win: true,
-  },
-  {
-    id: 4,
-    show_number: "8761",
-    points: 800,
-    date: "2024-03-11",
-    win: false,
-  },
-  {
-    id: 5,
-    show_number: "8758",
-    points: 900,
-    date: "2024-03-08",
-    win: true,
-  },
-  {
-    id: 6,
-    show_number: "8757",
-    points: 2300,
-    date: "2024-03-07",
-    win: true,
-  },
-];
+// ProfileTab moved outside of ProfilePage as per fix #3
+const ProfileTab = ({
+  userEmail,
+  displayName,
+  newDisplayName,
+  setNewDisplayName,
+  handleForm,
+  userid,
+  router,
+  newEmail,
+  setNewEmail
+}) => (
+  <div className={styles.contentWrapper}>
+    <h2 className={styles.profileGreeting}>Hello, {displayName}!</h2>
+    <div className={styles.formWrapper}>
+      <form className={styles.formContainer}>
+        <label htmlFor="email" className={styles.inputLabel}>
+          Email:
+        </label>
+        <input
+          type="email"
+          name="email"
+          id="email"
+          disabled
+          className={`${styles.inputField} ${styles.disabledInput}`}
+          placeholder={userEmail}
+          onChange={(e) => setNewEmail(e.target.value)}
+        />
+
+        <label htmlFor="displayName" className={styles.inputLabel}>
+          Display Name:
+        </label>
+        <input
+          type="text"
+          name="displayName"
+          id="displayName"
+          className={styles.inputField}
+          value={newDisplayName}
+          placeholder={displayName}
+          onChange={(e) => setNewDisplayName(e.target.value)}
+        />
+      </form>
+      <div className={styles.buttonsContainer}>
+        <button className={styles.buttons} onClick={handleForm}>
+          Update Profile
+        </button>
+        <button
+          className={styles.buttons}
+          onClick={() => router.push(`/${userid}`)}
+        >
+          Go back
+        </button>
+      </div>
+    </div>
+  </div>
+);
 
 const ProfilePage = () => {
   const router = useRouter();
@@ -71,7 +83,7 @@ const ProfilePage = () => {
   const [newEmail, setNewEmail] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [newDisplayName, setNewDisplayName] = useState("");
-  const [gameHistory, setGameHistory] = useState(MOCK_GAME_HISTORY);
+  const [gameHistory, setGameHistory] = useState([]); // Initially empty
   const [activeTab, setActiveTab] = useState("profile");
   const dispatch = useDispatch();
 
@@ -91,7 +103,33 @@ const ProfilePage = () => {
       setDisplayName(user.displayName);
       setUserid(user.uid);
     }
-  }, [user]);
+  }, [user, loading]);
+
+  // Fetch real game history data once we have a user ID
+  useEffect(() => {
+    if (userid) {
+      fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/history/player_history/${userid}`)
+        .then((response) => response.json())
+        .then((data) => {
+          if (data && data.gameHistory && Array.isArray(data.gameHistory)) {
+            const transformedHistory = data.gameHistory.map((game) => ({
+              id: game.game_id,
+              show_number: game.show_number,
+              points: game.points,
+              date: game.date,
+              win: game.result === "win",
+            }));
+            setGameHistory(transformedHistory);
+          } else {
+            setGameHistory([]);
+          }
+        })
+        .catch((error) => {
+          console.error("Error fetching game history:", error);
+          setGameHistory([]);
+        });
+    }
+  }, [userid]);
 
   const handleForm = async (e) => {
     e.preventDefault();
@@ -104,12 +142,9 @@ const ProfilePage = () => {
     if (displayNameToUpdate !== displayName || emailToUpdate !== userEmail) {
       if (displayNameToUpdate !== displayName) {
         try {
-          console.log("update in progress");
-          console.log("userid: ", userid);
           const isDisplayNameUpdated = await dispatch(
             updateDisplayName(userid, displayNameToUpdate)
           );
-          console.log("updatedDisplayName:", isDisplayNameUpdated);
           if (isDisplayNameUpdated) {
             window.setDisplayName(newDisplayName);
             updatedName = true;
@@ -147,51 +182,6 @@ const ProfilePage = () => {
       alert("No changes made.");
     }
   };
-  const ProfileTab = () => (
-    <div className={styles.contentWrapper}>
-      <h2 className={styles.profileGreeting}>Hello, {displayName}!</h2>
-      <div className={styles.formWrapper}>
-        <form className={styles.formContainer}>
-          <label htmlFor="email" className={styles.inputLabel}>
-            Email:
-          </label>
-          <input
-            type="email"
-            name="email"
-            id="email"
-            disabled
-            className={`${styles.inputField} ${styles.disabledInput}`}
-            placeholder={userEmail}
-            onChange={(e) => setNewEmail(e.target.value)}
-          />
-
-          <label htmlFor="displayName" className={styles.inputLabel}>
-            Display Name:
-          </label>
-          <input
-            type="text"
-            name="displayName"
-            id="displayName"
-            className={styles.inputField}
-            value={newDisplayName}
-            placeholder={displayName}
-            onChange={(e) => setNewDisplayName(e.target.value)}
-          />
-        </form>
-        <div className={styles.buttonsContainer}>
-          <button className={styles.buttons} onClick={handleForm}>
-            Update Profile
-          </button>
-          <button
-            className={styles.buttons}
-            onClick={() => router.push(`/${userid}`)}
-          >
-            Go back
-          </button>
-        </div>
-      </div>
-    </div>
-  );
 
   const HistoryTab = () => (
     <div className={styles.contentWrapper}>
@@ -216,7 +206,13 @@ const ProfilePage = () => {
                     </div>
                     <div className={styles.statItem}>
                       <span className={styles.statLabel}>Date</span>
-                      <span className={styles.statValue}>{game.date}</span>
+                      <span className={styles.statValue}>
+                        {new Date(game.date).toLocaleDateString("en-US", {
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                        })}
+                      </span>
                     </div>
                     <div className={styles.resultSection}>
                       <span className={styles.resultLabel}>
@@ -261,16 +257,25 @@ const ProfilePage = () => {
                   cx="50%"
                   cy="50%"
                   innerRadius={60}
-                  outerRadius={100}
+                  outerRadius={90}
                   paddingAngle={5}
                   dataKey="value"
                   label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
+                  labelLine={false}
                 >
                   {pieData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
-                <Tooltip />
+                <Tooltip
+                  labelFormatter={(value) =>
+                    new Date(value).toLocaleDateString("en-US", {
+                      year: "numeric",
+                      month: "short",
+                      day: "numeric",
+                    })
+                  }
+                />
                 <Legend />
               </PieChart>
             </div>
@@ -289,9 +294,26 @@ const ProfilePage = () => {
                 margin={{ top: 5, right: 20, left: 20, bottom: 5 }}
               >
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" />
+                <XAxis
+                  dataKey="date"
+                  tickFormatter={(date) =>
+                    new Date(date).toLocaleDateString("en-US", {
+                      year: "numeric",
+                      month: "short",
+                      day: "numeric",
+                    })
+                  }
+                />
                 <YAxis />
-                <Tooltip />
+                <Tooltip
+                  labelFormatter={(value) =>
+                    new Date(value).toLocaleDateString("en-US", {
+                      year: "numeric",
+                      month: "short",
+                      day: "numeric",
+                    })
+                  }
+                />
                 <Legend />
                 <Line
                   type="monotone"
@@ -323,7 +345,7 @@ const ProfilePage = () => {
           <div className={styles.statCard}>
             <div className={styles.statContent}>
               <p className={styles.statNumber}>
-                {Math.round((wins / gameHistory.length) * 100)}%
+                {gameHistory.length > 0 ? Math.round((wins / gameHistory.length) * 100) : 0}%
               </p>
               <p className={styles.statLabel}>Win Rate</p>
             </div>
@@ -340,32 +362,38 @@ const ProfilePage = () => {
         <div className={styles.tabsContainer}>
           <div className={styles.tabsWrapper}>
             <button
-              className={`${styles.tabButton} ${
-                activeTab === "profile" ? styles.activeTab : ""
-              }`}
+              className={`${styles.tabButton} ${activeTab === "profile" ? styles.activeTab : ""}`}
               onClick={() => setActiveTab("profile")}
             >
               Profile
             </button>
             <button
-              className={`${styles.tabButton} ${
-                activeTab === "history" ? styles.activeTab : ""
-              }`}
+              className={`${styles.tabButton} ${activeTab === "history" ? styles.activeTab : ""}`}
               onClick={() => setActiveTab("history")}
             >
               History
             </button>
             <button
-              className={`${styles.tabButton} ${
-                activeTab === "charts" ? styles.activeTab : ""
-              }`}
+              className={`${styles.tabButton} ${activeTab === "charts" ? styles.activeTab : ""}`}
               onClick={() => setActiveTab("charts")}
             >
               Stats
             </button>
           </div>
         </div>
-        {activeTab === "profile" && <ProfileTab />}
+        {activeTab === "profile" && (
+          <ProfileTab
+            userEmail={userEmail}
+            displayName={displayName}
+            newDisplayName={newDisplayName}
+            setNewDisplayName={setNewDisplayName}
+            handleForm={handleForm}
+            userid={userid}
+            router={router}
+            newEmail={newEmail}
+            setNewEmail={setNewEmail}
+          />
+        )}
         {activeTab === "history" && <HistoryTab />}
         {activeTab === "charts" && <ChartsTab />}
       </div>
