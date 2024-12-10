@@ -18,6 +18,63 @@ import {
   Cell,
 } from "recharts";
 
+// ProfileTab moved outside of ProfilePage as per fix #3
+const ProfileTab = ({
+  userEmail,
+  displayName,
+  newDisplayName,
+  setNewDisplayName,
+  handleForm,
+  userid,
+  router,
+  newEmail,
+  setNewEmail
+}) => (
+  <div className={styles.contentWrapper}>
+    <h2 className={styles.profileGreeting}>Hello, {displayName}!</h2>
+    <div className={styles.formWrapper}>
+      <form className={styles.formContainer}>
+        <label htmlFor="email" className={styles.inputLabel}>
+          Email:
+        </label>
+        <input
+          type="email"
+          name="email"
+          id="email"
+          disabled
+          className={`${styles.inputField} ${styles.disabledInput}`}
+          placeholder={userEmail}
+          onChange={(e) => setNewEmail(e.target.value)}
+        />
+
+        <label htmlFor="displayName" className={styles.inputLabel}>
+          Display Name:
+        </label>
+        <input
+          type="text"
+          name="displayName"
+          id="displayName"
+          className={styles.inputField}
+          value={newDisplayName}
+          placeholder={displayName}
+          onChange={(e) => setNewDisplayName(e.target.value)}
+        />
+      </form>
+      <div className={styles.buttonsContainer}>
+        <button className={styles.buttons} onClick={handleForm}>
+          Update Profile
+        </button>
+        <button
+          className={styles.buttons}
+          onClick={() => router.push(`/${userid}`)}
+        >
+          Go back
+        </button>
+      </div>
+    </div>
+  </div>
+);
+
 const ProfilePage = () => {
   const router = useRouter();
   const { user, loading } = useSelector((state) => state.auth);
@@ -126,51 +183,6 @@ const ProfilePage = () => {
     }
   };
 
-  const ProfileTab = () => (
-    <div className={styles.contentWrapper}>
-      <h2 className={styles.profileGreeting}>Hello, {displayName}!</h2>
-      <div className={styles.formWrapper}>
-        <form className={styles.formContainer}>
-          <label htmlFor="email" className={styles.inputLabel}>
-            Email:
-          </label>
-          <input
-            type="email"
-            name="email"
-            id="email"
-            disabled
-            className={`${styles.inputField} ${styles.disabledInput}`}
-            placeholder={userEmail}
-            onChange={(e) => setNewEmail(e.target.value)}
-          />
-
-          <label htmlFor="displayName" className={styles.inputLabel}>
-            Display Name:
-          </label>
-          <input
-            type="text"
-            name="displayName"
-            id="displayName"
-            className={styles.inputField}
-            value={newDisplayName}
-            onChange={(e) => setNewDisplayName(e.target.value)}
-          />
-        </form>
-        <div className={styles.buttonsContainer}>
-          <button className={styles.buttons} onClick={handleForm}>
-            Update Profile
-          </button>
-          <button
-            className={styles.buttons}
-            onClick={() => router.push(`/${userid}`)}
-          >
-            Go back
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-
   const HistoryTab = () => (
     <div className={styles.contentWrapper}>
       <div className={styles.gameHistoryContainer}>
@@ -245,11 +257,11 @@ const ProfilePage = () => {
                   cx="50%"
                   cy="50%"
                   innerRadius={60}
-                  outerRadius={90} // Reduced outerRadius from 100 to 90
+                  outerRadius={90}
                   paddingAngle={5}
                   dataKey="value"
                   label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
-                  labelLine={false} // Hide label line to reduce clutter
+                  labelLine={false}
                 >
                   {pieData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
@@ -350,29 +362,38 @@ const ProfilePage = () => {
         <div className={styles.tabsContainer}>
           <div className={styles.tabsWrapper}>
             <button
-              className={`${styles.tabButton} ${activeTab === "profile" ? styles.activeTab : ""
-                }`}
+              className={`${styles.tabButton} ${activeTab === "profile" ? styles.activeTab : ""}`}
               onClick={() => setActiveTab("profile")}
             >
               Profile
             </button>
             <button
-              className={`${styles.tabButton} ${activeTab === "history" ? styles.activeTab : ""
-                }`}
+              className={`${styles.tabButton} ${activeTab === "history" ? styles.activeTab : ""}`}
               onClick={() => setActiveTab("history")}
             >
               History
             </button>
             <button
-              className={`${styles.tabButton} ${activeTab === "charts" ? styles.activeTab : ""
-                }`}
+              className={`${styles.tabButton} ${activeTab === "charts" ? styles.activeTab : ""}`}
               onClick={() => setActiveTab("charts")}
             >
               Stats
             </button>
           </div>
         </div>
-        {activeTab === "profile" && <ProfileTab />}
+        {activeTab === "profile" && (
+          <ProfileTab
+            userEmail={userEmail}
+            displayName={displayName}
+            newDisplayName={newDisplayName}
+            setNewDisplayName={setNewDisplayName}
+            handleForm={handleForm}
+            userid={userid}
+            router={router}
+            newEmail={newEmail}
+            setNewEmail={setNewEmail}
+          />
+        )}
         {activeTab === "history" && <HistoryTab />}
         {activeTab === "charts" && <ChartsTab />}
       </div>
